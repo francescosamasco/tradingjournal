@@ -1,15 +1,46 @@
 package it.samfrafx.tradingjournal.webapp.controller;
 
+import java.time.LocalDate;
+import java.time.temporal.WeekFields;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
 public class DashboardViewController {
 
+	
+	@GetMapping(value = {"/s"})
+	public String mainView (  @RequestParam(name="accountId", required=true) String accountId ) {
+
+		LocalDate today = LocalDate.now(); // data di sistema
+		int year = today.getYear(); // anno
+		int month = today.getMonthValue(); // mese
+		int weekOfYear = today.get(WeekFields.of(Locale.getDefault()).weekOfYear());
+
+		
+		
+		//Set<Integer> weeks = JournalCalendarUtils.getSettimaneDelMese(year, month);	
+        //
+		//DashboardData dashboard = this.dashboardService.getDashboard(accountId, year, "4");
+
+	//	//messaggio aggiornamento automatico
+	//	return this.getViewResolver()
+	//			.addViewParameter("dashboard", dashboard)
+	//			.addViewParameter("trades", dashboard.takeAllTrades())
+	//			.addModuleParameter("dashboard", dashboard)
+	//			.addModuleParameter("daydatas", dashboard.takeAllDayDatas())
+	//			.view();
+		
+		return null;
+	}
+	
+	
     @GetMapping("/")
     public String home(Model model) {
         model.addAttribute("title", "Home");
