@@ -11,7 +11,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import it.samfrafx.tradingjournal.bl.DashboardData;
+import it.samfrafx.tradingjournal.bl.data.DashboardData;
 
 @Controller
 public class DashboardViewController {
@@ -20,6 +20,9 @@ public class DashboardViewController {
 	@GetMapping(value = {"/s"})
 	public String mainView (  @RequestParam(name="accountId", required=true) String accountId ) {
 
+		if( accountId == null )
+			accountId = "fa54de65-9679-406f-9bcd-d3110ab4cc6e";
+		
 		LocalDate today = LocalDate.now(); // data di sistema
 		int year = today.getYear(); // anno
 		int month = today.getMonthValue(); // mese

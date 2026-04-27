@@ -71,19 +71,16 @@ function initDrawdownChart() {
         }
     });
 }
-
 function initTradesTable() {
-
-    const data = window.tradingCalendarData || {};
     const tbody = document.getElementById("tradesTableBody");
+    const tradesByDate = window.tradingCalendarData || {};
 
     if (!tbody) return;
 
-    renderTradesTable(data, tbody);
+    renderTradesTable(tradesByDate, tbody);
 }
 
 function renderTradesTable(tradesByDate, tbody) {
-
     tbody.innerHTML = "";
 
     const keys = Object.keys(tradesByDate).sort();
@@ -100,18 +97,24 @@ function renderTradesTable(tradesByDate, tbody) {
     }
 
     keys.forEach(function (dateKey) {
-
         const trade = tradesByDate[dateKey];
         const positive = trade.amount >= 0;
 
         const row = document.createElement("tr");
 
         row.innerHTML = `
-            <td>${formatDateItalian(dateKey)}</td>
+            <td>
+                <strong>${formatDateItalian(dateKey)}</strong>
+            </td>
+
             <td class="${positive ? "trade-result-positive" : "trade-result-negative"}">
                 ${formatMoney(trade.amount)}
             </td>
-            <td>${trade.trades}</td>
+
+            <td>
+                ${trade.trades}
+            </td>
+
             <td>
                 <span class="trade-badge ${positive ? "positive" : "negative"}">
                     ${positive ? "Profit" : "Loss"}
@@ -132,3 +135,4 @@ function formatMoney(value) {
     const sign = value >= 0 ? "$" : "-$";
     return sign + Math.abs(value).toLocaleString("en-US");
 }
+

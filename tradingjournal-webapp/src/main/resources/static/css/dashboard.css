@@ -160,6 +160,64 @@ body {
   background: #f16065;
 }
 
+
+/* TABELLA STORICO TRADES */
+.trades-table {
+  font-size: 14px;
+}
+
+.trades-table thead th {
+  background: #f9fafb;
+  color: #6b7280;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 12px 14px;
+}
+
+.trades-table tbody td {
+  padding: 14px;
+  border-bottom: 1px solid #f1f1f1;
+}
+
+.trades-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.trades-table tbody tr:hover {
+  background: #f9fafb;
+}
+
+.trade-result-positive {
+  color: #1f8f5f;
+  font-weight: 800;
+}
+
+.trade-result-negative {
+  color: #b42323;
+  font-weight: 800;
+}
+
+.trade-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.trade-badge.positive {
+  background: #dff7ec;
+  color: #1f8f5f;
+}
+
+.trade-badge.negative {
+  background: #ffe5e5;
+  color: #b42323;
+}
+
 /* RESPONSIVE PAGINA */
 @media (max-width: 768px) {
   .metric-card {

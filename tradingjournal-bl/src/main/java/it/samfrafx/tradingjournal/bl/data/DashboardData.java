@@ -1,7 +1,8 @@
-package it.samfrafx.tradingjournal.bl;
+package it.samfrafx.tradingjournal.bl.data;
 
 import java.math.BigDecimal;
 
+import it.samfrafx.tradingjournal.bl.PeriodEnum;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
