@@ -1,0 +1,466 @@
+/* ================= PALETTE CASA ZACCARIELLO =================
+   Colori principali ispirati al logo: nero elegante, bianco e oro caldo */
+:root{
+  --bg:#0F0F0F;
+  --card:#1C1C1C;
+  --text:#F5F5F5;
+  --muted:#B8B8B8;
+  --accent:#C9A46C;
+  --accent2:#E2C08B;
+  --line:rgba(255,255,255,.08);
+  --shadow:0 12px 30px rgba(0,0,0,.45);
+  --radius:20px;
+}
+
+/* ================= BASE PAGINA ================= */
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,"Noto Sans",sans-serif;
+  margin:0;
+}
+
+/* ================= HERO SECTION ================= */
+.hero{
+  padding:80px 0 100px;
+  text-align:center;
+  background:radial-gradient(circle at top,#1C1C1C,#0F0F0F);
+}
+
+/* ================= LOGO PRINCIPALE ================= */
+.hero-logo{
+  width:420px;
+  height:auto;
+  display:block;
+  margin:0 auto 50px auto;
+}
+
+/* Testo piccolo sopra il titolo */
+.kicker{
+  font-size:.85rem;
+  font-weight:700;
+  letter-spacing:.20em;
+  color:var(--accent);
+  margin-bottom:10px;
+  text-transform:uppercase;
+}
+
+/* Titolo principale */
+.title{
+  font-size:clamp(2.4rem,6vw,4.5rem);
+  font-weight:800;
+  letter-spacing:.04em;
+  margin-bottom:16px;
+  color:var(--text);
+}
+
+/* Sottotitolo descrittivo */
+.subtitle{
+  max-width:760px;
+  margin:0 auto;
+  font-size:1.08rem;
+  line-height:1.7;
+  color:var(--muted);
+}
+
+/* ================= SEZIONI CONTENUTO ================= */
+.section-wrap{
+  padding:24px 0 70px;
+}
+
+/* ================= CARD PRINCIPALI ================= */
+.card-soft{
+  background:var(--card);
+  border-radius:var(--radius);
+  padding:28px;
+  box-shadow:var(--shadow);
+  border:1px solid rgba(255,255,255,.04);
+}
+
+/* Titolo delle card con icona */
+.card-title{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  font-size:1.2rem;
+  font-weight:700;
+  margin-bottom:22px;
+  color:var(--text);
+}
+
+/* Icona tonda color oro */
+.icon-circle{
+  width:46px;
+  height:46px;
+  border-radius:50%;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:1.2rem;
+  flex-shrink:0;
+  color:#111;
+}
+
+/* Riga di lista */
+.list-line{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  padding:10px 0;
+  border-bottom:1px solid var(--line);
+}
+
+.list-line:last-of-type{
+  border-bottom:none;
+}
+
+.soft-divider{
+  border-color:var(--line);
+}
+
+.mini-icon{
+  font-size:1.1rem;
+  line-height:1;
+  margin-top:2px;
+}
+
+.address-title{
+  font-weight:700;
+  color:var(--text);
+}
+
+.address-subtitle,
+.muted-text{
+  color:var(--muted);
+}
+
+.support-title{
+  font-weight:700;
+  margin-bottom:6px;
+  color:var(--text);
+}
+
+/* ================= BOX AVVISO ================= */
+.badge-warn{
+  background:rgba(201,164,108,.14);
+  color:#F1D7AA;
+  border:1px solid rgba(201,164,108,.28);
+  border-radius:18px;
+  padding:16px 18px;
+  line-height:1.6;
+}
+
+/* ================= BOTTONI PRINCIPALI ================= */
+.btn-pill{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:14px 26px;
+  border:none;
+  border-radius:999px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  color:#111;
+  font-weight:800;
+  text-decoration:none;
+  box-shadow:0 8px 22px rgba(0,0,0,.50);
+  transition:transform .18s ease, box-shadow .18s ease, filter .18s ease;
+}
+
+.btn-pill:hover{
+  color:#111;
+  transform:translateY(-2px);
+  box-shadow:0 12px 28px rgba(0,0,0,.60);
+  filter:brightness(1.03);
+}
+
+.btn-pill-outline{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:14px 24px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.12);
+  background:#181818;
+  color:var(--text);
+  font-weight:700;
+  text-decoration:none;
+  transition:all .18s ease;
+}
+
+.btn-pill-outline:hover{
+  color:var(--text);
+  transform:translateY(-2px);
+  box-shadow:var(--shadow);
+  border-color:rgba(201,164,108,.45);
+}
+
+/* ================= CTA BOX ================= */
+.cta-box{
+  padding:34px 24px;
+}
+
+.cta-title{
+  font-size:1.8rem;
+  font-weight:800;
+  margin-bottom:10px;
+  color:var(--text);
+}
+
+/* ================= MAPPA ================= */
+.map-wrap{
+  overflow:hidden;
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  background:#111;
+  border:1px solid rgba(255,255,255,.04);
+}
+
+/* ================= FOOTER ================= */
+.site-footer{
+  padding:26px 0 38px;
+  color:var(--muted);
+  font-size:.95rem;
+  border-top:1px solid rgba(255,255,255,.05);
+}
+
+/* ================= LINK GENERICI ================= */
+a{
+  color:var(--accent);
+}
+
+a:hover{
+  color:var(--accent2);
+}
+
+/* =========================
+   PAGINA MENU
+========================= */
+.hero-menu{
+  padding-bottom:14px;
+}
+
+.menu-title{
+  margin-bottom:8px;
+}
+
+.menu-page{
+  padding-bottom:40px;
+}
+
+.menu-layout{
+  display:grid;
+  grid-template-columns:minmax(0, 1fr) 360px;
+  gap:24px;
+  align-items:start;
+}
+
+.products-column{
+  min-width:0;
+}
+
+.section-title{
+  font-size:1.7rem;
+  font-weight:800;
+  color:var(--text);
+}
+
+.products-list{
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+}
+
+.product-row{
+  padding:20px;
+}
+
+.product-content{
+  display:flex;
+  align-items:stretch;
+  justify-content:space-between;
+  gap:18px;
+}
+
+.product-text{
+  flex:1;
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+}
+
+.product-name{
+  margin:0 0 8px;
+  font-size:1.2rem;
+  font-weight:700;
+  color:var(--text);
+}
+
+.product-desc{
+  margin:0 0 14px;
+  color:var(--muted);
+  line-height:1.5;
+}
+
+.product-bottom{
+  margin-top:auto;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+}
+
+.product-price{
+  font-weight:800;
+  font-size:1.05rem;
+  color:var(--text);
+}
+
+.product-thumb{
+  width:120px;
+  min-width:120px;
+  height:120px;
+  border-radius:16px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:2.2rem;
+  background:rgba(255,255,255,.03);
+  border:1px solid rgba(255,255,255,.05);
+}
+
+.btn-add-product{
+  min-width:48px;
+  width:48px;
+  height:48px;
+  padding:0;
+  border-radius:999px;
+  font-size:1.5rem;
+  line-height:1;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.cart-column{
+  position:sticky;
+  top:24px;
+  align-self:start;
+}
+
+.cart-box{
+  min-height:70vh;
+  display:flex;
+  flex-direction:column;
+  padding:0;
+  overflow:hidden;
+}
+
+.cart-header{
+  padding:20px 20px 12px;
+  border-bottom:1px solid var(--line);
+}
+
+.cart-title{
+  margin:0;
+  font-size:1.2rem;
+  font-weight:700;
+  color:var(--text);
+}
+
+.cart-body{
+  flex:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:24px 20px;
+  text-align:center;
+}
+
+.cart-empty-icon{
+  font-size:3rem;
+  margin-bottom:12px;
+}
+
+.cart-footer{
+  padding:16px 20px 20px;
+  border-top:1px solid var(--line);
+}
+
+.cart-footer .btn{
+  border-radius:14px;
+  padding:14px 18px;
+  font-weight:700;
+}
+
+/* ================= RESPONSIVE TABLET ================= */
+@media (max-width: 991.98px){
+  .menu-layout{
+    grid-template-columns:1fr;
+  }
+
+  .cart-column{
+    position:static;
+  }
+
+  .cart-box{
+    min-height:auto;
+  }
+}
+
+/* ================= RESPONSIVE MOBILE ================= */
+@media (max-width:576px){
+  .hero{
+    padding-top:48px;
+  }
+
+  .hero-logo{
+    width:320px;
+  }
+
+  .card-soft{
+    padding:22px;
+  }
+
+  .list-line{
+    font-size:.96rem;
+  }
+
+  .subtitle{
+    font-size:1rem;
+  }
+
+  .cta-title{
+    font-size:1.5rem;
+  }
+
+  .products-list{
+    gap:14px;
+  }
+
+  .product-row{
+    padding:18px;
+  }
+
+  .product-content{
+    flex-direction:column;
+  }
+
+  .product-thumb{
+    width:100%;
+    min-width:100%;
+    height:160px;
+  }
+
+  .product-bottom{
+    gap:10px;
+  }
+
+  .cart-header,
+  .cart-body,
+  .cart-footer{
+    padding-left:18px;
+    padding-right:18px;
+  }
+}

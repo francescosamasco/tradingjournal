@@ -1,0 +1,197 @@
+/* HEADER CALENDARIO */
+.calendar-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cal-btn {
+  width: 28px;
+  height: 28px;
+  border: 0;
+  background: transparent;
+  font-size: 24px;
+  line-height: 1;
+  color: #111827;
+  cursor: pointer;
+}
+
+.calendar-stats {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #374151;
+}
+
+.stat-pill {
+  background: #f3f4f6;
+  border-radius: 999px;
+  padding: 4px 8px;
+  font-size: 11px;
+}
+
+/* LAYOUT CALENDARIO */
+.calendar-layout {
+  display: grid;
+  grid-template-columns: 1fr 112px;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.calendar-grid-pro {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+
+.cal-day-name {
+  height: 28px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  background: #ffffff;
+}
+
+/* CELLE */
+.cal-cell {
+  height: 105px;
+  background: #f3f4f6;
+  border: 1px solid #ffffff;
+  border-radius: 8px;
+  padding: 7px;
+  position: relative;
+  font-size: 11px;
+}
+
+.cal-cell.empty {
+  background: #ffffff;
+  border: 1px solid #f1f1f1;
+}
+
+.cal-number {
+  position: absolute;
+  top: 7px;
+  right: 8px;
+  color: #6b7280;
+  font-weight: 600;
+}
+
+/* CELLA CON TRADE */
+.cal-cell.positive {
+  background: #dff7ec;
+  border: 1px solid #9ee6c3;
+}
+
+.cal-cell.negative {
+  background: #ffe5e5;
+  border: 1px solid #f4aaaa;
+}
+
+.trade-box {
+  margin-top: 28px;
+  background: transparent;
+  border: none;
+  text-align: center;
+  font-weight: 800;
+  font-size: 13px;
+}
+
+.cal-cell.positive .trade-box {
+  color: #1f8f5f;
+}
+
+.cal-cell.negative .trade-box {
+  color: #b42323;
+}
+
+.trade-box small {
+  display: block;
+  font-weight: 500;
+  font-size: 10px;
+}
+
+/* WEEK SUMMARY */
+.week-summary {
+  display: grid;
+  grid-template-rows: repeat(5, 1fr);
+  gap: 6px;
+  margin-top: 34px;
+}
+
+.week-card {
+  min-height: 105px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 10px;
+  padding: 10px;
+  background: #ffffff;
+  font-size: 11px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+}
+
+.week-card strong {
+  color: #374151;
+}
+
+.week-card span {
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.week-card small {
+  margin-top: 4px;
+  background: #f0ebff;
+  color: #5b4dff;
+  padding: 2px 6px;
+  border-radius: 999px;
+  font-size: 10px;
+}
+
+.week-card.negative span {
+  color: #b42323;
+}
+
+/* RESPONSIVE CALENDARIO */
+@media (max-width: 1200px) {
+  .calendar-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .week-summary {
+    grid-template-columns: repeat(5, 1fr);
+    grid-template-rows: none;
+    margin-top: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .calendar-header {
+    flex-wrap: wrap;
+  }
+
+  .calendar-stats {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .cal-cell {
+    height: 65px;
+    padding: 5px;
+  }
+
+  .trade-box {
+    font-size: 10px;
+    padding: 4px;
+  }
+
+  .week-summary {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

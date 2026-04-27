@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="it" xmlns:th="http://www.thymeleaf.org">
+<body>
+<footer th:fragment="footer" class="py-4 mt-5">
+  <div class="container">
+    <hr class="hr-soft">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start gap-2 text-muted2 small">
+      <div>
+        <div class="fw-semibold text-white">Casa Zaccariello</div>
+        <div>Pizzeria & Cucina</div>
+      </div>
+      <div>© <span th:text="${#dates.format(#dates.createNow(),'yyyy')}">2026</span> Tutti i diritti riservati.</div>
+    </div>
+  </div>
+</footer>
+</body>
+</html>

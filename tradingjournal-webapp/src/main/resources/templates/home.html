@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="it" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Trading Dashboard</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link th:href="@{/css/dashboard.css}" rel="stylesheet">
+  <link th:href="@{/css/trading-calendar.css}" rel="stylesheet">
+</head>
+
+<body class="dashboard-body">
+
+<div class="container-fluid py-4">
+
+  <!-- TOP CARDS -->
+  <div class="row g-3 mb-3">
+
+    <div class="col-12 col-md-6 col-xl">
+      <div class="metric-card">
+        <div class="metric-head">
+          <span>Account balance &amp; P&amp;L</span>
+          <span class="info-dot">i</span>
+          <span class="count-dot">0</span>
+        </div>
+
+        <div class="metric-main text-success">$25,000</div>
+
+        <div class="metric-bottom">
+          <span>P&amp;L:</span>
+          <strong>--</strong>
+        </div>
+
+        <div class="metric-icon">↗</div>
+      </div>
+    </div>
+
+    <div class="col-12 col-md-6 col-xl">
+      <div class="metric-card">
+        <div class="metric-head">
+          <span>Net P&amp;L</span>
+          <span class="info-dot">i</span>
+          <span class="count-dot">0</span>
+        </div>
+
+        <div class="metric-main">--</div>
+
+        <div class="metric-icon">↔</div>
+      </div>
+    </div>
+
+    <div class="col-12 col-md-6 col-xl">
+      <div class="metric-card">
+        <div class="metric-head">
+          <span>Trade win %</span>
+          <span class="info-dot">i</span>
+        </div>
+
+        <div class="metric-main">--</div>
+
+        <div class="semi-circle"></div>
+      </div>
+    </div>
+
+    <div class="col-12 col-md-6 col-xl">
+      <div class="metric-card">
+        <div class="metric-head">
+          <span>Profit factor</span>
+          <span class="info-dot">i</span>
+        </div>
+
+        <div class="metric-main">--</div>
+
+        <div class="ring-circle"></div>
+      </div>
+    </div>
+
+    <div class="col-12 col-md-6 col-xl">
+      <div class="metric-card">
+        <div class="metric-head">
+          <span>Avg win/loss trade</span>
+          <span class="info-dot">i</span>
+        </div>
+
+        <div class="metric-progress">
+          <div class="progress-green"></div>
+          <div class="progress-red"></div>
+        </div>
+
+        <div class="metric-bottom metric-bottom-split">
+          <strong>--</strong>
+          <strong>--</strong>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- MAIN GRID -->
+  <div class="row g-3">
+
+    <!-- CALENDARIO -->
+    <div class="col-12 col-xl-8">
+      <div class="dash-card">
+
+        <div class="calendar-header">
+          <button type="button" class="cal-btn" id="prevMonth">‹</button>
+          <strong id="calendarTitle">April 2025</strong>
+          <button type="button" class="cal-btn" id="nextMonth">›</button>
+
+          <button type="button" class="btn btn-sm btn-light ms-3">Button</button>
+
+          <div class="ms-auto calendar-stats">
+            <span>Monthly stats:</span>
+            <strong class="text-success" id="monthlyAmount">--</strong>
+            <span class="stat-pill" id="monthlyDays">0 days</span>
+            <span class="stat-pill" id="monthlyTrades">0 trades</span>
+          </div>
+        </div>
+
+        <div class="calendar-layout mt-3">
+          <div class="calendar-grid-pro" id="calendarGrid"></div>
+          <div class="week-summary" id="weekSummary"></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- GRAFICI DESTRA -->
+    <div class="col-12 col-xl-4">
+
+      <div class="dash-card mb-3">
+        <div class="dash-title">Account balance</div>
+        <canvas id="balanceChart"></canvas>
+      </div>
+
+      <div class="dash-card">
+        <div class="dash-title">Drawdown</div>
+        <canvas id="drawdownChart"></canvas>
+      </div>
+
+    </div>
+
+    <!-- TABELLA TRADES FUORI DAL CALENDARIO -->
+    <div class="col-12">
+      <div class="dash-card mt-3">
+        <div class="dash-title">Storico Trades</div>
+
+        <div class="table-responsive">
+          <table class="table trades-table align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Data</th>
+                <th>Risultato</th>
+                <th>N. Trades</th>
+                <th>Esito</th>
+              </tr>
+            </thead>
+            <tbody id="tradesTableBody"></tbody>
+          </table>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<script th:inline="javascript">
+  window.tradingCalendarData = /*[[${tradesByDate}]]*/ {};
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script th:src="@{/js/trading-calendar.js}"></script>
+<script th:src="@{/js/module.js}"></script>
+
+</body>
+</html>

@@ -1,0 +1,172 @@
+body {
+  font-family: 'Roboto', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* BASE */
+.dashboard-body {
+  background: #f4f4f5;
+  color: #111827;
+}
+
+/* CARD GENERICHE */
+.dash-card {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 18px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+}
+
+.dash-title {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 16px;
+  color: #111827;
+}
+
+/* TOP METRIC CARDS */
+.row.g-3.mb-3 > div {
+  display: flex;
+}
+
+.row.g-3.mb-3 > div > .metric-card {
+  width: 100%;
+}
+
+.metric-card {
+  position: relative;
+  height: 140px;
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 18px 22px;
+  border: 1px solid #f1f1f1;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.035);
+  overflow: hidden;
+}
+
+.metric-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #1f2a44;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.info-dot {
+  width: 16px;
+  height: 16px;
+  border: 1px solid #6b7280;
+  border-radius: 50%;
+  font-size: 11px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #4b5563;
+  font-weight: 700;
+}
+
+.count-dot {
+  min-width: 22px;
+  height: 22px;
+  padding: 0 7px;
+  border-radius: 999px;
+  background: #f0f1f8;
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #1f2a44;
+}
+
+.metric-main {
+  font-size: 24px;
+  line-height: 1;
+  font-weight: 800;
+  color: #1f2a44;
+  margin-top: 10px;
+}
+
+.metric-bottom {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #1f2a44;
+  font-size: 14px;
+}
+
+.metric-bottom-split {
+  justify-content: space-between;
+  margin-top: 48px;
+}
+
+.metric-icon {
+  position: absolute;
+  right: 20px;
+  bottom: 20px;
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  background: #f0ebff;
+  color: #5b4dff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+}
+
+.semi-circle {
+  position: absolute;
+  right: 28px;
+  bottom: 22px;
+  width: 95px;
+  height: 48px;
+  border: 7px solid #f16065;
+  border-bottom: 0;
+  border-radius: 95px 95px 0 0;
+}
+
+.ring-circle {
+  position: absolute;
+  right: 28px;
+  bottom: 20px;
+  width: 64px;
+  height: 64px;
+  border: 7px solid #f16065;
+  border-radius: 50%;
+}
+
+.metric-progress {
+  position: absolute;
+  right: 34px;
+  bottom: 40px;
+  width: 180px;
+  height: 8px;
+  border-radius: 999px;
+  overflow: hidden;
+  display: flex;
+}
+
+.progress-green {
+  width: 52%;
+  background: #47bf8b;
+}
+
+.progress-red {
+  width: 48%;
+  background: #f16065;
+}
+
+/* RESPONSIVE PAGINA */
+@media (max-width: 768px) {
+  .metric-card {
+    height: 130px;
+  }
+
+  .metric-progress {
+    width: 140px;
+  }
+}
