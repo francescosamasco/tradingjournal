@@ -11,6 +11,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import it.samfrafx.tradingjournal.bl.DashboardData;
+
 @Controller
 public class DashboardViewController {
 
@@ -23,8 +25,6 @@ public class DashboardViewController {
 		int month = today.getMonthValue(); // mese
 		int weekOfYear = today.get(WeekFields.of(Locale.getDefault()).weekOfYear());
 
-		
-		
 		//Set<Integer> weeks = JournalCalendarUtils.getSettimaneDelMese(year, month);	
         //
 		//DashboardData dashboard = this.dashboardService.getDashboard(accountId, year, "4");
