@@ -161,11 +161,11 @@
 								<tr>
 									<th>Data apertura</th>
 									<th>Asset</th>
+									<th>Esito</th>
 									<th>Posizione</th>
 									<th>Struttura</th>
 									<th>Setup</th>
 									<th>Confluenze</th>
-									<th>Esito</th>
 									<th class="text-end">Profit</th>
 									<th class="text-end">Risk</th>
 									<th class="text-end">R/R</th>
@@ -190,18 +190,19 @@
 
 									<td><strong th:text="${t.asset ?: '-'}">EURUSD</strong></td>
 
+									<td><span class="trade-badge"
+										th:classappend="${t.win} ? ' positive' : (${t.loss} ? ' negative' : '')"
+										th:text="${t.esito ?: '-'}"> WIN </span></td>
+
 									<td th:text="${t.posizione ?: '-'}">LONG</td>
 
 									<td th:text="${t.struttura ?: '-'}">Struttura</td>
 
 									<td th:text="${t.setup ?: '-'}">Setup</td>
 
-									<td th:text="${t.confluenze ?: '-'}">Confluenze</td>
-
-									<td><span class="trade-badge"
-										th:classappend="${t.win} ? ' positive' : (${t.loss} ? ' negative' : '')"
-										th:text="${t.esito ?: '-'}"> WIN </span></td>
-
+									<td th:text="${t.confluenze ?: '-'}">Setup</td>
+																
+	
 									<td class="text-end"
 										th:classappend="${t.win} ? ' trade-result-positive' : (${t.loss} ? ' trade-result-negative' : '')"
 										th:text="${t.profit != null ? #numbers.formatDecimal(t.profit, 1, 2) : '-'}">

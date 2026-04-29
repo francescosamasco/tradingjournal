@@ -1,9 +1,9 @@
 package it.samfrafx.tradingjournal.webapp.controller;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.temporal.WeekFields;
 import java.util.HashMap;
-import java.util.Locale;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.stereotype.Controller;
@@ -11,80 +11,100 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import it.samfrafx.tradingjournal.bl.data.DashboardData;
+import it.samfrafx.tradingjournal.bl.PeriodEnum;
+import it.samfrafx.tradingjournal.bl.data.TradeData;
+import it.samfrafx.tradingjournal.bl.service.TradeService;
 
 @Controller
 public class DashboardViewController {
 
-	
-	@GetMapping(value = {"/s"})
-	public String mainView (  @RequestParam(name="accountId", required=true) String accountId ) {
+    private static final String DEFAULT_ACCOUNT_ID = "fa54de65-9679-406f-9bcd-d3110ab4cc6e";
 
-		if( accountId == null )
-			accountId = "fa54de65-9679-406f-9bcd-d3110ab4cc6e";
-		
-		LocalDate today = LocalDate.now(); // data di sistema
-		int year = today.getYear(); // anno
-		int month = today.getMonthValue(); // mese
-		int weekOfYear = today.get(WeekFields.of(Locale.getDefault()).weekOfYear());
+    private final TradeService tradeService;
 
-		//Set<Integer> weeks = JournalCalendarUtils.getSettimaneDelMese(year, month);	
-        //
-		//DashboardData dashboard = this.dashboardService.getDashboard(accountId, year, "4");
-
-	//	//messaggio aggiornamento automatico
-	//	return this.getViewResolver()
-	//			.addViewParameter("dashboard", dashboard)
-	//			.addViewParameter("trades", dashboard.takeAllTrades())
-	//			.addModuleParameter("dashboard", dashboard)
-	//			.addModuleParameter("daydatas", dashboard.takeAllDayDatas())
-	//			.view();
-		
-		return null;
-	}
-	
-	
-    @GetMapping("/")
-    public String home(Model model) {
-        model.addAttribute("title", "Home");
-        Map<String, Object> tradesByDate = new HashMap<>();
-
-        tradesByDate.put("2025-04-04", Map.of("amount", 2900, "trades", 2));
-        tradesByDate.put("2025-04-09", Map.of("amount", 4700, "trades", 1));
-        tradesByDate.put("2025-04-17", Map.of("amount", -1500, "trades", 4));
-        tradesByDate.put("2025-04-25", Map.of("amount", 999, "trades", 2));
-
-        tradesByDate.put("2025-05-06", Map.of("amount", 850, "trades", 1));
-        tradesByDate.put("2025-05-13", Map.of("amount", -320, "trades", 2));
-        tradesByDate.put("2025-05-21", Map.of("amount", 1450, "trades", 3));
-
-        model.addAttribute("tradesByDate", tradesByDate);
-        return "home";
+    public DashboardViewController(TradeService tradeService) {
+        this.tradeService = tradeService;
     }
-    
-    
-    @GetMapping("/menu")
-    public String menu(Model model) {
-        model.addAttribute("title", "Menu");
-        return "menu";
-    }
-    
+
     @GetMapping("/dashboard")
-    public String dashboard(Model model) {
+    public String mainView(
+            @RequestParam(name = "accountId", required = false) String accountId,
+            @RequestParam(name = "year", required = false) Integer year,
+            @RequestParam(name = "period", required = false) String period,
+            Model model
+    ) {
 
-        Map<String, Object> tradesByDate = new HashMap<>();
+        if (accountId == null || accountId.isBlank()) {
+            accountId = DEFAULT_ACCOUNT_ID;
+        }
 
-        tradesByDate.put("2025-04-04", Map.of("amount", 2900, "trades", 2));
-        tradesByDate.put("2025-04-09", Map.of("amount", 4700, "trades", 1));
-        tradesByDate.put("2025-04-17", Map.of("amount", -1500, "trades", 4));
-        tradesByDate.put("2025-04-25", Map.of("amount", 123, "trades", 2));
+        LocalDate today = LocalDate.now();
 
-        tradesByDate.put("2025-05-06", Map.of("amount", 850, "trades", 1));
-        tradesByDate.put("2025-05-13", Map.of("amount", -320, "trades", 2));
-        tradesByDate.put("2025-05-21", Map.of("amount", 1450, "trades", 3));
+        if (year == null) {
+            year = today.getYear();
+        }
 
+        if (period == null || period.isBlank()) {
+            period = String.valueOf(today.getMonthValue());
+        }
+
+        PeriodEnum periodEnum = PeriodEnum.getEnum(period);
+
+        List<TradeData> trades = tradeService.getTradesByAccountAndPeriod(
+                accountId,
+                periodEnum,
+                year
+        );
+
+        Map<String, Object> tradesByDate = buildTradesByDate(trades);
+
+        model.addAttribute("title", "Dashboard");
+        model.addAttribute("accountId", accountId);
+        model.addAttribute("year", year);
+        model.addAttribute("period", period);
+        model.addAttribute("trades", trades);
         model.addAttribute("tradesByDate", tradesByDate);
 
         return "dashboard";
+    }
+
+    private Map<String, Object> buildTradesByDate(List<TradeData> trades) {
+
+        Map<String, Object> tradesByDate = new HashMap<>();
+
+        for (TradeData trade : trades) {
+
+            if (trade.getDateOpen() == null) {
+                continue;
+            }
+
+            String dateKey = trade.getDateOpen().toLocalDate().toString();
+
+            @SuppressWarnings("unchecked")
+            Map<String, Object> dayData = (Map<String, Object>) tradesByDate.get(dateKey);
+
+            if (dayData == null) {
+                dayData = new HashMap<>();
+                dayData.put("amount", BigDecimal.ZERO);
+                dayData.put("trades", 0);
+                tradesByDate.put(dateKey, dayData);
+            }
+
+            BigDecimal currentAmount = (BigDecimal) dayData.get("amount");
+            Integer currentTrades = (Integer) dayData.get("trades");
+
+            BigDecimal profit = trade.getProfit() != null ? trade.getProfit() : BigDecimal.ZERO;
+
+            dayData.put("amount", currentAmount.add(profit));
+            dayData.put("trades", currentTrades + 1);
+        }
+
+        return tradesByDate;
+    }
+
+    @GetMapping("/")
+    public String home(Model model) {
+        model.addAttribute("title", "Home");
+        return "home";
     }
 }

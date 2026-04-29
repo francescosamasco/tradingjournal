@@ -1,20 +1,27 @@
+/* =========================
+   FONT BASE
+========================= */
 body {
   font-family: 'Roboto', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* BASE */
+/* =========================
+   BASE
+========================= */
 .dashboard-body {
   background: #f4f4f5;
   color: #111827;
 }
 
-/* CARD GENERICHE */
+/* =========================
+   CARD GENERICHE
+========================= */
 .dash-card {
   background: #ffffff;
   border-radius: 14px;
-  padding: 18px;
+  padding: 16px;
   border: 1px solid #e5e7eb;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
 }
@@ -22,11 +29,13 @@ body {
 .dash-title {
   font-size: 15px;
   font-weight: 700;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
   color: #111827;
 }
 
-/* TOP METRIC CARDS */
+/* =========================
+   METRIC CARDS
+========================= */
 .row.g-3.mb-3 > div {
   display: flex;
 }
@@ -37,10 +46,10 @@ body {
 
 .metric-card {
   position: relative;
-  height: 140px;
+  height: 130px;
   background: #ffffff;
   border-radius: 14px;
-  padding: 18px 22px;
+  padding: 16px 20px;
   border: 1px solid #f1f1f1;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.035);
   overflow: hidden;
@@ -49,10 +58,9 @@ body {
 .metric-head {
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 6px;
   color: #1f2a44;
-  font-size: 14px;
-  margin-bottom: 8px;
+  font-size: 13px;
 }
 
 .info-dot {
@@ -82,33 +90,28 @@ body {
 }
 
 .metric-main {
-  font-size: 24px;
-  line-height: 1;
+  font-size: 22px;
   font-weight: 800;
-  color: #1f2a44;
-  margin-top: 10px;
+  margin-top: 8px;
 }
 
 .metric-bottom {
-  margin-top: 12px;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  color: #1f2a44;
-  font-size: 14px;
+  margin-top: 10px;
+  font-size: 13px;
 }
 
 .metric-bottom-split {
+  display: flex;
   justify-content: space-between;
-  margin-top: 48px;
+  margin-top: 30px;
 }
 
 .metric-icon {
   position: absolute;
-  right: 20px;
-  bottom: 20px;
-  width: 32px;
-  height: 32px;
+  right: 18px;
+  bottom: 18px;
+  width: 30px;
+  height: 30px;
   border-radius: 9px;
   background: #f0ebff;
   color: #5b4dff;
@@ -120,30 +123,30 @@ body {
 
 .semi-circle {
   position: absolute;
-  right: 28px;
-  bottom: 22px;
-  width: 95px;
-  height: 48px;
-  border: 7px solid #f16065;
+  right: 24px;
+  bottom: 20px;
+  width: 90px;
+  height: 45px;
+  border: 6px solid #f16065;
   border-bottom: 0;
-  border-radius: 95px 95px 0 0;
+  border-radius: 90px 90px 0 0;
 }
 
 .ring-circle {
   position: absolute;
-  right: 28px;
-  bottom: 20px;
-  width: 64px;
-  height: 64px;
-  border: 7px solid #f16065;
+  right: 24px;
+  bottom: 18px;
+  width: 60px;
+  height: 60px;
+  border: 6px solid #f16065;
   border-radius: 50%;
 }
 
 .metric-progress {
   position: absolute;
-  right: 34px;
-  bottom: 40px;
-  width: 180px;
+  right: 30px;
+  bottom: 35px;
+  width: 160px;
   height: 8px;
   border-radius: 999px;
   overflow: hidden;
@@ -160,71 +163,90 @@ body {
   background: #f16065;
 }
 
-
-/* TABELLA STORICO TRADES */
-.trades-table {
-  font-size: 14px;
+/* =========================
+   TABELLA TRADES
+========================= */
+.trade-table {
+  font-size: 13px;
 }
 
-.trades-table thead th {
+.trade-table thead th {
   background: #f9fafb;
   color: #6b7280;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
   border-bottom: 1px solid #e5e7eb;
-  padding: 12px 14px;
+  padding: 10px 12px;
 }
 
-.trades-table tbody td {
-  padding: 14px;
+.trade-table tbody td {
+  padding: 10px 12px;
   border-bottom: 1px solid #f1f1f1;
 }
 
-.trades-table tbody tr:last-child td {
+.trade-table tbody tr:last-child td {
   border-bottom: 0;
 }
 
-.trades-table tbody tr:hover {
-  background: #f9fafb;
+.trade-table tbody tr:hover {
+  background: #f3f4f6;
 }
 
+/* PROFIT COLOR */
 .trade-result-positive {
-  color: #1f8f5f;
-  font-weight: 800;
+  color: #16a34a;
+  font-weight: 700;
 }
 
 .trade-result-negative {
-  color: #b42323;
-  font-weight: 800;
+  color: #dc2626;
+  font-weight: 700;
 }
 
+/* BADGE */
 .trade-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 5px 10px;
+  padding: 4px 9px;
   border-radius: 999px;
-  font-size: 11px;
-  font-weight: 800;
+  font-size: 10px;
+  font-weight: 700;
 }
 
 .trade-badge.positive {
-  background: #dff7ec;
-  color: #1f8f5f;
+  background: #dcfce7;
+  color: #166534;
 }
 
 .trade-badge.negative {
-  background: #ffe5e5;
-  color: #b42323;
+  background: #fee2e2;
+  color: #991b1b;
 }
 
-/* RESPONSIVE PAGINA */
+/* TAG */
+.tag-badge {
+  background: #f0ebff;
+  color: #5b4dff;
+  padding: 3px 7px;
+  border-radius: 999px;
+  font-size: 10px;
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
 @media (max-width: 768px) {
+
   .metric-card {
-    height: 130px;
+    height: 120px;
   }
 
   .metric-progress {
-    width: 140px;
+    width: 120px;
   }
+
+  .trade-table th,
+  .trade-table td {
+    white-space: nowrap;
+  }
+
 }

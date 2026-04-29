@@ -85,9 +85,15 @@
     </dependency>
     
     <dependency>
-    <groupId>it.samfrafx.tradingjournal</groupId>
-    <artifactId>tradingjournal-bl</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+	    <groupId>it.samfrafx.tradingjournal</groupId>
+	    <artifactId>tradingjournal-bl</artifactId>
+	    <version>0.0.1-SNAPSHOT</version>
+	</dependency>
+    
+    <dependency>
+	    <groupId>it.samfrafx.tradingjournal</groupId>
+	    <artifactId>tradingjournal-data-model</artifactId>
+	    <version>0.0.1-SNAPSHOT</version>
 	</dependency>
     
   </dependencies>
