@@ -200,7 +200,7 @@
 
 									<td th:text="${t.setup ?: '-'}">Setup</td>
 
-									<td th:text="${t.confluenze ?: '-'}">Setup</td>
+									<td th:text="${t.confluenze ?: '-'}">Confluenze</td>
 																
 	
 									<td class="text-end"
@@ -213,7 +213,7 @@
 										50.00</td>
 
 									<td class="text-end fw-bold"
-										th:text="${t.rr != null ? #numbers.formatDecimal(t.rr, 1, 2) : '-'}">
+										th:text="${t.returnPercent != null ? #numbers.formatDecimal(t.returnPercent, 1, 2) : '-'}">
 										2.40</td>
 
 									<td th:text="${t.weekN ?: '-'}">14</td>
