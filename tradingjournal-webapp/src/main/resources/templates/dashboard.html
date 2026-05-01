@@ -19,82 +19,122 @@
 
 	<div class="container-fluid py-4">
 
-		<!-- TOP CARDS -->
-		<div class="row g-3 mb-3">
+<!-- TOP CARDS -->
+<div class="row g-3 mb-3">
 
-			<div class="col-12 col-md-6 col-xl">
-				<div class="metric-card">
-					<div class="metric-head">
-						<span>Account balance &amp; P&amp;L</span> <span class="info-dot">i</span>
-						<span class="count-dot">0</span>
-					</div>
-
-					<div class="metric-main text-success">$25,000</div>
-
-					<div class="metric-bottom">
-						<span>P&amp;L:</span> <strong>--</strong>
-					</div>
-
-					<div class="metric-icon">↗</div>
-				</div>
+	<!-- ACCOUNT BALANCE -->
+	<div class="col-12 col-md-6 col-xl">
+		<div class="metric-card">
+			<div class="metric-head">
+				<span>Account balance &amp; P&amp;L</span>
+				<span class="info-dot">i</span>
 			</div>
 
-			<div class="col-12 col-md-6 col-xl">
-				<div class="metric-card">
-					<div class="metric-head">
-						<span>Net P&amp;L</span> <span class="info-dot">i</span> <span
-							class="count-dot">0</span>
-					</div>
-
-					<div class="metric-main">--</div>
-
-					<div class="metric-icon">↔</div>
-				</div>
+			<div class="metric-main"
+				th:classappend="${dashboard.profitPercent != null && dashboard.profitPercent.compareTo(T(java.math.BigDecimal).ZERO) >= 0} ? ' text-success' : ' text-danger'"
+				th:text="${dashboard.bilancioFinale != null ? '$' + #numbers.formatDecimal(dashboard.bilancioFinale, 1, 2) : '--'}">
+				$25,000.00
 			</div>
 
-			<div class="col-12 col-md-6 col-xl">
-				<div class="metric-card">
-					<div class="metric-head">
-						<span>Trade win %</span> <span class="info-dot">i</span>
-					</div>
-
-					<div class="metric-main">--</div>
-
-					<div class="semi-circle"></div>
-				</div>
+			<div class="metric-bottom">
+				<span>Start:</span>
+				<strong th:text="${dashboard.bilancioIniziale != null ? '$' + #numbers.formatDecimal(dashboard.bilancioIniziale, 1, 2) : '--'}">
+					--
+				</strong>
 			</div>
 
-			<div class="col-12 col-md-6 col-xl">
-				<div class="metric-card">
-					<div class="metric-head">
-						<span>Profit factor</span> <span class="info-dot">i</span>
-					</div>
-
-					<div class="metric-main">--</div>
-
-					<div class="ring-circle"></div>
-				</div>
-			</div>
-
-			<div class="col-12 col-md-6 col-xl">
-				<div class="metric-card">
-					<div class="metric-head">
-						<span>Avg win/loss trade</span> <span class="info-dot">i</span>
-					</div>
-
-					<div class="metric-progress">
-						<div class="progress-green"></div>
-						<div class="progress-red"></div>
-					</div>
-
-					<div class="metric-bottom metric-bottom-split">
-						<strong>--</strong> <strong>--</strong>
-					</div>
-				</div>
-			</div>
-
+			<div class="metric-icon">↗</div>
 		</div>
+	</div>
 
+	<!-- NET P&L -->
+	<div class="col-12 col-md-6 col-xl">
+		<div class="metric-card">
+			<div class="metric-head">
+				<span>Net P&amp;L</span>
+				<span class="info-dot">i</span>
+			</div>
+
+			<div class="metric-main"
+				th:with="netPnl=${dashboard.bilancioFinale != null && dashboard.bilancioIniziale != null ? dashboard.bilancioFinale.subtract(dashboard.bilancioIniziale) : T(java.math.BigDecimal).ZERO}"
+				th:classappend="${netPnl.compareTo(T(java.math.BigDecimal).ZERO) >= 0} ? ' text-success' : ' text-danger'"
+				th:text="${#numbers.formatDecimal(netPnl, 1, 2)}">
+				--
+			</div>
+
+			<div class="metric-bottom">
+				<span>Profit %:</span>
+				<strong
+					th:classappend="${dashboard.profitPercent != null && dashboard.profitPercent.compareTo(T(java.math.BigDecimal).ZERO) >= 0} ? ' text-success' : ' text-danger'"
+					th:text="${dashboard.profitPercent != null ? #numbers.formatDecimal(dashboard.profitPercent, 1, 2) + '%' : '--'}">
+					--
+				</strong>
+			</div>
+
+			<div class="metric-icon">↔</div>
+		</div>
+	</div>
+
+	<!-- WINRATE -->
+	<div class="col-12 col-md-6 col-xl">
+		<div class="metric-card">
+			<div class="metric-head">
+				<span>Trade win %</span>
+				<span class="info-dot">i</span>
+			</div>
+
+			<div class="metric-main"
+				th:text="${dashboard.winrate != null ? #numbers.formatDecimal(dashboard.winrate, 1, 1) + '%' : '--'}">
+				--
+			</div>
+
+			<div class="semi-circle"></div>
+		</div>
+	</div>
+
+	<!-- RR AVERAGE -->
+	<div class="col-12 col-md-6 col-xl">
+		<div class="metric-card">
+			<div class="metric-head">
+				<span>R/R medio</span>
+				<span class="info-dot">i</span>
+			</div>
+
+			<div class="metric-main"
+				th:classappend="${dashboard.rrAverage != null && dashboard.rrAverage.compareTo(T(java.math.BigDecimal).ZERO) >= 0} ? ' text-success' : ' text-danger'"
+				th:text="${dashboard.rrAverage != null ? #numbers.formatDecimal(dashboard.rrAverage, 1, 1) : '--'}">
+				--
+			</div>
+
+			<div class="metric-bottom">
+				<span>Periodo:</span>
+				<strong th:text="${dashboard.periodEnum != null ? dashboard.periodEnum.name() : '--'}">
+					--
+				</strong>
+			</div>
+		</div>
+	</div>
+
+	<!-- PROFIT FACTOR -->
+	<div class="col-12 col-md-6 col-xl">
+		<div class="metric-card">
+			<div class="metric-head">
+				<span>Profit factor</span>
+				<span class="info-dot">i</span>
+			</div>
+
+			<div class="metric-main"
+				th:text="${dashboard.profitFactor != null ? #numbers.formatDecimal(dashboard.profitFactor, 1, 2) : '--'}">
+				--
+			</div>
+
+			<div class="ring-circle"></div>
+		</div>
+	</div>
+
+	
+
+</div>
 		<!-- MAIN GRID -->
 		<div class="row g-3">
 
@@ -235,8 +275,12 @@
 
 	</div>
 
-	<script th:inline="javascript">
-  window.tradingCalendarData = /*[[${tradesByDate}]]*/ {};
+<script th:inline="javascript">
+  window.tradingCalendarData = /*[[${calendar.days}]]*/ {};
+  window.weekSummaryData = /*[[${calendar.weeks}]]*/ {};
+  window.calendarYear = /*[[${year}]]*/ 2025;
+  window.calendarMonth = /*[[${period}]]*/ 4;
+  window.accountId = /*[[${accountId}]]*/ "";
 </script>
 
 	<script

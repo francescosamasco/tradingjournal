@@ -25,11 +25,35 @@ public class TradeData {
     private BigDecimal risk;
     private String note;
     private Integer weekN;
+    
+    private BigDecimal accountBalance;
+
 
     // =========================
     // FACTORY METHOD
     // =========================
-    public static TradeData from(Trade t) {
+  //  public static TradeData from(Trade t) {
+  //
+  //      TradeData dto = new TradeData();
+  //
+  //      dto.setIdTrade(t.getIdTrade());
+  //      dto.setAsset(t.getAsset());
+  //      dto.setEsito(t.getEsito());
+  //      dto.setDateOpen(t.getDateOpen());
+  //      dto.setPosizione(t.getPosizione());
+  //      dto.setStruttura(t.getStruttura());
+  //      dto.setSetup(t.getSetup());
+  //      dto.setConfluenze(t.getConfluenze());
+  //      dto.setTags(t.getTags());
+  //      dto.setProfit(t.getProfit());
+  //      dto.setRisk(t.getRisk());
+  //      dto.setNote(t.getNote());
+  //      dto.setWeekN(t.getWeekN());
+  //
+  //      return dto;
+  //  }
+    
+    public static TradeData from(Trade t, BigDecimal balance) {
 
         TradeData dto = new TradeData();
 
@@ -46,21 +70,33 @@ public class TradeData {
         dto.setRisk(t.getRisk());
         dto.setNote(t.getNote());
         dto.setWeekN(t.getWeekN());
-
+        dto.setAccountBalance(balance);
         return dto;
     }
+    
 
     // =========================
     // LOGICHE UTILI
     // =========================
 
-    public BigDecimal getRr() {
-        if (risk == null || risk.compareTo(BigDecimal.ZERO) == 0) {
+    public BigDecimal getReturnPercent() {
+
+        if (accountBalance == null || accountBalance.compareTo(BigDecimal.ZERO) == 0) {
             return BigDecimal.ZERO;
         }
-        return profit.divide(risk, 2, RoundingMode.HALF_UP);
+
+        if (profit == null) {
+            return BigDecimal.ZERO;
+        }
+
+        return profit.divide(accountBalance, 4, RoundingMode.HALF_UP)
+                     .multiply(BigDecimal.valueOf(100));
     }
 
+    public BigDecimal getCurrentBalance() {
+    	return accountBalance.add(getProfit());
+    }
+    
     public boolean isWin() {
         return profit != null && profit.compareTo(BigDecimal.ZERO) > 0;
     }

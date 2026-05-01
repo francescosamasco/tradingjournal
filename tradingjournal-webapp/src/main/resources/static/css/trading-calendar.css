@@ -158,6 +158,20 @@
   color: #b42323;
 }
 
+.week-extra {
+  margin-top: 6px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: #6b7280;
+}
+
+.week-extra b {
+  color: #111827;
+  font-weight: 700;
+}
+
+
 /* RESPONSIVE CALENDARIO */
 @media (max-width: 1200px) {
   .calendar-layout {

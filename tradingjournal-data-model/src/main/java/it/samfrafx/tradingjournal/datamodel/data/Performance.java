@@ -1,7 +1,6 @@
 package it.samfrafx.tradingjournal.datamodel.data;
 
 import java.math.BigDecimal;
-
 import jakarta.persistence.*;
 
 @Entity
@@ -18,8 +17,17 @@ public class Performance {
     @Column(name = "id_account", nullable = false)
     private String idAccount;
 
-    @Column(name = "bilancio_iniziale", nullable = false, precision = 11, scale = 2)
+    @Column(name = "bilancio_iniziale", precision = 11, scale = 2)
     private BigDecimal bilancioIniziale;
+
+    @Column(name = "bilancio_finale", precision = 11, scale = 2)
+    private BigDecimal bilancioFinale;
+
+    @Column(name = "winrate", precision = 4, scale = 1)
+    private BigDecimal winrate;
+
+    @Column(name = "rr", precision = 4, scale = 1)
+    private BigDecimal rr;
 
     // ===== GETTER / SETTER =====
 
@@ -53,5 +61,29 @@ public class Performance {
 
     public void setBilancioIniziale(BigDecimal bilancioIniziale) {
         this.bilancioIniziale = bilancioIniziale;
+    }
+
+    public BigDecimal getBilancioFinale() {
+        return bilancioFinale;
+    }
+
+    public void setBilancioFinale(BigDecimal bilancioFinale) {
+        this.bilancioFinale = bilancioFinale;
+    }
+
+    public BigDecimal getWinrate() {
+        return winrate;
+    }
+
+    public void setWinrate(BigDecimal winrate) {
+        this.winrate = winrate;
+    }
+
+    public BigDecimal getRr() {
+        return rr;
+    }
+
+    public void setRr(BigDecimal rr) {
+        this.rr = rr;
     }
 }

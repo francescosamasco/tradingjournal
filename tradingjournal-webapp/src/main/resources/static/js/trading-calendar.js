@@ -1,8 +1,13 @@
 window.TradingCalendar = (function () {
 
-    let currentCalendarDate = new Date(2025, 3, 1); // aprile 2025
-
-   const tradesByDate = window.tradingCalendarData || {};
+	let currentCalendarDate = new Date(
+	    Number(window.calendarYear),
+	    Number(window.calendarMonth) - 1,
+	    1
+	);
+	
+    const tradesByDate = window.tradingCalendarData || {};
+    const weekSummaryData = window.weekSummaryData || {};
 
     function init() {
         const calendarGrid = document.getElementById("calendarGrid");
@@ -15,20 +20,37 @@ window.TradingCalendar = (function () {
         render();
 
         if (prev) {
-            prev.addEventListener("click", function () {
-                currentCalendarDate.setMonth(currentCalendarDate.getMonth() - 1);
-                render();
-            });
+			prev.addEventListener("click", function () {
+			    goToMonth(-1);
+			});
         }
 
         if (next) {
-            next.addEventListener("click", function () {
-                currentCalendarDate.setMonth(currentCalendarDate.getMonth() + 1);
-                render();
-            });
+			next.addEventListener("click", function () {
+			    goToMonth(1);
+			});
         }
     }
 
+	function goToMonth(offset) {
+	    const newDate = new Date(
+	        currentCalendarDate.getFullYear(),
+	        currentCalendarDate.getMonth() + offset,
+	        1
+	    );
+
+	    const params = new URLSearchParams(window.location.search);
+
+	    params.set("year", newDate.getFullYear());
+	    params.set("period", newDate.getMonth() + 1);
+
+	    if (window.accountId) {
+	        params.set("accountId", window.accountId);
+	    }
+
+	    window.location.href = "/dashboard?" + params.toString();
+	}
+	
     function render() {
         const calendarGrid = document.getElementById("calendarGrid");
         const title = document.getElementById("calendarTitle");
@@ -63,9 +85,32 @@ window.TradingCalendar = (function () {
         const weeksCount = totalCalendarCells / 7;
 
         updateMonthlyStats(monthlyAmount, monthlyDays, monthlyTrades, monthData);
-        renderWeekSummary(monthData.weeks, weekSummary, weeksCount);
-    }
+		const visibleWeeks = getVisibleWeeks(year, month, weeksCount);
+		renderWeekSummary(weekSummaryData, weekSummary, visibleWeeks);
+	}
 
+	function getVisibleWeeks(year, month, weeksCount) {
+	    const weeks = [];
+
+	    for (let row = 0; row < weeksCount; row++) {
+	        const referenceDate = new Date(year, month, 1 + (row * 7));
+	        weeks.push(getIsoWeek(referenceDate));
+	    }
+
+	    return weeks;
+	}
+
+	function getIsoWeek(date) {
+	    const tempDate = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+	    const dayNum = tempDate.getUTCDay() || 7;
+
+	    tempDate.setUTCDate(tempDate.getUTCDate() + 4 - dayNum);
+
+	    const yearStart = new Date(Date.UTC(tempDate.getUTCFullYear(), 0, 1));
+
+	    return Math.ceil((((tempDate - yearStart) / 86400000) + 1) / 7);
+	}
+	
     function renderDayNames(calendarGrid) {
         const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -89,8 +134,7 @@ window.TradingCalendar = (function () {
         const monthData = {
             amount: 0,
             tradeDays: 0,
-            tradeCount: 0,
-            weeks: {}
+            tradeCount: 0
         };
 
         for (let day = 1; day <= totalDays; day++) {
@@ -106,7 +150,7 @@ window.TradingCalendar = (function () {
 
             if (trade) {
                 applyTradeToCell(cell, trade);
-                updateMonthData(monthData, trade, year, month, day);
+                updateMonthData(monthData, trade);
             }
 
             calendarGrid.appendChild(cell);
@@ -129,22 +173,10 @@ window.TradingCalendar = (function () {
         cell.appendChild(box);
     }
 
-    function updateMonthData(monthData, trade, year, month, day) {
-        monthData.amount += trade.amount;
+    function updateMonthData(monthData, trade) {
+        monthData.amount += Number(trade.amount || 0);
         monthData.tradeDays++;
-        monthData.tradeCount += trade.trades;
-
-        const weekNumber = getWeekOfMonth(year, month, day);
-
-        if (!monthData.weeks[weekNumber]) {
-            monthData.weeks[weekNumber] = {
-                amount: 0,
-                days: 0
-            };
-        }
-
-        monthData.weeks[weekNumber].amount += trade.amount;
-        monthData.weeks[weekNumber].days++;
+        monthData.tradeCount += Number(trade.trades || 0);
     }
 
     function updateMonthlyStats(monthlyAmount, monthlyDays, monthlyTrades, monthData) {
@@ -162,30 +194,44 @@ window.TradingCalendar = (function () {
         }
     }
 
-    function renderWeekSummary(weeks, container, weeksCount) {
-        if (!container) return;
+	function renderWeekSummary(weeks, container, visibleWeeks) {
+	    if (!container) return;
 
-        container.innerHTML = "";
-        container.style.gridTemplateRows = `repeat(${weeksCount}, 1fr)`;
+	    container.innerHTML = "";
+	    container.style.gridTemplateRows = `repeat(${visibleWeeks.length}, 1fr)`;
 
-        for (let i = 1; i <= weeksCount; i++) {
-            const week = weeks[i] || {
-                amount: 0,
-                days: 0
-            };
+	    visibleWeeks.forEach(function (weekNumber) {
 
-            const card = document.createElement("div");
-            card.className = "week-card" + (week.amount < 0 ? " negative" : "");
+	        const week = weeks[weekNumber] || {
+	            amount: 0,
+	            days: 0,
+	            trades: 0,
+	            rrAverage: null,
+	            profitPercent: null
+	        };
 
-            card.innerHTML = `
-                <strong>Week ${i}</strong>
-                <span>${week.days > 0 ? formatMoney(week.amount) : "--"}</span>
-                <small>${week.days} days</small>
-            `;
+	        const amount = Number(week.amount || 0);
+	        const days = Number(week.days || 0);
 
-            container.appendChild(card);
-        }
-    }
+	        const card = document.createElement("div");
+	        card.className = "week-card" + (amount < 0 ? " negative" : "");
+
+	        card.innerHTML = `
+	            <strong>Week ${weekNumber}</strong>
+
+	            <span>${days > 0 ? formatMoney(amount) : "--"}</span>
+
+	            <div class="week-extra">
+	                <div>RR: <b>${week.rrAverage != null ? Number(week.rrAverage).toFixed(2) : "--"}</b></div>
+	                <div>%: <b>${week.profitPercent != null ? Number(week.profitPercent).toFixed(2) + "%" : "--"}</b></div>
+	            </div>
+
+	            <small>${days} days</small>
+	        `;
+
+	        container.appendChild(card);
+	    });
+	}
 
     function getRemainingCells(firstDay, totalDays) {
         const totalCellsUsed = firstDay + totalDays;
@@ -199,13 +245,9 @@ window.TradingCalendar = (function () {
     }
 
     function formatMoney(value) {
-        const sign = value >= 0 ? "$" : "-$";
-        return sign + Math.abs(value).toLocaleString("en-US");
-    }
-
-    function getWeekOfMonth(year, month, day) {
-        const firstDay = new Date(year, month, 1).getDay();
-        return Math.ceil((day + firstDay) / 7);
+        const numericValue = Number(value || 0);
+        const sign = numericValue >= 0 ? "$" : "-$";
+        return sign + Math.abs(numericValue).toLocaleString("en-US");
     }
 
     return {

@@ -93,4 +93,11 @@ public enum PeriodEnum {
             default -> false;
         };
     }
+    
+    public boolean isQuarter() {
+        return switch (this) {
+            case Q1, Q2, Q3, Q4 -> true;
+            default -> false;
+        };
+    }
 }

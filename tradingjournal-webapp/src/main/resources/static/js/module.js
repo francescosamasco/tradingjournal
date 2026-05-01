@@ -24,7 +24,7 @@ function initBalanceChart() {
             labels: ["01/05", "08/05", "15/05", "22/05", "29/05"],
             datasets: [{
                 label: "Account Balance",
-                data: [25000, 25250, 25180, 25700, 26000],
+                data: [25000, 25250, 25180, 25700, 27000],
                 borderWidth: 2,
                 tension: 0.35,
                 pointRadius: 2
