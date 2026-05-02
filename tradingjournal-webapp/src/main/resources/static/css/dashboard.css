@@ -1,234 +1,399 @@
 /* =========================
-   FONT BASE
-========================= */
-body {
-  font-family: 'Roboto', sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-/* =========================
    BASE
 ========================= */
+body {
+	font-family: 'Roboto', sans-serif;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+
 .dashboard-body {
-  background: #f4f4f5;
-  color: #111827;
+	background: #f4f4f5;
+	color: #0f172a;
 }
 
 /* =========================
-   CARD GENERICHE
+   CARD
 ========================= */
 .dash-card {
-  background: #ffffff;
-  border-radius: 14px;
-  padding: 16px;
-  border: 1px solid #e5e7eb;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+	background: #ffffff;
+	border-radius: 16px;
+	padding: 18px;
+	border: 1px solid #e5e7eb;
+	box-shadow: 0 6px 20px rgba(0, 0, 0, 0.04);
 }
 
 .dash-title {
-  font-size: 15px;
-  font-weight: 700;
-  margin-bottom: 14px;
-  color: #111827;
+	font-size: 15px;
+	font-weight: 800;
+	margin-bottom: 14px;
+	color: #0f172a;
 }
 
 /* =========================
    METRIC CARDS
 ========================= */
 .row.g-3.mb-3 > div {
-  display: flex;
+	display: flex;
 }
 
 .row.g-3.mb-3 > div > .metric-card {
-  width: 100%;
+	width: 100%;
 }
 
 .metric-card {
-  position: relative;
-  height: 130px;
-  background: #ffffff;
-  border-radius: 14px;
-  padding: 16px 20px;
-  border: 1px solid #f1f1f1;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.035);
-  overflow: hidden;
+	position: relative;
+	height: 130px;
+	background: #ffffff;
+	border-radius: 16px;
+	padding: 16px 20px;
+	border: 1px solid #f1f5f9;
+	box-shadow: 0 4px 16px rgba(0, 0, 0, 0.035);
+	overflow: hidden;
 }
 
 .metric-head {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: #1f2a44;
-  font-size: 13px;
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	color: #475569;
+	font-size: 13px;
 }
 
 .info-dot {
-  width: 16px;
-  height: 16px;
-  border: 1px solid #6b7280;
-  border-radius: 50%;
-  font-size: 11px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  color: #4b5563;
-  font-weight: 700;
-}
-
-.count-dot {
-  min-width: 22px;
-  height: 22px;
-  padding: 0 7px;
-  border-radius: 999px;
-  background: #f0f1f8;
-  font-size: 12px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  color: #1f2a44;
+	width: 16px;
+	height: 16px;
+	border: 1px solid #cbd5e1;
+	border-radius: 50%;
+	font-size: 11px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	color: #64748b;
+	font-weight: 700;
 }
 
 .metric-main {
-  font-size: 22px;
-  font-weight: 800;
-  margin-top: 8px;
+	font-size: 22px;
+	font-weight: 900;
+	margin-top: 8px;
+	color: #0f172a;
 }
 
 .metric-bottom {
-  margin-top: 10px;
-  font-size: 13px;
-}
-
-.metric-bottom-split {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 30px;
+	margin-top: 10px;
+	font-size: 13px;
+	color: #64748b;
 }
 
 .metric-icon {
-  position: absolute;
-  right: 18px;
-  bottom: 18px;
-  width: 30px;
-  height: 30px;
-  border-radius: 9px;
-  background: #f0ebff;
-  color: #5b4dff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 800;
+	position: absolute;
+	right: 18px;
+	bottom: 18px;
+	width: 32px;
+	height: 32px;
+	border-radius: 10px;
+	background: #f1f5f9;
+	color: #6366f1;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-weight: 900;
 }
 
 .semi-circle {
-  position: absolute;
-  right: 24px;
-  bottom: 20px;
-  width: 90px;
-  height: 45px;
-  border: 6px solid #f16065;
-  border-bottom: 0;
-  border-radius: 90px 90px 0 0;
+	position: absolute;
+	right: 24px;
+	bottom: 20px;
+	width: 90px;
+	height: 45px;
+	border: 6px solid #f87171;
+	border-bottom: 0;
+	border-radius: 90px 90px 0 0;
 }
 
+/* RING DINAMICO BASATO SU WEEKLY WIN/LOSS */
 .ring-circle {
-  position: absolute;
-  right: 24px;
-  bottom: 18px;
-  width: 60px;
-  height: 60px;
-  border: 6px solid #f16065;
-  border-radius: 50%;
+	position: absolute;
+	right: 24px;
+	bottom: 18px;
+	width: 55px;
+	height: 55px;
+	border-radius: 50%;
+	background: conic-gradient(#e5e7eb 0deg, #e5e7eb 360deg);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	transition: background 0.35s ease;
 }
 
-.metric-progress {
-  position: absolute;
-  right: 30px;
-  bottom: 35px;
-  width: 160px;
-  height: 8px;
-  border-radius: 999px;
-  overflow: hidden;
-  display: flex;
+.ring-circle::after {
+	content: "";
+	position: absolute;
+	width: 44px;
+	height: 44px;
+	border-radius: 50%;
+	background: #ffffff;
+	z-index: 1;
 }
 
-.progress-green {
-  width: 52%;
-  background: #47bf8b;
-}
-
-.progress-red {
-  width: 48%;
-  background: #f16065;
+.ring-circle span {
+	position: relative;
+	z-index: 2;
+	font-size: 11px;
+	font-weight: 900;
+	color: #0f172a;
 }
 
 /* =========================
-   TABELLA TRADES
+   VIEW SWITCH
+========================= */
+.view-switch {
+	display: inline-flex;
+	align-items: center;
+	background: #f1f5f9;
+	border-radius: 999px;
+	padding: 3px;
+	gap: 2px;
+}
+
+.view-switch-btn {
+	border: 0;
+	background: transparent;
+	color: #64748b;
+	font-size: 12px;
+	font-weight: 800;
+	padding: 6px 12px;
+	border-radius: 999px;
+	transition: all 0.2s ease;
+	white-space: nowrap;
+}
+
+.view-switch-btn:hover {
+	color: #0f172a;
+	background: rgba(255, 255, 255, 0.7);
+}
+
+.view-switch-btn.active {
+	background: #ffffff;
+	color: #0f172a;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+/* =========================
+   WEEKLY PERFORMANCE
+========================= */
+.weekly-performance-card {
+	min-height: 300px;
+}
+
+.weekly-doughnut-grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 14px;
+	margin-top: 12px;
+}
+
+.weekly-chart-box {
+	min-width: 0;
+}
+
+.weekly-chart-title {
+	font-size: 12px;
+	font-weight: 800;
+	color: #64748b;
+	text-align: center;
+	margin-bottom: 6px;
+}
+
+.doughnut-wrap {
+	height: 230px;
+	position: relative;
+}
+
+.doughnut-wrap.small {
+	height: 190px;
+	position: relative;
+}
+
+.weekly-stats-card {
+	min-height: 230px;
+}
+
+.weekly-stat-row {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 8px 0;
+	border-bottom: 1px solid #eef0f3;
+}
+
+.weekly-stat-row:last-child {
+	border-bottom: none;
+}
+
+.weekly-stat-row span {
+	font-size: 13px;
+	color: #64748b;
+}
+
+.weekly-stat-row strong {
+	font-size: 15px;
+	font-weight: 900;
+	color: #0f172a;
+}
+
+.stat-pill {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: 4px 10px;
+	border-radius: 999px;
+	background: #f1f5f9;
+	color: #475569;
+	font-size: 11px;
+	font-weight: 700;
+	white-space: nowrap;
+}
+
+/* =========================
+   ACCOUNT STATS TABLE
+========================= */
+.account-stats-table {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	column-gap: 34px;
+	width: 100%;
+}
+
+.account-stats-header {
+	grid-column: 1 / -1;
+	display: grid;
+	grid-template-columns: 1fr 120px;
+	align-items: center;
+	min-height: 34px;
+	border-bottom: 1px solid #e5e7eb;
+	font-size: 14px;
+	font-weight: 900;
+	color: #0f172a;
+}
+
+.account-stats-row {
+	display: grid;
+	grid-template-columns: 1fr 120px;
+	align-items: center;
+	min-height: 42px;
+	border-bottom: 1px solid #eef0f3;
+	font-size: 13px;
+}
+
+.account-stats-row span {
+	color: #64748b;
+}
+
+.account-stats-row strong {
+	text-align: right;
+	font-size: 15px;
+	font-weight: 900;
+	color: #0f172a;
+}
+
+.account-stats-row strong.text-success {
+	color: #16a34a !important;
+}
+
+.account-stats-row strong.text-danger {
+	color: #dc2626 !important;
+}
+
+/* =========================
+   EQUITY VIEW
+========================= */
+#calendarEquityView {
+	height: calc(100% - 55px);
+	min-height: 430px;
+}
+
+.calendar-equity-chart {
+	width: 100%;
+	height: 100%;
+	min-height: 430px;
+	position: relative;
+	background: #f8fafc;
+	border-radius: 12px;
+	padding: 14px;
+	box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.calendar-equity-chart canvas {
+	width: 100% !important;
+	height: 100% !important;
+}
+
+/* =========================
+   TABLE TRADES
 ========================= */
 .trade-table {
-  font-size: 13px;
+	font-size: 12px;
 }
 
 .trade-table thead th {
-  background: #f9fafb;
-  color: #6b7280;
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  border-bottom: 1px solid #e5e7eb;
-  padding: 10px 12px;
+	background: #f8fafc;
+	color: #64748b;
+	font-size: 10px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	border-bottom: 1px solid #e5e7eb;
+	padding: 8px 10px;
+	white-space: nowrap;
 }
 
 .trade-table tbody td {
-  padding: 10px 12px;
-  border-bottom: 1px solid #f1f1f1;
-}
-
-.trade-table tbody tr:last-child td {
-  border-bottom: 0;
+	padding: 8px 10px;
+	border-bottom: 1px solid #f1f5f9;
+	font-size: 12px;
 }
 
 .trade-table tbody tr:hover {
-  background: #f3f4f6;
+	background: #f8fafc;
 }
 
-/* PROFIT COLOR */
 .trade-result-positive {
-  color: #16a34a;
-  font-weight: 700;
+	color: #16a34a;
+	font-weight: 800;
 }
 
 .trade-result-negative {
-  color: #dc2626;
-  font-weight: 700;
+	color: #dc2626;
+	font-weight: 800;
 }
 
-/* BADGE */
 .trade-badge {
-  padding: 4px 9px;
-  border-radius: 999px;
-  font-size: 10px;
-  font-weight: 700;
+	padding: 3px 8px;
+	border-radius: 999px;
+	font-size: 10px;
+	font-weight: 800;
+	white-space: nowrap;
 }
 
 .trade-badge.positive {
-  background: #dcfce7;
-  color: #166534;
+	background: #dcfce7;
+	color: #166534;
 }
 
 .trade-badge.negative {
-  background: #fee2e2;
-  color: #991b1b;
+	background: #fee2e2;
+	color: #991b1b;
 }
 
-/* TAG */
 .tag-badge {
-  background: #f0ebff;
-  color: #5b4dff;
-  padding: 3px 7px;
-  border-radius: 999px;
-  font-size: 10px;
+	background: #eef2ff;
+	color: #6366f1;
+	padding: 3px 8px;
+	border-radius: 999px;
+	font-size: 10px;
+	white-space: nowrap;
 }
 
 /* =========================
@@ -236,17 +401,46 @@ body {
 ========================= */
 @media (max-width: 768px) {
 
-  .metric-card {
-    height: 120px;
-  }
+	.metric-card {
+		height: 120px;
+	}
 
-  .metric-progress {
-    width: 120px;
-  }
+	.metric-main {
+		font-size: 20px;
+	}
 
-  .trade-table th,
-  .trade-table td {
-    white-space: nowrap;
-  }
+	.doughnut-wrap {
+		height: 200px;
+	}
 
+	.doughnut-wrap.small {
+		height: 220px;
+	}
+
+	.weekly-doughnut-grid {
+		grid-template-columns: 1fr;
+	}
+
+	.account-stats-table {
+		grid-template-columns: 1fr;
+	}
+
+	#calendarEquityView {
+		min-height: 320px;
+	}
+
+	.calendar-equity-chart {
+		min-height: 320px;
+	}
+
+	.view-switch {
+		width: 100%;
+		justify-content: space-between;
+	}
+
+	.view-switch-btn {
+		flex: 1;
+		padding: 6px 8px;
+		font-size: 11px;
+	}
 }
