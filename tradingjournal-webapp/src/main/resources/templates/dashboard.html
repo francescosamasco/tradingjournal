@@ -26,14 +26,19 @@
 	<div class="col-12 col-md-6 col-xl">
 		<div class="metric-card">
 			<div class="metric-head">
-				<span>Account balance &amp; P&amp;L</span>
+				<span>Account Net P&amp;L</span>
 				<span class="info-dot">i</span>
 			</div>
 
 			<div class="metric-main"
-				th:classappend="${dashboard.profitPercent != null && dashboard.profitPercent.compareTo(T(java.math.BigDecimal).ZERO) >= 0} ? ' text-success' : ' text-danger'"
-				th:text="${dashboard.bilancioFinale != null ? '$' + #numbers.formatDecimal(dashboard.bilancioFinale, 1, 2) : '--'}">
-				$25,000.00
+			     th:classappend="${dashboard.profitPercent != null && dashboard.profitPercent.compareTo(T(java.math.BigDecimal).ZERO) >= 0} ? ' text-success' : ' text-danger'"
+			     th:text="${
+			        dashboard.bilancioFinale != null ?
+			        (dashboard.bilancioFinale.compareTo(T(java.math.BigDecimal).ZERO) >= 0 ? '+' : '-') +
+			        #numbers.formatDecimal(dashboard.bilancioFinale.abs(), 1, 2)
+			        : '--'
+			     }">
+			    $25,000.00
 			</div>
 
 			<div class="metric-bottom">
@@ -51,15 +56,20 @@
 	<div class="col-12 col-md-6 col-xl">
 		<div class="metric-card">
 			<div class="metric-head">
-				<span>Net P&amp;L</span>
+				<span>Net Profit %</span>
 				<span class="info-dot">i</span>
 			</div>
 
 			<div class="metric-main"
-				th:with="netPnl=${dashboard.bilancioFinale != null && dashboard.bilancioIniziale != null ? dashboard.bilancioFinale.subtract(dashboard.bilancioIniziale) : T(java.math.BigDecimal).ZERO}"
-				th:classappend="${netPnl.compareTo(T(java.math.BigDecimal).ZERO) >= 0} ? ' text-success' : ' text-danger'"
-				th:text="${#numbers.formatDecimal(netPnl, 1, 2)}">
-				--
+			     th:with="netPnl=${dashboard.bilancioFinale != null && dashboard.bilancioIniziale != null ? dashboard.bilancioFinale.subtract(dashboard.bilancioIniziale) : T(java.math.BigDecimal).ZERO}"
+			     th:classappend="${netPnl.compareTo(T(java.math.BigDecimal).ZERO) >= 0} ? ' text-success' : ' text-danger'"
+			     th:text="${
+			        dashboard.profitPercent != null ?
+			        (dashboard.profitPercent.compareTo(T(java.math.BigDecimal).ZERO) >= 0 ? '+' : '-') +
+			        #numbers.formatDecimal(dashboard.profitPercent.abs(), 1, 2) + '%'
+			        : '--'
+			     }">
+			    --
 			</div>
 
 			<div class="metric-bottom">

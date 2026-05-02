@@ -221,12 +221,15 @@ window.TradingCalendar = (function () {
 
 	            <span>${days > 0 ? formatMoney(amount) : "--"}</span>
 
-	            <div class="week-extra">
-	                <div>RR: <b>${week.rrAverage != null ? Number(week.rrAverage).toFixed(2) : "--"}</b></div>
-	                <div>%: <b>${week.profitPercent != null ? Number(week.profitPercent).toFixed(2) + "%" : "--"}</b></div>
-	            </div>
+				<div class="week-extra">
+					<div>%: <b>${week.winrate != null ? Number(week.winrate).toFixed(1) + "%" : "--"}</b></div>
+				    <div>RR: <b>${week.rrAverage != null ? Number(week.rrAverage).toFixed(1) : "--"}</b></div>
+				</div>
 
-	            <small>${days} days</small>
+				<div class="week-footer">
+				    <small>WR: <b>${week.profitPercent != null ? Number(week.profitPercent).toFixed(1) + "%" : "--"}</b></small>
+					<small>${days} days</small>
+				</div>
 	        `;
 
 	        container.appendChild(card);

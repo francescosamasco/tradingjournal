@@ -142,9 +142,20 @@ public class DashboardViewController {
 			BigDecimal newWeekAmount = week.getAmount().add(profit);
 			BigDecimal newRrTotal = week.getRrTotal().add(rr);
 			Integer newTradeCount = week.getTrades() + 1;
+			Integer newWinTrades = week.getWinTrades();
 
+			if (trade.isWin()) {
+			    newWinTrades++;
+			}
+
+			week.setWinTrades(newWinTrades);
 			week.setAmount(newWeekAmount);
 			week.setTrades(newTradeCount);
+			week.setWinrate(
+			        BigDecimal.valueOf(newWinTrades)
+			                .divide(BigDecimal.valueOf(newTradeCount), 4, RoundingMode.HALF_UP)
+			                .multiply(BigDecimal.valueOf(100))
+			);
 			week.setRrTotal(newRrTotal);
 			week.setRrAverage(
 					newRrTotal.divide(

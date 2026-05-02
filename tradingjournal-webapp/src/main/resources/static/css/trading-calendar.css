@@ -34,7 +34,7 @@
 /* LAYOUT CALENDARIO */
 .calendar-layout {
   display: grid;
-  grid-template-columns: 1fr 112px;
+  grid-template-columns: 1fr 135px;
   gap: 8px;
   align-items: stretch;
 }
@@ -159,7 +159,6 @@
 }
 
 .week-extra {
-  margin-top: 6px;
   display: flex;
   justify-content: space-between;
   font-size: 10px;
@@ -167,6 +166,21 @@
 }
 
 .week-extra b {
+  color: #111827;
+  font-weight: 700;
+}
+
+.week-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.week-footer small {
+  font-size: 10px;
+}
+
+.week-footer b {
   color: #111827;
   font-weight: 700;
 }

@@ -38,7 +38,7 @@ public class DashboardService {
         dashboard.setBilancioFinale(bilancioFinale);
 
         dashboard.setProfitPercent(
-                calculateProfitPercent(bilancioIniziale, bilancioFinale)
+                getTotalProfitPercent(performances)
         );
 
         dashboard.setWinrate(averageWinrate(performances));
@@ -48,6 +48,20 @@ public class DashboardService {
         return dashboard;
     }
 
+    private BigDecimal getTotalProfitPercent(List<PerformanceData> performances) {
+        if (performances == null || performances.isEmpty()) {
+            return BigDecimal.ZERO;
+        }
+
+        BigDecimal total = BigDecimal.ZERO;
+
+        for (PerformanceData p : performances) {
+            total = total.add(p.getReturnPercent());
+        }
+
+        return total.setScale(2, RoundingMode.HALF_UP);
+    }
+    
     private BigDecimal getInitialBalance(List<PerformanceData> performances) {
         if (performances == null || performances.isEmpty()) {
             return BigDecimal.ZERO;
@@ -74,21 +88,6 @@ public class DashboardService {
         return total;
     }
 
-    private BigDecimal calculateProfitPercent(
-            BigDecimal initialBalance,
-            BigDecimal finalBalance
-    ) {
-        if (initialBalance == null ||
-                initialBalance.compareTo(BigDecimal.ZERO) == 0 ||
-                finalBalance == null) {
-            return BigDecimal.ZERO;
-        }
-
-        return finalBalance
-                .subtract(initialBalance)
-                .divide(initialBalance, 4, RoundingMode.HALF_UP)
-                .multiply(BigDecimal.valueOf(100));
-    }
 
     private BigDecimal averageWinrate(List<PerformanceData> performances) {
         return average(performances, PerformanceData::getWinrate);

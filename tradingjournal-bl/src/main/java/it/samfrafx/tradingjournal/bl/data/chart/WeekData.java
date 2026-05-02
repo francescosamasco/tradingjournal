@@ -14,6 +14,25 @@ public class WeekData {
     private Integer trades = 0;
 
     private Set<String> uniqueDays = new HashSet<>();
+    
+    private Integer winTrades = 0;
+    private BigDecimal winrate = BigDecimal.ZERO;
+
+    public Integer getWinTrades() {
+        return winTrades;
+    }
+
+    public void setWinTrades(Integer winTrades) {
+        this.winTrades = winTrades;
+    }
+
+    public BigDecimal getWinrate() {
+        return winrate;
+    }
+
+    public void setWinrate(BigDecimal winrate) {
+        this.winrate = winrate;
+    }
 
     public BigDecimal getAmount() {
         return amount;
