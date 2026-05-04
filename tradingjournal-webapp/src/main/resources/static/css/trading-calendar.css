@@ -1,4 +1,6 @@
-/* HEADER CALENDARIO */
+/* =========================
+   HEADER CALENDARIO
+========================= */
 .calendar-header {
   display: flex;
   align-items: center;
@@ -31,7 +33,9 @@
   font-size: 11px;
 }
 
-/* LAYOUT CALENDARIO */
+/* =========================
+   LAYOUT CALENDARIO
+========================= */
 .calendar-layout {
   display: grid;
   grid-template-columns: 1fr 135px;
@@ -57,7 +61,9 @@
   background: #ffffff;
 }
 
-/* CELLE */
+/* =========================
+   CELLE
+========================= */
 .cal-cell {
   height: 105px;
   background: #f3f4f6;
@@ -66,6 +72,8 @@
   padding: 7px;
   position: relative;
   font-size: 11px;
+  overflow: hidden;
+  transition: background 0.18s ease, box-shadow 0.18s ease;
 }
 
 .cal-cell.empty {
@@ -79,9 +87,83 @@
   right: 8px;
   color: #6b7280;
   font-weight: 600;
+  z-index: 2;
 }
 
-/* CELLA CON TRADE */
+/* =========================
+   CLICKABLE + HOVER UX
+========================= */
+.cal-cell.clickable-day {
+  cursor: pointer;
+}
+
+/* niente bordo verde forte */
+.cal-cell.clickable-day:hover {
+  box-shadow: inset 0 0 0 1px rgb(113 125 121 / 18%);
+}
+
+/* icona + premium */
+.cal-cell.clickable-day::before {
+  content: "+";
+  position: absolute;
+  top: 7px;
+  left: 7px;
+
+  width: 22px;
+  height: 22px;
+
+  border-radius: 7px;
+  background: rgb(131 142 138 / 13%);
+  color: #818885;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 15px;
+  font-weight: 900;
+  line-height: 1;
+
+  opacity: 0;
+  transform: translateY(-4px) scale(0.94);
+  transition: opacity 0.18s ease, transform 0.18s ease, background 0.18s ease;
+
+  z-index: 4;
+}
+
+.cal-cell.clickable-day:hover::before {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.cal-cell.clickable-day::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(78, 191, 148, 0.08),
+    rgba(78, 191, 148, 0)
+  );
+  opacity: 0;
+  transition: opacity 0.18s ease;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.cal-cell.clickable-day:hover::after {
+  opacity: 1;
+}
+
+/* niente icona sulle celle vuote */
+.cal-cell.empty::before,
+.cal-cell.empty::after {
+  display: none;
+}
+
+/* =========================
+   CELLA CON TRADE
+========================= */
 .cal-cell.positive {
   background: #dff7ec;
   border: 1px solid #9ee6c3;
@@ -92,6 +174,30 @@
   border: 1px solid #f4aaaa;
 }
 
+.cal-cell.positive:hover {
+  background: #d8f5e8;
+}
+
+.cal-cell.negative:hover {
+  background: #ffdddd;
+}
+
+.trade-amount {
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.trade-percent {
+  margin-top: 2px;
+  font-size: 11px;
+  font-weight: 800;
+  opacity: 0.85;
+}
+
+.trade-box small {
+  margin-top: 2px;
+}
+
 .trade-box {
   margin-top: 28px;
   background: transparent;
@@ -99,6 +205,8 @@
   text-align: center;
   font-weight: 800;
   font-size: 13px;
+  position: relative;
+  z-index: 2;
 }
 
 .cal-cell.positive .trade-box {
@@ -115,7 +223,9 @@
   font-size: 10px;
 }
 
-/* WEEK SUMMARY */
+/* =========================
+   WEEK SUMMARY
+========================= */
 .week-summary {
   display: grid;
   grid-template-rows: repeat(5, 1fr);
@@ -185,8 +295,9 @@
   font-weight: 700;
 }
 
-
-/* RESPONSIVE CALENDARIO */
+/* =========================
+   RESPONSIVE
+========================= */
 @media (max-width: 1200px) {
   .calendar-layout {
     grid-template-columns: 1fr;
@@ -214,9 +325,27 @@
     padding: 5px;
   }
 
+  .cal-number {
+    top: 5px;
+    right: 6px;
+  }
+
+  .cal-cell.clickable-day::before {
+    top: 5px;
+    left: 5px;
+    width: 18px;
+    height: 18px;
+    font-size: 13px;
+    border-radius: 6px;
+  }
+
   .trade-box {
+    margin-top: 22px;
     font-size: 10px;
-    padding: 4px;
+  }
+
+  .trade-box small {
+    font-size: 9px;
   }
 
   .week-summary {

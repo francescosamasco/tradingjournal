@@ -425,6 +425,76 @@
 
 </div>
 
+
+<!-- MODALE AGGIUNGI TRADE -->
+<div class="modal fade" id="addTradeModal" tabindex="-1" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-centered">
+		<div class="modal-content tj-modal">
+
+			<div class="modal-header border-0">
+				<h5 class="modal-title">Aggiungi Trade</h5>
+				<button type="button" class="btn-close " data-bs-dismiss="modal"></button>
+			</div>
+
+			<form method="post" >
+				<div class="modal-body">
+
+					<input type="hidden" name="accountId" th:value="${accountId}">
+					<input type="hidden" name="year" th:value="${calendarYear}">
+					<input type="hidden" name="month" th:value="${calendarMonth}">
+
+					<div class="mb-3">
+						<label class="form-label">Data trade</label>
+						<input type="datetime-local"
+						       class="form-control tj-input"
+						       id="tradeDateInput"
+						       name="dateTime"
+						       required>					
+					</div>
+
+					<div class="mb-3">
+						<label class="form-label">Risultato</label>
+						<select class="form-select tj-input" name="result" required>
+							<option value="">Seleziona</option>
+							<option value="WIN">Win</option>
+							<option value="LOSS">Loss</option>
+							<option value="BE">Break Even</option>
+							<option value="MISS">Miss</option>
+						</select>
+					</div>
+
+					<div class="mb-3">
+						<label class="form-label">Profit / Loss</label>
+						<input type="number" step="0.01" class="form-control tj-input" name="profitLoss" placeholder="Es. 150 oppure -80">
+					</div>
+
+					<div class="mb-3">
+						<label class="form-label">RR</label>
+						<input type="number" step="0.01" class="form-control tj-input" name="rr" placeholder="Es. 2.5">
+					</div>
+
+					<div class="mb-3">
+						<label class="form-label">Note</label>
+						<textarea class="form-control tj-input" name="note" rows="3"></textarea>
+					</div>
+
+				</div>
+
+				<div class="modal-footer border-0">
+					<button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">
+						Annulla
+					</button>
+					<button type="submit" class="btn btn-success">
+						Salva Trade
+					</button>
+				</div>
+			</form>
+
+		</div>
+	</div>
+</div>
+
+
 <script th:inline="javascript">
 	window.tradingCalendarData = /*[[${calendar.days}]]*/ {};
 	window.weekSummaryData = /*[[${calendar.weeks}]]*/ {};

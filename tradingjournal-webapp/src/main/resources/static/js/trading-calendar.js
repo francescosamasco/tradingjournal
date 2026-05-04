@@ -1,260 +1,310 @@
 window.TradingCalendar = (function () {
 
 	let currentCalendarDate = new Date(
-	    Number(window.calendarYear),
-	    Number(window.calendarMonth) - 1,
-	    1
+		Number(window.calendarYear),
+		Number(window.calendarMonth) - 1,
+		1
 	);
-	
-    const tradesByDate = window.tradingCalendarData || {};
-    const weekSummaryData = window.weekSummaryData || {};
 
-    function init() {
-        const calendarGrid = document.getElementById("calendarGrid");
-        const title = document.getElementById("calendarTitle");
-        const prev = document.getElementById("prevMonth");
-        const next = document.getElementById("nextMonth");
+	const tradesByDate = window.tradingCalendarData || {};
+	const weekSummaryData = window.weekSummaryData || {};
 
-        if (!calendarGrid || !title) return;
+	function init() {
+		const calendarGrid = document.getElementById("calendarGrid");
+		const title = document.getElementById("calendarTitle");
+		const prev = document.getElementById("prevMonth");
+		const next = document.getElementById("nextMonth");
 
-        render();
+		if (!calendarGrid || !title) return;
 
-        if (prev) {
+		render();
+
+		if (prev) {
 			prev.addEventListener("click", function () {
-			    goToMonth(-1);
+				goToMonth(-1);
 			});
-        }
+		}
 
-        if (next) {
+		if (next) {
 			next.addEventListener("click", function () {
-			    goToMonth(1);
+				goToMonth(1);
 			});
-        }
-    }
+		}
+	}
 
 	function goToMonth(offset) {
-	    const newDate = new Date(
-	        currentCalendarDate.getFullYear(),
-	        currentCalendarDate.getMonth() + offset,
-	        1
-	    );
+		const newDate = new Date(
+			currentCalendarDate.getFullYear(),
+			currentCalendarDate.getMonth() + offset,
+			1
+		);
 
-	    const params = new URLSearchParams(window.location.search);
+		const params = new URLSearchParams(window.location.search);
 
-	    params.set("year", newDate.getFullYear());
-	    params.set("period", newDate.getMonth() + 1);
+		params.set("year", newDate.getFullYear());
+		params.set("period", newDate.getMonth() + 1);
 
-	    if (window.accountId) {
-	        params.set("accountId", window.accountId);
-	    }
+		if (window.accountId) {
+			params.set("accountId", window.accountId);
+		}
 
-	    window.location.href = "/dashboard?" + params.toString();
+		window.location.href = "/dashboard?" + params.toString();
 	}
-	
-    function render() {
-        const calendarGrid = document.getElementById("calendarGrid");
-        const title = document.getElementById("calendarTitle");
-        const monthlyAmount = document.getElementById("monthlyAmount");
-        const monthlyDays = document.getElementById("monthlyDays");
-        const monthlyTrades = document.getElementById("monthlyTrades");
-        const weekSummary = document.getElementById("weekSummary");
 
-        const year = currentCalendarDate.getFullYear();
-        const month = currentCalendarDate.getMonth();
+	function render() {
+		const calendarGrid = document.getElementById("calendarGrid");
+		const title = document.getElementById("calendarTitle");
+		const monthlyAmount = document.getElementById("monthlyAmount");
+		const monthlyDays = document.getElementById("monthlyDays");
+		const monthlyTrades = document.getElementById("monthlyTrades");
+		const weekSummary = document.getElementById("weekSummary");
 
-        title.textContent = currentCalendarDate.toLocaleString("en-US", {
-            month: "long",
-            year: "numeric"
-        });
+		const year = currentCalendarDate.getFullYear();
+		const month = currentCalendarDate.getMonth();
 
-        calendarGrid.innerHTML = "";
+		title.textContent = currentCalendarDate.toLocaleString("en-US", {
+			month: "long",
+			year: "numeric"
+		});
 
-        renderDayNames(calendarGrid);
+		calendarGrid.innerHTML = "";
 
-        const firstDay = new Date(year, month, 1).getDay();
-        const totalDays = new Date(year, month + 1, 0).getDate();
+		renderDayNames(calendarGrid);
 
-        renderEmptyCells(calendarGrid, firstDay);
+		const firstDay = new Date(year, month, 1).getDay();
+		const totalDays = new Date(year, month + 1, 0).getDate();
 
-        const monthData = renderMonthDays(calendarGrid, year, month, totalDays);
+		renderEmptyCells(calendarGrid, firstDay);
 
-        const remainingCells = getRemainingCells(firstDay, totalDays);
-        renderEmptyCells(calendarGrid, remainingCells);
+		const monthData = renderMonthDays(calendarGrid, year, month, totalDays);
 
-        const totalCalendarCells = firstDay + totalDays + remainingCells;
-        const weeksCount = totalCalendarCells / 7;
+		const remainingCells = getRemainingCells(firstDay, totalDays);
+		renderEmptyCells(calendarGrid, remainingCells);
 
-        updateMonthlyStats(monthlyAmount, monthlyDays, monthlyTrades, monthData);
+		const totalCalendarCells = firstDay + totalDays + remainingCells;
+		const weeksCount = totalCalendarCells / 7;
+
+		updateMonthlyStats(monthlyAmount, monthlyDays, monthlyTrades, monthData);
+
 		const visibleWeeks = getVisibleWeeks(year, month, weeksCount);
 		renderWeekSummary(weekSummaryData, weekSummary, visibleWeeks);
 	}
 
-	function getVisibleWeeks(year, month, weeksCount) {
-	    const weeks = [];
+	function renderDayNames(calendarGrid) {
+		const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-	    for (let row = 0; row < weeksCount; row++) {
-	        const referenceDate = new Date(year, month, 1 + (row * 7));
-	        weeks.push(getIsoWeek(referenceDate));
-	    }
-
-	    return weeks;
+		days.forEach(function (day) {
+			const dayName = document.createElement("div");
+			dayName.className = "cal-day-name";
+			dayName.textContent = day;
+			calendarGrid.appendChild(dayName);
+		});
 	}
 
-	function getIsoWeek(date) {
-	    const tempDate = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-	    const dayNum = tempDate.getUTCDay() || 7;
+	function renderEmptyCells(calendarGrid, count) {
+		for (let i = 0; i < count; i++) {
+			const emptyCell = document.createElement("div");
+			emptyCell.className = "cal-cell empty";
+			calendarGrid.appendChild(emptyCell);
+		}
+	}
 
-	    tempDate.setUTCDate(tempDate.getUTCDate() + 4 - dayNum);
+	function renderMonthDays(calendarGrid, year, month, totalDays) {
+		const monthData = {
+			amount: 0,
+			tradeDays: 0,
+			tradeCount: 0
+		};
 
-	    const yearStart = new Date(Date.UTC(tempDate.getUTCFullYear(), 0, 1));
+		for (let day = 1; day <= totalDays; day++) {
+			const cell = document.createElement("div");
+			cell.className = "cal-cell clickable-day";
 
-	    return Math.ceil((((tempDate - yearStart) / 86400000) + 1) / 7);
+			const dateKey = formatDateKey(year, month, day);
+			const trade = tradesByDate[dateKey];
+
+			cell.dataset.date = dateKey;
+
+			cell.innerHTML = `
+				<span class="cal-number">${String(day).padStart(2, "0")}</span>
+			`;
+
+			cell.addEventListener("click", function () {
+				openAddTradeModal(dateKey);
+			});
+
+			if (trade) {
+				applyTradeToCell(cell, trade);
+				updateMonthData(monthData, trade);
+			}
+
+			calendarGrid.appendChild(cell);
+		}
+
+		return monthData;
+	}
+
+	function openAddTradeModal(dateKey) {
+		const modalEl = document.getElementById("addTradeModal");
+		const dateInput = document.getElementById("tradeDateInput");
+
+		if (!modalEl || !dateInput) {
+			console.warn("Modale aggiungi trade non trovata.");
+			return;
+		}
+
+		dateInput.value = dateKey;
+
+		const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+		modal.show();
+	}
+
+	function applyTradeToCell(cell, trade) {
+		const amount = Number(trade.amount || 0);
+		debugger;
+		const profitPercent = trade.percentage != null
+			? Number(trade.percentage)
+			: null;
+
+		cell.classList.add(amount >= 0 ? "positive" : "negative");
+
+		const box = document.createElement("div");
+		box.className = "trade-box";
+
+		box.innerHTML = `
+			<div class="trade-amount">${formatMoney(amount)}</div>
+			<div class="trade-percent">
+				${profitPercent != null ? formatPercent(profitPercent) : "--"}
+			</div>
+			<small>${Number(trade.trades || 0)} trades</small>
+		`;
+
+		cell.appendChild(box);
 	}
 	
-    function renderDayNames(calendarGrid) {
-        const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+	function formatPercent(value) {
+		const numericValue = Number(value || 0);
+		const sign = numericValue > 0 ? "+" : "";
 
-        days.forEach(function (day) {
-            const dayName = document.createElement("div");
-            dayName.className = "cal-day-name";
-            dayName.textContent = day;
-            calendarGrid.appendChild(dayName);
-        });
-    }
+		return sign + numericValue.toLocaleString("en-US", {
+			minimumFractionDigits: 0,
+			maximumFractionDigits: 1
+		}) + "%";
+	}
 
-    function renderEmptyCells(calendarGrid, count) {
-        for (let i = 0; i < count; i++) {
-            const emptyCell = document.createElement("div");
-            emptyCell.className = "cal-cell empty";
-            calendarGrid.appendChild(emptyCell);
-        }
-    }
+	function updateMonthData(monthData, trade) {
+		monthData.amount += Number(trade.amount || 0);
+		monthData.tradeDays++;
+		monthData.tradeCount += Number(trade.trades || 0);
+	}
 
-    function renderMonthDays(calendarGrid, year, month, totalDays) {
-        const monthData = {
-            amount: 0,
-            tradeDays: 0,
-            tradeCount: 0
-        };
+	function updateMonthlyStats(monthlyAmount, monthlyDays, monthlyTrades, monthData) {
+		if (monthlyAmount) {
+			monthlyAmount.textContent = formatMoney(monthData.amount);
+			monthlyAmount.className = monthData.amount >= 0 ? "text-success" : "text-danger";
+		}
 
-        for (let day = 1; day <= totalDays; day++) {
-            const cell = document.createElement("div");
-            cell.className = "cal-cell";
+		if (monthlyDays) {
+			monthlyDays.textContent = monthData.tradeDays + " days";
+		}
 
-            const dateKey = formatDateKey(year, month, day);
-            const trade = tradesByDate[dateKey];
-
-            cell.innerHTML = `
-                <span class="cal-number">${String(day).padStart(2, "0")}</span>
-            `;
-
-            if (trade) {
-                applyTradeToCell(cell, trade);
-                updateMonthData(monthData, trade);
-            }
-
-            calendarGrid.appendChild(cell);
-        }
-
-        return monthData;
-    }
-
-    function applyTradeToCell(cell, trade) {
-        cell.classList.add(trade.amount >= 0 ? "positive" : "negative");
-
-        const box = document.createElement("div");
-        box.className = "trade-box";
-
-        box.innerHTML = `
-            ${formatMoney(trade.amount)}
-            <small>${trade.trades} trades</small>
-        `;
-
-        cell.appendChild(box);
-    }
-
-    function updateMonthData(monthData, trade) {
-        monthData.amount += Number(trade.amount || 0);
-        monthData.tradeDays++;
-        monthData.tradeCount += Number(trade.trades || 0);
-    }
-
-    function updateMonthlyStats(monthlyAmount, monthlyDays, monthlyTrades, monthData) {
-        if (monthlyAmount) {
-            monthlyAmount.textContent = formatMoney(monthData.amount);
-            monthlyAmount.className = monthData.amount >= 0 ? "text-success" : "text-danger";
-        }
-
-        if (monthlyDays) {
-            monthlyDays.textContent = monthData.tradeDays + " days";
-        }
-
-        if (monthlyTrades) {
-            monthlyTrades.textContent = monthData.tradeCount + " trades";
-        }
-    }
+		if (monthlyTrades) {
+			monthlyTrades.textContent = monthData.tradeCount + " trades";
+		}
+	}
 
 	function renderWeekSummary(weeks, container, visibleWeeks) {
-	    if (!container) return;
+		if (!container) return;
 
-	    container.innerHTML = "";
-	    container.style.gridTemplateRows = `repeat(${visibleWeeks.length}, 1fr)`;
+		container.innerHTML = "";
+		container.style.gridTemplateRows = `repeat(${visibleWeeks.length}, 1fr)`;
 
-	    visibleWeeks.forEach(function (weekNumber) {
+		visibleWeeks.forEach(function (weekNumber) {
+			const week = weeks[weekNumber] || {
+				amount: 0,
+				days: 0,
+				trades: 0,
+				winrate: null,
+				rrAverage: null,
+				profitPercent: null
+			};
 
-	        const week = weeks[weekNumber] || {
-	            amount: 0,
-	            days: 0,
-	            trades: 0,
-	            rrAverage: null,
-	            profitPercent: null
-	        };
+			const amount = Number(week.amount || 0);
+			const days = Number(week.days || 0);
 
-	        const amount = Number(week.amount || 0);
-	        const days = Number(week.days || 0);
+			const card = document.createElement("div");
+			card.className = "week-card" + (amount < 0 ? " negative" : "");
 
-	        const card = document.createElement("div");
-	        card.className = "week-card" + (amount < 0 ? " negative" : "");
+			card.innerHTML = `
+				<strong>Week ${weekNumber}</strong>
 
-	        card.innerHTML = `
-	            <strong>Week ${weekNumber}</strong>
-
-	            <span>${days > 0 ? formatMoney(amount) : "--"}</span>
+				<span>${days > 0 ? formatMoney(amount) : "--"}</span>
 
 				<div class="week-extra">
-					<div>%: <b>${week.winrate != null ? Number(week.winrate).toFixed(1) + "%" : "--"}</b></div>
-				    <div>RR: <b>${week.rrAverage != null ? Number(week.rrAverage).toFixed(1) : "--"}</b></div>
+					<div>WR: <b>${week.winrate != null ? Number(week.winrate).toFixed(1) + "%" : "--"}</b></div>
+					<div>RR: <b>${week.rrAverage != null ? Number(week.rrAverage).toFixed(1) : "--"}</b></div>
 				</div>
 
 				<div class="week-footer">
-				    <small>WR: <b>${week.profitPercent != null ? Number(week.profitPercent).toFixed(1) + "%" : "--"}</b></small>
+					<small>%: <b>${week.profitPercent != null ? Number(week.profitPercent).toFixed(1) + "%" : "--"}</b></small>
 					<small>${days} days</small>
 				</div>
-	        `;
+			`;
 
-	        container.appendChild(card);
-	    });
+			container.appendChild(card);
+		});
 	}
 
-    function getRemainingCells(firstDay, totalDays) {
-        const totalCellsUsed = firstDay + totalDays;
-        return totalCellsUsed % 7 === 0 ? 0 : 7 - (totalCellsUsed % 7);
-    }
+	function getVisibleWeeks(year, month, weeksCount) {
+		const weeks = [];
 
-    function formatDateKey(year, month, day) {
-        return year + "-" +
-            String(month + 1).padStart(2, "0") + "-" +
-            String(day).padStart(2, "0");
-    }
+		for (let row = 0; row < weeksCount; row++) {
+			const referenceDate = new Date(year, month, 1 + (row * 7));
+			weeks.push(getIsoWeek(referenceDate));
+		}
 
-    function formatMoney(value) {
-        const numericValue = Number(value || 0);
-        const sign = numericValue >= 0 ? "$" : "-$";
-        return sign + Math.abs(numericValue).toLocaleString("en-US");
-    }
+		return weeks;
+	}
 
-    return {
-        init: init
-    };
+	function getIsoWeek(date) {
+		const tempDate = new Date(Date.UTC(
+			date.getFullYear(),
+			date.getMonth(),
+			date.getDate()
+		));
+
+		const dayNum = tempDate.getUTCDay() || 7;
+
+		tempDate.setUTCDate(tempDate.getUTCDate() + 4 - dayNum);
+
+		const yearStart = new Date(Date.UTC(tempDate.getUTCFullYear(), 0, 1));
+
+		return Math.ceil((((tempDate - yearStart) / 86400000) + 1) / 7);
+	}
+
+	function getRemainingCells(firstDay, totalDays) {
+		const totalCellsUsed = firstDay + totalDays;
+		return totalCellsUsed % 7 === 0 ? 0 : 7 - (totalCellsUsed % 7);
+	}
+
+	function formatDateKey(year, month, day) {
+		return year + "-"
+			+ String(month + 1).padStart(2, "0") + "-"
+			+ String(day).padStart(2, "0");
+	}
+
+	function formatMoney(value) {
+		const numericValue = Number(value || 0);
+		const sign = numericValue >= 0 ? "$" : "-$";
+
+		return sign + Math.abs(numericValue).toLocaleString("en-US", {
+			minimumFractionDigits: 0,
+			maximumFractionDigits: 2
+		});
+	}
+
+	return {
+		init: init
+	};
 
 })();

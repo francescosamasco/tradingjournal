@@ -11,6 +11,7 @@ import java.util.Map;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import it.samfrafx.tradingjournal.bl.PeriodEnum;
@@ -77,6 +78,32 @@ public class DashboardViewController {
 		return "dashboard";
 	}
 
+	@PostMapping("/trades/add")
+	public String addTrade(
+	        @RequestParam String accountId,
+	        @RequestParam String date,
+	        @RequestParam String result,
+	        @RequestParam(required = false) BigDecimal profitLoss,
+	        @RequestParam(required = false) BigDecimal rr,
+	        @RequestParam(required = false) String note,
+	        @RequestParam Integer year,
+	        @RequestParam Integer month
+	) {
+
+	 //  tradeService.addTrade(
+	 //          accountId,
+	 //          LocalDate.parse(date),
+	 //          result,
+	 //          profitLoss,
+	 //          rr,
+	 //          note
+	 //  );
+
+	    return "redirect:/dashboard?year=" + year
+	            + "&period=" + month
+	            + "&accountId=" + accountId;
+	}
+	
 	private CalendarData buildCalendarData(List<TradeData> trades) {
 
 		Map<String, DayData> days = new HashMap<>();
