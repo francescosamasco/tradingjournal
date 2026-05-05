@@ -115,15 +115,15 @@ public class DashboardViewController {
 				continue;
 			}
 
-			String dateKey = trade.getDateOpen().toLocalDate().toString();
 			LocalDate date = trade.getDateOpen().toLocalDate();
+			String dateKey = date.toString();
 
 			BigDecimal profit = trade.getProfit() != null
 					? trade.getProfit()
-							: BigDecimal.ZERO;
+					: BigDecimal.ZERO;
 
 			// =====================
-					// DAY
+			// DAY
 			// =====================
 			DayData day = days.get(dateKey);
 
@@ -133,7 +133,7 @@ public class DashboardViewController {
 						0,
 						trade.getAccountBalance(),
 						BigDecimal.ZERO
-						);
+				);
 				days.put(dateKey, day);
 			}
 
@@ -159,40 +159,82 @@ public class DashboardViewController {
 
 			if (week == null) {
 				week = new WeekData();
+				week.setAmount(BigDecimal.ZERO);
+				week.setTrades(0);
+				week.setWinTrades(0);
+				week.setLossTrades(0);
+				week.setBeTrades(0);
+				week.setMissTrades(0);
+				week.setRrTotal(BigDecimal.ZERO);
 				weeks.put(weekNumber, week);
 			}
 
 			BigDecimal rr = trade.getReturnPercent() != null
 					? trade.getReturnPercent()
-							: BigDecimal.ZERO;
+					: BigDecimal.ZERO;
 
+			// ---- aggregazioni base ----
 			BigDecimal newWeekAmount = week.getAmount().add(profit);
 			BigDecimal newRrTotal = week.getRrTotal().add(rr);
-			Integer newTradeCount = week.getTrades() + 1;
-			Integer newWinTrades = week.getWinTrades();
+			int newTradeCount = week.getTrades() + 1;
 
+			int wins = week.getWinTrades();
+			int losses = week.getLossTrades();
+			int be = week.getBeTrades();
+			int miss = week.getMissTrades();
+
+			// ---- esiti ----
 			if (trade.isWin()) {
-			    newWinTrades++;
+				wins++;
+			} else if (trade.isLoss()) {
+				losses++;
+			} else if (trade.isBe()) {
+				be++;
+			} else if (trade.isMiss()) {
+				miss++;
 			}
 
-			week.setWinTrades(newWinTrades);
+			week.setWinTrades(wins);
+			week.setLossTrades(losses);
+			week.setBeTrades(be);
+			week.setMissTrades(miss);
+
 			week.setAmount(newWeekAmount);
 			week.setTrades(newTradeCount);
-			week.setWinrate(
-			        BigDecimal.valueOf(newWinTrades)
-			                .divide(BigDecimal.valueOf(newTradeCount), 4, RoundingMode.HALF_UP)
-			                .multiply(BigDecimal.valueOf(100))
-			);
-			week.setRrTotal(newRrTotal);
-			week.setRrAverage(
-					newRrTotal.divide(
-							BigDecimal.valueOf(newTradeCount),
-							2,
-							RoundingMode.HALF_UP
-							)
-					);
-			week.addDay(dateKey);
 
+			// =====================
+			// WINRATE (solo win/loss)
+			// =====================
+			int winLossTotal = wins + losses;
+
+			if (winLossTotal > 0) {
+				week.setWinrate(
+						BigDecimal.valueOf(wins)
+								.divide(BigDecimal.valueOf(winLossTotal), 4, RoundingMode.HALF_UP)
+								.multiply(BigDecimal.valueOf(100))
+				);
+			} else {
+				week.setWinrate(BigDecimal.ZERO);
+			}
+
+			// =====================
+			// RR
+			// =====================
+			week.setRrTotal(newRrTotal);
+
+			if (newTradeCount > 0) {
+				week.setRrAverage(
+						newRrTotal.divide(
+								BigDecimal.valueOf(newTradeCount),
+								2,
+								RoundingMode.HALF_UP
+						)
+				);
+			}
+
+			// =====================
+			// PROFIT %
+			// =====================
 			BigDecimal weekStartBalance = trade.getAccountBalance();
 
 			if (weekStartBalance != null && weekStartBalance.compareTo(BigDecimal.ZERO) != 0) {
@@ -202,6 +244,8 @@ public class DashboardViewController {
 
 				week.setProfitPercent(profitPercent);
 			}
+
+			week.addDay(dateKey);
 		}
 
 		return new CalendarData(days, weeks);

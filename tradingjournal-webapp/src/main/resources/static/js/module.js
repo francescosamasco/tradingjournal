@@ -52,33 +52,90 @@ const emptyDoughnutPlugin = {
 };
 
 /* =========================
-   WEEKLY DOUGHNUTS
+   CENTER TEXT DOUGHNUT PLUGIN
+========================= */
+
+const doughnutCenterTextPlugin = {
+	id: "doughnutCenterText",
+
+	beforeDraw(chart) {
+		const { ctx, chartArea } = chart;
+
+		if (!chartArea) return;
+
+		const isEmpty = chart.config._isEmpty === true;
+		const centerText = chart.config._centerText;
+
+		if (isEmpty || !centerText) return;
+
+		const centerX = (chartArea.left + chartArea.right) / 2;
+		const centerY = (chartArea.top + chartArea.bottom) / 2;
+
+		ctx.save();
+		ctx.textAlign = "center";
+		ctx.textBaseline = "middle";
+
+		ctx.font = "900 18px Roboto";
+		ctx.fillStyle = centerText.color || "#0f172a";
+		ctx.fillText(centerText.main, centerX, centerY - 5);
+
+		if (centerText.sub) {
+			ctx.font = "700 11px Roboto";
+			ctx.fillStyle = "#64748b";
+			ctx.fillText(centerText.sub, centerX, centerY + 14);
+		}
+
+		ctx.restore();
+	}
+};
+
+/* =========================
+   WEEKLY PERFORMANCE
 ========================= */
 
 let weeklyWinLossChart = null;
 let weeklyOutcomeChart = null;
 
+let currentWeekIndex = 0;
+let weekKeysOrdered = [];
+
 function initWeeklyPerformance() {
 	const weeks = window.weekSummaryData || {};
-	const weekKeys = Object.keys(weeks);
 
-	if (!weekKeys.length) {
+	weekKeysOrdered = Object.keys(weeks).sort(function (a, b) {
+		return Number(a) - Number(b);
+	});
+
+	if (!weekKeysOrdered.length) {
 		renderEmptyWeeklyPerformance();
 		updateRingCircleFromWeekly({});
+		initWeeklyModeSwitch();
 		return;
 	}
 
 	const currentWeek = getCurrentIsoWeek();
+	const currentWeekKey = String(currentWeek);
 
-	const selectedWeekKey = weekKeys.includes(String(currentWeek))
-		? String(currentWeek)
-		: weekKeys[weekKeys.length - 1];
+	currentWeekIndex = weekKeysOrdered.indexOf(currentWeekKey);
 
-	const week = weeks[selectedWeekKey];
+	if (currentWeekIndex === -1) {
+		currentWeekIndex = weekKeysOrdered.length - 1;
+	}
 
-	renderWeeklyStats(selectedWeekKey, week);
+	renderSelectedWeek();
+	initWeeklyNavigation();
+	initWeeklyModeSwitch();
+	initCurrentWeekButton();
+}
+
+function renderSelectedWeek() {
+	const weekKey = weekKeysOrdered[currentWeekIndex];
+	const week = window.weekSummaryData ? window.weekSummaryData[weekKey] : {};
+
+	renderWeeklyStats(weekKey, week);
 	renderWeeklyDoughnut(week);
 	updateRingCircleFromWeekly(week);
+	updateWeeklyNavigationState();
 }
 
 function renderWeeklyStats(weekNumber, week) {
@@ -87,19 +144,29 @@ function renderWeeklyStats(weekNumber, week) {
 	const percent = getNumberValue(week, ["percent", "percentage", "profitPercent"], null);
 	const days = getNumberValue(week, ["days", "tradingDays"], 0);
 	const trades = getNumberValue(week, ["trades", "tradeCount", "totalTrades"], 0);
+
 	const wins = getNumberValue(week, ["wins", "win", "winTrades"], 0);
 	const losses = getNumberValue(week, ["losses", "loss", "lossTrades"], 0);
 
 	const winrate = wins + losses > 0 ? (wins / (wins + losses)) * 100 : null;
 
 	setText("weeklyTitle", "Week " + weekNumber);
+
 	setValueWithProfitClass("weeklyAmount", formatMoney(amount), amount);
+	setValueWithProfitClass("weeklyAmountStats", formatMoney(amount), amount);
 
 	const label = document.getElementById("weeklyResultLabel");
+
 	if (label) {
-		label.textContent = amount >= 0 ? "Profit" : "Loss";
-		label.classList.toggle("text-success", amount >= 0);
-		label.classList.toggle("text-danger", amount < 0);
+		label.textContent = amount > 0 ? "Profit" : amount < 0 ? "Loss" : "Flat";
+
+		label.classList.remove("text-success", "text-danger");
+
+		if (amount > 0) {
+			label.classList.add("text-success");
+		} else if (amount < 0) {
+			label.classList.add("text-danger");
+		}
 	}
 
 	setText("weeklyWinrate", winrate !== null ? winrate.toFixed(1) + "%" : "--");
@@ -107,6 +174,17 @@ function renderWeeklyStats(weekNumber, week) {
 	setText("weeklyPercent", percent !== null ? formatSignedPercent(percent) : "--");
 	setText("weeklyDays", days);
 	setText("weeklyTrades", trades);
+	
+	setText("weeklyKpiWinrate", winrate !== null ? winrate.toFixed(1) + "%" : "--");
+	setText("weeklyKpiRR", rr !== null ? rr.toFixed(2) : "--");
+	setText("weeklyKpiPercent", percent !== null ? formatSignedPercent(percent) : "--");
+
+	setValueWithProfitClass(
+		"weeklyKpiPercent",
+		percent !== null ? formatSignedPercent(percent) : "--",
+		percent !== null ? percent : 0
+	);
+	
 }
 
 function renderWeeklyDoughnut(week) {
@@ -123,6 +201,7 @@ function renderWeeklyWinLossChart(week) {
 
 	const total = wins + losses;
 	const isEmpty = total === 0;
+	const winrate = total > 0 ? (wins / total) * 100 : 0;
 
 	if (weeklyWinLossChart) {
 		weeklyWinLossChart.destroy();
@@ -136,20 +215,23 @@ function renderWeeklyWinLossChart(week) {
 				data: isEmpty ? [1] : [wins, losses],
 				backgroundColor: isEmpty
 					? [CHART_COLORS.empty]
-					: [
-						CHART_COLORS.win,
-						CHART_COLORS.loss
-					],
+					: [CHART_COLORS.win, CHART_COLORS.loss],
 				borderWidth: 0,
 				cutout: "72%",
 				hoverOffset: isEmpty ? 0 : 6
 			}]
 		},
 		options: getWeeklyDoughnutOptions(total),
-		plugins: [emptyDoughnutPlugin]
+		plugins: [emptyDoughnutPlugin, doughnutCenterTextPlugin]
 	});
 
 	weeklyWinLossChart.config._isEmpty = isEmpty;
+	weeklyWinLossChart.config._centerText = {
+		main: isEmpty ? "" : winrate.toFixed(1) + "%",
+		sub: "Winrate",
+		color: winrate >= 50 ? CHART_COLORS.win : CHART_COLORS.loss
+	};
+
 	weeklyWinLossChart.update();
 }
 
@@ -159,8 +241,9 @@ function renderWeeklyOutcomeChart(week) {
 
 	const wins = getNumberValue(week, ["wins", "win", "winTrades"], 0);
 	const losses = getNumberValue(week, ["losses", "loss", "lossTrades"], 0);
-	const breakeven = getNumberValue(week, ["breakeven", "be", "breakEven"], 0);
+	const breakeven = getNumberValue(week, ["breakeven", "be", "breakEven", "beTrades"], 0);
 	const miss = getNumberValue(week, ["miss", "missed", "missTrades"], 0);
+	const percent = getNumberValue(week, ["percent", "percentage", "profitPercent"], null);
 
 	const total = wins + losses + breakeven + miss;
 	const isEmpty = total === 0;
@@ -189,10 +272,16 @@ function renderWeeklyOutcomeChart(week) {
 			}]
 		},
 		options: getWeeklyDoughnutOptions(total),
-		plugins: [emptyDoughnutPlugin]
+		plugins: [emptyDoughnutPlugin, doughnutCenterTextPlugin]
 	});
 
 	weeklyOutcomeChart.config._isEmpty = isEmpty;
+	weeklyOutcomeChart.config._centerText = {
+		main: percent !== null ? formatSignedPercent(percent) : "--",
+		sub: "Profit %",
+		color: percent !== null && percent < 0 ? CHART_COLORS.loss : CHART_COLORS.win
+	};
+
 	weeklyOutcomeChart.update();
 }
 
@@ -227,6 +316,7 @@ function getWeeklyDoughnutOptions(total) {
 function renderEmptyWeeklyPerformance() {
 	setText("weeklyTitle", "Nessun dato");
 	setText("weeklyAmount", "--");
+	setText("weeklyAmountStats", "--");
 	setText("weeklyWinrate", "--");
 	setText("weeklyRR", "--");
 	setText("weeklyPercent", "--");
@@ -235,6 +325,102 @@ function renderEmptyWeeklyPerformance() {
 	setText("weeklyResultLabel", "--");
 
 	renderWeeklyDoughnut({});
+}
+
+function initWeeklyNavigation() {
+	const prev = document.getElementById("prevWeek");
+	const next = document.getElementById("nextWeek");
+
+	if (prev) {
+		prev.addEventListener("click", function () {
+			if (currentWeekIndex > 0) {
+				currentWeekIndex--;
+				renderSelectedWeek();
+			}
+		});
+	}
+
+	if (next) {
+		next.addEventListener("click", function () {
+			if (currentWeekIndex < weekKeysOrdered.length - 1) {
+				currentWeekIndex++;
+				renderSelectedWeek();
+			}
+		});
+	}
+}
+
+function updateWeeklyNavigationState() {
+	const prev = document.getElementById("prevWeek");
+	const next = document.getElementById("nextWeek");
+
+	if (prev) {
+		prev.disabled = currentWeekIndex <= 0;
+		prev.classList.toggle("disabled", currentWeekIndex <= 0);
+	}
+
+	if (next) {
+		next.disabled = currentWeekIndex >= weekKeysOrdered.length - 1;
+		next.classList.toggle("disabled", currentWeekIndex >= weekKeysOrdered.length - 1);
+	}
+}
+
+function initWeeklyModeSwitch() {
+	const buttons = document.querySelectorAll(".weekly-switch-btn");
+
+	const chartsView = document.getElementById("weeklyChartsView");
+	const statsView = document.getElementById("weeklyStatsView");
+
+	if (!buttons.length || !chartsView || !statsView) return;
+
+	buttons.forEach(function (btn) {
+		btn.addEventListener("click", function () {
+			const mode = btn.dataset.mode;
+
+			buttons.forEach(function (b) {
+				b.classList.remove("active");
+			});
+
+			btn.classList.add("active");
+
+			if (mode === "charts") {
+				chartsView.classList.remove("d-none");
+				statsView.classList.add("d-none");
+
+				if (weeklyWinLossChart) {
+					weeklyWinLossChart.resize();
+				}
+
+				if (weeklyOutcomeChart) {
+					weeklyOutcomeChart.resize();
+				}
+			}
+
+			if (mode === "stats") {
+				chartsView.classList.add("d-none");
+				statsView.classList.remove("d-none");
+			}
+		});
+	});
+}
+
+function initCurrentWeekButton() {
+	const btn = document.getElementById("currentWeekBtn");
+
+	if (!btn) return;
+
+	btn.addEventListener("click", function () {
+		const currentWeek = getCurrentIsoWeek();
+		const index = weekKeysOrdered.indexOf(String(currentWeek));
+
+		if (index !== -1) {
+			currentWeekIndex = index;
+		} else {
+			currentWeekIndex = weekKeysOrdered.length - 1;
+		}
+
+		renderSelectedWeek();
+	});
 }
 
 /* =========================
@@ -274,7 +460,7 @@ function updateRingCircleFromWeekly(week) {
 }
 
 /* =========================
-   VIEW SWITCH
+   VIEW SWITCH CALENDARIO
 ========================= */
 
 let calendarEquityChart = null;

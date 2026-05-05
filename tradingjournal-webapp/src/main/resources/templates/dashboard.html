@@ -1,513 +1,512 @@
 <!doctype html>
 <html lang="it" xmlns:th="http://www.thymeleaf.org">
 <head>
-	<meta charset="UTF-8" />
-	<meta name="viewport" content="width=device-width, initial-scale=1" />
-	<title>Trading Dashboard</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Trading Dashboard</title>
 
-	<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
-	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+<link
+	href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap"
+	rel="stylesheet">
+<link
+	href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+	rel="stylesheet">
 
-	<link th:href="@{/css/dashboard.css}" rel="stylesheet">
-	<link th:href="@{/css/trading-calendar.css}" rel="stylesheet">
+<link th:href="@{/css/dashboard.css}" rel="stylesheet">
+<link th:href="@{/css/trading-calendar.css}" rel="stylesheet">
 </head>
 
 <body class="dashboard-body">
 
-<div class="container-fluid py-4">
+	<div class="container-fluid py-4">
 
-	<!-- TOP CARDS -->
-	<div class="row g-3 mb-3">
+		<!-- TOP CARDS -->
+		<div class="row g-3 mb-3">
 
-		<div class="col-12 col-md-6 col-xl">
-			<div class="metric-card">
-				<div class="metric-head">
-					<span>Account Net P&amp;L</span>
-					<span class="info-dot">i</span>
-				</div>
+			<div class="col-12 col-md-6 col-xl">
+				<div class="metric-card">
+					<div class="metric-head">
+						<span>Account Net P&amp;L</span> <span class="info-dot">i</span>
+					</div>
 
-				<div class="metric-main"
-					 th:classappend="${dashboard.profitPercent != null && dashboard.profitPercent.compareTo(T(java.math.BigDecimal).ZERO) >= 0} ? ' text-success' : ' text-danger'"
-					 th:text="${
+					<div class="metric-main"
+						th:classappend="${dashboard.profitPercent != null && dashboard.profitPercent.compareTo(T(java.math.BigDecimal).ZERO) >= 0} ? ' text-success' : ' text-danger'"
+						th:text="${
 						dashboard.bilancioFinale != null ?
 						(dashboard.bilancioFinale.compareTo(T(java.math.BigDecimal).ZERO) >= 0 ? '+' : '-') +
 						'$' + #numbers.formatDecimal(dashboard.bilancioFinale.abs(), 1, 2)
 						: '--'
 					 }">
-					+$25,000.00
-				</div>
+						+$25,000.00</div>
 
-				<div class="metric-bottom">
-					<span>Start:</span>
-					<strong th:text="${dashboard.bilancioIniziale != null ? '$' + #numbers.formatDecimal(dashboard.bilancioIniziale, 1, 2) : '--'}">--</strong>
-				</div>
+					<div class="metric-bottom">
+						<span>Start:</span> <strong
+							th:text="${dashboard.bilancioIniziale != null ? '$' + #numbers.formatDecimal(dashboard.bilancioIniziale, 1, 2) : '--'}">--</strong>
+					</div>
 
-				<div class="metric-icon">↗</div>
+					<div class="metric-icon">↗</div>
+				</div>
 			</div>
-		</div>
 
-		<div class="col-12 col-md-6 col-xl">
-			<div class="metric-card">
-				<div class="metric-head">
-					<span>Net Profit %</span>
-					<span class="info-dot">i</span>
-				</div>
+			<div class="col-12 col-md-6 col-xl">
+				<div class="metric-card">
+					<div class="metric-head">
+						<span>Net Profit %</span> <span class="info-dot">i</span>
+					</div>
 
-				<div class="metric-main"
-					 th:with="netPnl=${dashboard.bilancioFinale != null && dashboard.bilancioIniziale != null ? dashboard.bilancioFinale.subtract(dashboard.bilancioIniziale) : T(java.math.BigDecimal).ZERO}"
-					 th:classappend="${netPnl.compareTo(T(java.math.BigDecimal).ZERO) >= 0} ? ' text-success' : ' text-danger'"
-					 th:text="${
+					<div class="metric-main"
+						th:with="netPnl=${dashboard.bilancioFinale != null && dashboard.bilancioIniziale != null ? dashboard.bilancioFinale.subtract(dashboard.bilancioIniziale) : T(java.math.BigDecimal).ZERO}"
+						th:classappend="${netPnl.compareTo(T(java.math.BigDecimal).ZERO) >= 0} ? ' text-success' : ' text-danger'"
+						th:text="${
 						dashboard.profitPercent != null ?
 						(dashboard.profitPercent.compareTo(T(java.math.BigDecimal).ZERO) >= 0 ? '+' : '-') +
 						#numbers.formatDecimal(dashboard.profitPercent.abs(), 1, 2) + '%'
 						: '--'
 					 }">
-					--
-				</div>
+						--</div>
 
-				<div class="metric-bottom">
-					<span>Profit %:</span>
-					<strong
-						th:classappend="${dashboard.profitPercent != null && dashboard.profitPercent.compareTo(T(java.math.BigDecimal).ZERO) >= 0} ? ' text-success' : ' text-danger'"
-						th:text="${dashboard.profitPercent != null ? #numbers.formatDecimal(dashboard.profitPercent, 1, 2) + '%' : '--'}">--</strong>
-				</div>
-
-				<div class="metric-icon">↔</div>
-			</div>
-		</div>
-
-		<div class="col-12 col-md-6 col-xl">
-			<div class="metric-card">
-				<div class="metric-head">
-					<span>Trade win %</span>
-					<span class="info-dot">i</span>
-				</div>
-
-				<div class="metric-main"
-					 th:text="${dashboard.winrate != null ? #numbers.formatDecimal(dashboard.winrate, 1, 1) + '%' : '--'}">--</div>
-
-				<div class="ring-circle"></div>
-			</div>
-		</div>
-
-		<div class="col-12 col-md-6 col-xl">
-			<div class="metric-card">
-				<div class="metric-head">
-					<span>R/R medio</span>
-					<span class="info-dot">i</span>
-				</div>
-
-				<div class="metric-main"
-					 th:classappend="${dashboard.rrAverage != null && dashboard.rrAverage.compareTo(T(java.math.BigDecimal).ZERO) >= 0} ? ' text-success' : ' text-danger'"
-					 th:text="${dashboard.rrAverage != null ? #numbers.formatDecimal(dashboard.rrAverage, 1, 1) : '--'}">--</div>
-
-				<div class="metric-bottom">
-					<span>Periodo:</span>
-					<strong th:text="${dashboard.periodEnum != null ? dashboard.periodEnum.name() : '--'}">--</strong>
-				</div>
-			</div>
-		</div>
-
-		<div class="col-12 col-md-6 col-xl">
-			<div class="metric-card">
-				<div class="metric-head">
-					<span>Profit factor</span>
-					<span class="info-dot">i</span>
-				</div>
-
-				<div class="metric-main"
-					 th:text="${dashboard.profitFactor != null ? #numbers.formatDecimal(dashboard.profitFactor, 1, 2) : '--'}">--</div>
-
-			</div>
-		</div>
-
-	</div>
-
-	<!-- MAIN GRID -->
-	<div class="row g-3">
-
-		<!-- CALENDARIO / STATS / EQUITY -->
-		<div class="col-12 col-xl-8">
-			<div class="dash-card h-100">
-
-				<div class="calendar-header flex-wrap gap-2">
-					<button type="button" class="cal-btn" id="prevMonth">‹</button>
-					<strong id="calendarTitle">April 2025</strong>
-					<button type="button" class="cal-btn" id="nextMonth">›</button>
-
-					<div class="view-switch ms-xl-3">
-						<button type="button" class="view-switch-btn active" data-view="calendar">Calendario</button>
-						<button type="button" class="view-switch-btn" data-view="stats">Statistiche</button>
-						<button type="button" class="view-switch-btn" data-view="equity">Equity Line</button>
+					<div class="metric-bottom">
+						<span>Profit %:</span> <strong
+							th:classappend="${dashboard.profitPercent != null && dashboard.profitPercent.compareTo(T(java.math.BigDecimal).ZERO) >= 0} ? ' text-success' : ' text-danger'"
+							th:text="${dashboard.profitPercent != null ? #numbers.formatDecimal(dashboard.profitPercent, 1, 2) + '%' : '--'}">--</strong>
 					</div>
 
-					<button type="button" class="btn btn-sm btn-light" id="currentMonthBtn">
-						Mese corrente
-					</button>
-
-					<div class="ms-auto calendar-stats">
-						<span>Monthly stats:</span>
-						<strong class="text-success" id="monthlyAmount">--</strong>
-						<span class="stat-pill" id="monthlyDays">0 days</span>
-						<span class="stat-pill" id="monthlyTrades">0 trades</span>
-					</div>
-				</div>
-
-				<div id="calendarView">
-					<div class="calendar-layout mt-3">
-						<div class="calendar-grid-pro" id="calendarGrid"></div>
-						<div class="week-summary" id="weekSummary"></div>
-					</div>
-				</div>
-
-				<div id="calendarStatsView" class="d-none mt-3">
-
-					<div class="account-stats-table">
-
-						<div class="account-stats-header">
-							<strong>Account</strong>
-							<strong>N.</strong>
-						</div>
-
-						<div class="account-stats-row">
-							<span>Net. Profit</span>
-							<strong id="statsTotalPnl">--</strong>
-						</div>
-
-						<div class="account-stats-row">
-							<span>Average win</span>
-							<strong id="statsAverageWin">--</strong>
-						</div>
-
-						<div class="account-stats-row">
-							<span>Average loss</span>
-							<strong id="statsAverageLoss">--</strong>
-						</div>
-
-						<div class="account-stats-row">
-							<span>Largest win</span>
-							<strong id="statsLargestWin">--</strong>
-						</div>
-
-						<div class="account-stats-row">
-							<span>Largest loss</span>
-							<strong id="statsLargestLoss">--</strong>
-						</div>
-
-						<div class="account-stats-row">
-							<span>Max consecutive wins</span>
-							<strong id="statsMaxConsecutiveWins">--</strong>
-						</div>
-
-						<div class="account-stats-row">
-							<span>Max consecutive loss</span>
-							<strong id="statsMaxConsecutiveLoss">--</strong>
-						</div>
-
-						<div class="account-stats-row">
-							<span>Max DD %</span>
-							<strong id="statsMaxDd">--</strong>
-						</div>
-
-						<div class="account-stats-row">
-							<span>Max Daily DD %</span>
-							<strong id="statsMaxDailyDd">--</strong>
-						</div>
-
-						<div class="account-stats-row">
-							<span>Total profit</span>
-							<strong id="statsTotalProfit">--</strong>
-						</div>
-
-						<div class="account-stats-row">
-							<span>Total loss</span>
-							<strong id="statsTotalLoss">--</strong>
-						</div>
-
-						<div class="account-stats-row">
-							<span>Long trade</span>
-							<strong id="statsLongTrade">--</strong>
-						</div>
-
-						<div class="account-stats-row">
-							<span>Short trade</span>
-							<strong id="statsShortTrade">--</strong>
-						</div>
-
-						<div class="account-stats-row">
-							<span>Tot trade number</span>
-							<strong id="statsTrades">--</strong>
-						</div>
-
-						<div class="account-stats-row">
-							<span>Default risk %</span>
-							<strong id="statsDefaultRisk">--</strong>
-						</div>
-
-					</div>
-
-				</div>
-
-				<div id="calendarEquityView" class="d-none mt-3">
-					<div class="calendar-equity-chart">
-						<canvas id="calendarEquityChart"></canvas>
-					</div>
-				</div>
-
-			</div>
-		</div>
-
-		<!-- PERFORMANCE SETTIMANALE -->
-		<div class="col-12 col-xl-4">
-
-			<div class="dash-card mb-3 weekly-performance-card">
-				<div class="d-flex justify-content-between align-items-start mb-2">
-					<div>
-						<div class="dash-title mb-1">Weekly Performance</div>
-						<div class="text-muted small" id="weeklyTitle">Settimana corrente</div>
-					</div>
-
-					<span class="stat-pill" id="weeklyResultLabel">--</span>
-				</div>
-
-				<div class="weekly-doughnut-grid">
-
-					<div class="weekly-chart-box">
-						<div class="weekly-chart-title">Win / Loss</div>
-						<div class="doughnut-wrap small">
-							<canvas id="weeklyWinLossChart"></canvas>
-						</div>
-					</div>
-				
-					<div class="weekly-chart-box">
-						<div class="weekly-chart-title">Esiti trade</div>
-						<div class="doughnut-wrap small">
-							<canvas id="weeklyOutcomeChart"></canvas>
-						</div>
-					</div>
-				
+					<div class="metric-icon">↔</div>
 				</div>
 			</div>
 
-			<div class="dash-card weekly-stats-card">
-				<div class="dash-title mb-3">Statistiche settimanali</div>
+			<div class="col-12 col-md-6 col-xl">
+				<div class="metric-card">
+					<div class="metric-head">
+						<span>Trade win %</span> <span class="info-dot">i</span>
+					</div>
 
-				<div class="weekly-stat-row">
-					<span>Profit / Loss</span>
-					<strong id="weeklyAmount">--</strong>
+					<div class="metric-main"
+						th:text="${dashboard.winrate != null ? #numbers.formatDecimal(dashboard.winrate, 1, 1) + '%' : '--'}">--</div>
+
+					<div class="ring-circle"></div>
 				</div>
+			</div>
 
-				<div class="weekly-stat-row">
-					<span>Winrate</span>
-					<strong id="weeklyWinrate">--</strong>
+			<div class="col-12 col-md-6 col-xl">
+				<div class="metric-card">
+					<div class="metric-head">
+						<span>R/R medio</span> <span class="info-dot">i</span>
+					</div>
+
+					<div class="metric-main"
+						th:classappend="${dashboard.rrAverage != null && dashboard.rrAverage.compareTo(T(java.math.BigDecimal).ZERO) >= 0} ? ' text-success' : ' text-danger'"
+						th:text="${dashboard.rrAverage != null ? #numbers.formatDecimal(dashboard.rrAverage, 1, 1) : '--'}">--</div>
+
+					<div class="metric-bottom">
+						<span>Periodo:</span> <strong
+							th:text="${dashboard.periodEnum != null ? dashboard.periodEnum.name() : '--'}">--</strong>
+					</div>
 				</div>
+			</div>
 
-				<div class="weekly-stat-row">
-					<span>R/R</span>
-					<strong id="weeklyRR">--</strong>
-				</div>
+			<div class="col-12 col-md-6 col-xl">
+				<div class="metric-card">
+					<div class="metric-head">
+						<span>Profit factor</span> <span class="info-dot">i</span>
+					</div>
 
-				<div class="weekly-stat-row">
-					<span>Percentuale</span>
-					<strong id="weeklyPercent">--</strong>
-				</div>
-
-				<div class="weekly-stat-row">
-					<span>Giorni operativi</span>
-					<strong id="weeklyDays">--</strong>
-				</div>
-
-				<div class="weekly-stat-row">
-					<span>Trade</span>
-					<strong id="weeklyTrades">--</strong>
+					<div class="metric-main"
+						th:text="${dashboard.profitFactor != null ? #numbers.formatDecimal(dashboard.profitFactor, 1, 2) : '--'}">--</div>
 				</div>
 			</div>
 
 		</div>
 
-		<!-- TABELLA TRADES -->
-		<div class="col-12">
-			<div class="dash-card mt-3">
+		<!-- MAIN GRID -->
+		<div class="row g-3">
 
-				<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-3">
-					<div>
-						<div class="dash-title mb-1">Storico Trades</div>
-						<div class="text-muted small">Elenco operazioni registrate</div>
+			<!-- CALENDARIO / STATS / EQUITY -->
+			<div class="col-12 col-xl-8">
+				<div class="dash-card h-100">
+
+					<div class="calendar-header flex-wrap gap-2">
+						<button type="button" class="cal-btn" id="prevMonth">‹</button>
+						<strong id="calendarTitle">April 2025</strong>
+						<button type="button" class="cal-btn" id="nextMonth">›</button>
+
+						<div class="view-switch ms-xl-3">
+							<button type="button" class="view-switch-btn active"
+								data-view="calendar">Calendario</button>
+							<button type="button" class="view-switch-btn" data-view="stats">Statistiche</button>
+							<button type="button" class="view-switch-btn" data-view="equity">Equity
+								Line</button>
+						</div>
+
+						<button type="button" class="btn btn-sm btn-light"
+							id="currentMonthBtn">Mese corrente</button>
+
+						<div class="ms-auto calendar-stats">
+							<span>Monthly stats:</span> <strong class="text-success"
+								id="monthlyAmount">--</strong> <span class="stat-pill"
+								id="monthlyDays">0 days</span> <span class="stat-pill"
+								id="monthlyTrades">0 trades</span>
+						</div>
 					</div>
 
-					<button type="button" class="btn btn-sm btn-outline-secondary">Esporta</button>
+					<div id="calendarView">
+						<div class="calendar-layout mt-3">
+							<div class="calendar-grid-pro" id="calendarGrid"></div>
+							<div class="week-summary" id="weekSummary"></div>
+						</div>
+					</div>
+
+					<div id="calendarStatsView" class="d-none mt-3">
+
+						<div class="account-stats-table">
+
+							<div class="account-stats-header">
+								<strong>Account</strong> <strong>N.</strong>
+							</div>
+
+							<div class="account-stats-row">
+								<span>Net. Profit</span> <strong id="statsTotalPnl">--</strong>
+							</div>
+
+							<div class="account-stats-row">
+								<span>Average win</span> <strong id="statsAverageWin">--</strong>
+							</div>
+
+							<div class="account-stats-row">
+								<span>Average loss</span> <strong id="statsAverageLoss">--</strong>
+							</div>
+
+							<div class="account-stats-row">
+								<span>Largest win</span> <strong id="statsLargestWin">--</strong>
+							</div>
+
+							<div class="account-stats-row">
+								<span>Largest loss</span> <strong id="statsLargestLoss">--</strong>
+							</div>
+
+							<div class="account-stats-row">
+								<span>Max consecutive wins</span> <strong
+									id="statsMaxConsecutiveWins">--</strong>
+							</div>
+
+							<div class="account-stats-row">
+								<span>Max consecutive loss</span> <strong
+									id="statsMaxConsecutiveLoss">--</strong>
+							</div>
+
+							<div class="account-stats-row">
+								<span>Max DD %</span> <strong id="statsMaxDd">--</strong>
+							</div>
+
+							<div class="account-stats-row">
+								<span>Max Daily DD %</span> <strong id="statsMaxDailyDd">--</strong>
+							</div>
+
+							<div class="account-stats-row">
+								<span>Total profit</span> <strong id="statsTotalProfit">--</strong>
+							</div>
+
+							<div class="account-stats-row">
+								<span>Total loss</span> <strong id="statsTotalLoss">--</strong>
+							</div>
+
+							<div class="account-stats-row">
+								<span>Long trade</span> <strong id="statsLongTrade">--</strong>
+							</div>
+
+							<div class="account-stats-row">
+								<span>Short trade</span> <strong id="statsShortTrade">--</strong>
+							</div>
+
+							<div class="account-stats-row">
+								<span>Tot trade number</span> <strong id="statsTrades">--</strong>
+							</div>
+
+							<div class="account-stats-row">
+								<span>Default risk %</span> <strong id="statsDefaultRisk">--</strong>
+							</div>
+
+						</div>
+
+					</div>
+
+					<div id="calendarEquityView" class="d-none mt-3">
+						<div class="calendar-equity-chart">
+							<canvas id="calendarEquityChart"></canvas>
+						</div>
+					</div>
+
 				</div>
+			</div>
 
-				<div class="table-responsive">
-					<table class="table table-hover align-middle trade-table mb-0">
-						<thead>
-						<tr>
-							<th>Data apertura</th>
-							<th>Asset</th>
-							<th>Esito</th>
-							<th>Posizione</th>
-							<th>Struttura</th>
-							<th>Setup</th>
-							<th>Confluenze</th>
-							<th class="text-end">Profit</th>
-							<th class="text-end">Risk</th>
-							<th class="text-end">R/R</th>
-							<th>Week</th>
-							<th>Tags</th>
-							<th>Note</th>
-						</tr>
-						</thead>
+			<!-- WEEKLY PERFORMANCE UNIFICATA -->
+			<div class="col-12 col-xl-4">
 
-						<tbody>
-						<tr th:if="${trades == null || trades.isEmpty()}">
-							<td colspan="13" class="text-center text-muted py-4">
-								Nessun trade disponibile
-							</td>
-						</tr>
+				<div class="dash-card weekly-card">
 
-						<tr th:each="t : ${trades}">
-							<td>
-								<strong th:text="${t.dateOpen != null ? #temporals.format(t.dateOpen, 'dd/MM/yyyy') : '-'}">01/04/2025</strong>
-								<div class="text-muted small"
-									 th:text="${t.dateOpen != null ? #temporals.format(t.dateOpen, 'HH:mm') : ''}">
-									10:30
+					<div class="weekly-header">
+
+						<button type="button" class="week-nav-btn" id="prevWeek">‹</button>
+
+						<strong id="weeklyTitle" class="weekly-title">Week 1</strong>
+
+						<button type="button" class="week-nav-btn" id="nextWeek">›</button>
+
+						<div class="weekly-switch">
+							<button type="button" class="weekly-switch-btn active"
+								data-mode="charts">Grafici</button>
+							<button type="button" class="weekly-switch-btn" data-mode="stats">Statistiche</button>
+						</div>
+
+						<button type="button"
+							class="btn btn-sm btn-light current-week-btn" id="currentWeekBtn">
+							Settimana corrente</button>
+
+					</div>
+
+					<div class="weekly-kpi-grid">
+
+						<div class="weekly-kpi-card">
+							<span>Bilancio</span> <strong id="weeklyAmount">--</strong>
+						</div>
+
+						<div class="weekly-kpi-card">
+							<span>Profit %</span> <strong id="weeklyKpiPercent">--</strong>
+						</div>
+
+						<div class="weekly-kpi-card">
+							<span>Winrate</span> <strong id="weeklyKpiWinrate">--</strong>
+						</div>
+
+						<div class="weekly-kpi-card">
+							<span>R/R medio</span> <strong id="weeklyKpiRR">--</strong>
+						</div>
+
+					</div>
+					<div id="weeklyChartsView">
+
+						<div class="weekly-doughnut-grid">
+
+							<div class="weekly-chart-box">
+								<div class="weekly-chart-title">Win / Loss</div>
+								<div class="doughnut-wrap small">
+									<canvas id="weeklyWinLossChart"></canvas>
 								</div>
-							</td>
+							</div>
 
-							<td><strong th:text="${t.asset ?: '-'}">EURUSD</strong></td>
+							<div class="weekly-chart-box">
+								<div class="weekly-chart-title">Esiti trade</div>
+								<div class="doughnut-wrap small">
+									<canvas id="weeklyOutcomeChart"></canvas>
+								</div>
+							</div>
 
-							<td>
-								<span class="trade-badge"
-									  th:classappend="${t.win} ? ' positive' : (${t.loss} ? ' negative' : '')"
-									  th:text="${t.esito ?: '-'}">WIN</span>
-							</td>
+						</div>
 
-							<td th:text="${t.posizione ?: '-'}">LONG</td>
-							<td th:text="${t.struttura ?: '-'}">Struttura</td>
-							<td th:text="${t.setup ?: '-'}">Setup</td>
-							<td th:text="${t.confluenze ?: '-'}">Confluenze</td>
+					</div>
 
-							<td class="text-end"
-								th:classappend="${t.win} ? ' trade-result-positive' : (${t.loss} ? ' trade-result-negative' : '')"
-								th:text="${t.profit != null ? #numbers.formatDecimal(t.profit, 1, 2) : '-'}">
-								120.00
-							</td>
+					<div id="weeklyStatsView" class="d-none">
 
-							<td class="text-end"
-								th:text="${t.risk != null ? #numbers.formatDecimal(t.risk, 1, 2) : '-'}">
-								50.00
-							</td>
+						<div class="weekly-stat-row">
+							<span>Profit / Loss</span> <strong id="weeklyAmountStats">--</strong>
+						</div>
 
-							<td class="text-end fw-bold"
-								th:text="${t.returnPercent != null ? #numbers.formatDecimal(t.returnPercent, 1, 2) : '-'}">
-								2.40
-							</td>
+						<div class="weekly-stat-row">
+							<span>Winrate</span> <strong id="weeklyWinrate">--</strong>
+						</div>
 
-							<td th:text="${t.weekN ?: '-'}">14</td>
+						<div class="weekly-stat-row">
+							<span>R/R</span> <strong id="weeklyRR">--</strong>
+						</div>
 
-							<td>
-								<span class="tag-badge" th:text="${t.tags ?: '-'}">tag</span>
-							</td>
+						<div class="weekly-stat-row">
+							<span>Percentuale</span> <strong id="weeklyPercent">--</strong>
+						</div>
 
-							<td class="text-truncate" style="max-width: 180px;"
-								th:text="${t.note ?: '-'}">
-								Note trade
-							</td>
-						</tr>
-						</tbody>
-					</table>
+						<div class="weekly-stat-row">
+							<span>Giorni operativi</span> <strong id="weeklyDays">--</strong>
+						</div>
+
+						<div class="weekly-stat-row">
+							<span>Trade</span> <strong id="weeklyTrades">--</strong>
+						</div>
+
+					</div>
+
 				</div>
 
 			</div>
+
+			<!-- TABELLA TRADES -->
+			<div class="col-12">
+				<div class="dash-card mt-3">
+
+					<div
+						class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-3">
+						<div>
+							<div class="dash-title mb-1">Storico Trades</div>
+							<div class="text-muted small">Elenco operazioni registrate</div>
+						</div>
+
+						<button type="button" class="btn btn-sm btn-outline-secondary">Esporta</button>
+					</div>
+
+					<div class="table-responsive">
+						<table class="table table-hover align-middle trade-table mb-0">
+							<thead>
+								<tr>
+									<th>Data apertura</th>
+									<th>Asset</th>
+									<th>Esito</th>
+									<th>Posizione</th>
+									<th>Struttura</th>
+									<th>Setup</th>
+									<th>Confluenze</th>
+									<th class="text-end">Profit</th>
+									<th class="text-end">Risk</th>
+									<th class="text-end">R/R</th>
+									<th>Week</th>
+									<th>Tags</th>
+									<th>Note</th>
+								</tr>
+							</thead>
+
+							<tbody>
+								<tr th:if="${trades == null || trades.isEmpty()}">
+									<td colspan="13" class="text-center text-muted py-4">
+										Nessun trade disponibile</td>
+								</tr>
+
+								<tr th:each="t : ${trades}">
+									<td><strong
+										th:text="${t.dateOpen != null ? #temporals.format(t.dateOpen, 'dd/MM/yyyy') : '-'}">01/04/2025</strong>
+										<div class="text-muted small"
+											th:text="${t.dateOpen != null ? #temporals.format(t.dateOpen, 'HH:mm') : ''}">
+											10:30</div></td>
+
+									<td><strong th:text="${t.asset ?: '-'}">EURUSD</strong></td>
+
+									<td><span class="trade-badge"
+										th:classappend="${t.win} ? ' positive' : (${t.loss} ? ' negative' : '')"
+										th:text="${t.esito ?: '-'}">WIN</span></td>
+
+									<td th:text="${t.posizione ?: '-'}">LONG</td>
+									<td th:text="${t.struttura ?: '-'}">Struttura</td>
+									<td th:text="${t.setup ?: '-'}">Setup</td>
+									<td th:text="${t.confluenze ?: '-'}">Confluenze</td>
+
+									<td class="text-end"
+										th:classappend="${t.win} ? ' trade-result-positive' : (${t.loss} ? ' trade-result-negative' : '')"
+										th:text="${t.profit != null ? #numbers.formatDecimal(t.profit, 1, 2) : '-'}">
+										120.00</td>
+
+									<td class="text-end"
+										th:text="${t.risk != null ? #numbers.formatDecimal(t.risk, 1, 2) : '-'}">
+										50.00</td>
+
+									<td class="text-end fw-bold"
+										th:text="${t.returnPercent != null ? #numbers.formatDecimal(t.returnPercent, 1, 2) : '-'}">
+										2.40</td>
+
+									<td th:text="${t.weekN ?: '-'}">14</td>
+
+									<td><span class="tag-badge" th:text="${t.tags ?: '-'}">tag</span>
+									</td>
+
+									<td class="text-truncate" style="max-width: 180px;"
+										th:text="${t.note ?: '-'}">Note trade</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+
+				</div>
+			</div>
+
 		</div>
 
 	</div>
 
-</div>
+	<!-- MODALE AGGIUNGI TRADE -->
+	<div class="modal fade" id="addTradeModal" tabindex="-1"
+		aria-hidden="true">
+		<div class="modal-dialog modal-dialog-centered">
+			<div class="modal-content tj-modal">
 
+				<div class="modal-header border-0">
+					<h5 class="modal-title">Aggiungi Trade</h5>
+					<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+				</div>
 
-<!-- MODALE AGGIUNGI TRADE -->
-<div class="modal fade" id="addTradeModal" tabindex="-1" aria-hidden="true">
-	<div class="modal-dialog modal-dialog-centered">
-		<div class="modal-content tj-modal">
+				<form method="post">
+					<div class="modal-body">
 
-			<div class="modal-header border-0">
-				<h5 class="modal-title">Aggiungi Trade</h5>
-				<button type="button" class="btn-close " data-bs-dismiss="modal"></button>
+						<input type="hidden" name="accountId" th:value="${accountId}">
+						<input type="hidden" name="year" th:value="${calendarYear}">
+						<input type="hidden" name="month" th:value="${calendarMonth}">
+
+						<div class="mb-3">
+							<label class="form-label">Data trade</label> <input
+								type="datetime-local" class="form-control tj-input"
+								id="tradeDateInput" name="dateTime" required>
+						</div>
+
+						<div class="mb-3">
+							<label class="form-label">Risultato</label> <select
+								class="form-select tj-input" name="result" required>
+								<option value="">Seleziona</option>
+								<option value="WIN">Win</option>
+								<option value="LOSS">Loss</option>
+								<option value="BE">Break Even</option>
+								<option value="MISS">Miss</option>
+							</select>
+						</div>
+
+						<div class="mb-3">
+							<label class="form-label">Profit / Loss</label> <input
+								type="number" step="0.01" class="form-control tj-input"
+								name="profitLoss" placeholder="Es. 150 oppure -80">
+						</div>
+
+						<div class="mb-3">
+							<label class="form-label">RR</label> <input type="number"
+								step="0.01" class="form-control tj-input" name="rr"
+								placeholder="Es. 2.5">
+						</div>
+
+						<div class="mb-3">
+							<label class="form-label">Note</label>
+							<textarea class="form-control tj-input" name="note" rows="3"></textarea>
+						</div>
+
+					</div>
+
+					<div class="modal-footer border-0">
+						<button type="button" class="btn btn-outline-light"
+							data-bs-dismiss="modal">Annulla</button>
+						<button type="submit" class="btn btn-success">Salva Trade
+						</button>
+					</div>
+				</form>
+
 			</div>
-
-			<form method="post" >
-				<div class="modal-body">
-
-					<input type="hidden" name="accountId" th:value="${accountId}">
-					<input type="hidden" name="year" th:value="${calendarYear}">
-					<input type="hidden" name="month" th:value="${calendarMonth}">
-
-					<div class="mb-3">
-						<label class="form-label">Data trade</label>
-						<input type="datetime-local"
-						       class="form-control tj-input"
-						       id="tradeDateInput"
-						       name="dateTime"
-						       required>					
-					</div>
-
-					<div class="mb-3">
-						<label class="form-label">Risultato</label>
-						<select class="form-select tj-input" name="result" required>
-							<option value="">Seleziona</option>
-							<option value="WIN">Win</option>
-							<option value="LOSS">Loss</option>
-							<option value="BE">Break Even</option>
-							<option value="MISS">Miss</option>
-						</select>
-					</div>
-
-					<div class="mb-3">
-						<label class="form-label">Profit / Loss</label>
-						<input type="number" step="0.01" class="form-control tj-input" name="profitLoss" placeholder="Es. 150 oppure -80">
-					</div>
-
-					<div class="mb-3">
-						<label class="form-label">RR</label>
-						<input type="number" step="0.01" class="form-control tj-input" name="rr" placeholder="Es. 2.5">
-					</div>
-
-					<div class="mb-3">
-						<label class="form-label">Note</label>
-						<textarea class="form-control tj-input" name="note" rows="3"></textarea>
-					</div>
-
-				</div>
-
-				<div class="modal-footer border-0">
-					<button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">
-						Annulla
-					</button>
-					<button type="submit" class="btn btn-success">
-						Salva Trade
-					</button>
-				</div>
-			</form>
-
 		</div>
 	</div>
-</div>
 
+	<script th:inline="javascript">
+		window.tradingCalendarData = /*[[${calendar.days}]]*/{};
+		window.weekSummaryData = /*[[${calendar.weeks}]]*/{};
+		window.calendarYear = /*[[${year}]]*/2025;
+		window.calendarMonth = /*[[${period}]]*/4;
+		window.accountId = /*[[${accountId}]]*/"";
+	</script>
 
-<script th:inline="javascript">
-	window.tradingCalendarData = /*[[${calendar.days}]]*/ {};
-	window.weekSummaryData = /*[[${calendar.weeks}]]*/ {};
-	window.calendarYear = /*[[${year}]]*/ 2025;
-	window.calendarMonth = /*[[${period}]]*/ 4;
-	window.accountId = /*[[${accountId}]]*/ "";
-</script>
+	<script
+		src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-<script th:src="@{/js/trading-calendar.js}"></script>
-<script th:src="@{/js/module.js}"></script>
+	<script th:src="@{/js/trading-calendar.js}"></script>
+	<script th:src="@{/js/module.js}"></script>
 
 </body>
 </html>
