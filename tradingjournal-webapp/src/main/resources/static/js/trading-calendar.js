@@ -71,7 +71,7 @@ window.TradingCalendar = (function () {
 
 		renderDayNames(calendarGrid);
 
-		const firstDay = new Date(year, month, 1).getDay();
+		const firstDay = getMondayBasedDayIndex(new Date(year, month, 1));
 		const totalDays = new Date(year, month + 1, 0).getDate();
 
 		renderEmptyCells(calendarGrid, firstDay);
@@ -89,10 +89,16 @@ window.TradingCalendar = (function () {
 		const visibleWeeks = getVisibleWeeks(year, month, weeksCount);
 		renderWeekSummary(weekSummaryData, weekSummary, visibleWeeks);
 	}
+	
+	function getMondayBasedDayIndex(date) {
+		const day = date.getDay();
+
+		return day === 0 ? 6 : day - 1;
+	}
 
 	function renderDayNames(calendarGrid) {
-		const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-
+		const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+		
 		days.forEach(function (day) {
 			const dayName = document.createElement("div");
 			dayName.className = "cal-day-name";

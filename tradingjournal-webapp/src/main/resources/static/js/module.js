@@ -6,7 +6,9 @@ document.addEventListener("DOMContentLoaded", function () {
 	initCalendarViewToggle();
 	initCurrentMonthButton();
 	initTradeDynamicSelects();
-
+	initProfitLossControl();
+	initAccountBalancePreview();
+	
 	if (window.TradingCalendar) {
 		window.TradingCalendar.init();
 	}
@@ -416,6 +418,145 @@ function initCurrentWeekButton() {
 /* =========================
    MODALE TRADE: CONFLUENZE CHECKBOX
 ========================= */
+
+function initProfitLossControl() {
+	const resultSelect = document.querySelector("[name='result']");
+	const profitLossInput = document.querySelector("[name='profitLoss']");
+
+	if (!resultSelect || !profitLossInput) return;
+
+	function applyProfitLossRules() {
+		const result = resultSelect.value;
+
+		// RESET BASE
+		profitLossInput.readOnly = false;
+		profitLossInput.disabled = false;
+
+		// ❌ SE NON È SELEZIONATO NULLA → DISABILITA
+		if (!result) {
+			profitLossInput.value = "";
+			profitLossInput.disabled = true;
+			profitLossInput.placeholder = "Seleziona prima il risultato";
+			return;
+		}
+
+		// ✅ WIN
+		if (result === "WIN") {
+			profitLossInput.min = "0";
+			profitLossInput.removeAttribute("max");
+			profitLossInput.placeholder = "Valore positivo";
+
+			if (profitLossInput.value && Number(profitLossInput.value) < 0) {
+				profitLossInput.value = "";
+			}
+		}
+
+		// ❌ LOSS
+		else if (result === "LOSS") {
+			profitLossInput.max = "0";
+			profitLossInput.removeAttribute("min");
+			profitLossInput.placeholder = "Valore negativo";
+
+			if (profitLossInput.value && Number(profitLossInput.value) > 0) {
+				profitLossInput.value = "";
+			}
+		}
+
+		// ➖ BE / MISS
+		else if (result === "BE" || result === "MISS") {
+			profitLossInput.value = "0";
+			profitLossInput.readOnly = true;
+			profitLossInput.min = "0";
+			profitLossInput.max = "0";
+			profitLossInput.placeholder = "0";
+		}
+
+		// 🔄 trigger ricalcolo balance
+		profitLossInput.dispatchEvent(new Event("input"));
+	}
+
+	resultSelect.addEventListener("change", applyProfitLossRules);
+
+	profitLossInput.addEventListener("input", function () {
+		const result = resultSelect.value;
+		const value = Number(profitLossInput.value);
+
+		if (result === "WIN" && value < 0) {
+			profitLossInput.value = "";
+		}
+
+		if (result === "LOSS" && value > 0) {
+			profitLossInput.value = "";
+		}
+
+		if (result === "BE" || result === "MISS") {
+			profitLossInput.value = "0";
+		}
+	});
+
+	// stato iniziale
+	applyProfitLossRules();
+}
+
+function initAccountBalancePreview() {
+	const dateTimeInput = document.querySelector("[name='dateTime']");
+	const profitLossInput = document.querySelector("[name='profitLoss']");
+	const accountBalanceInput = document.querySelector("[name='accountBalance']");
+	const accountIdInput = document.querySelector("[name='accountId']");
+	const addTradeModal = document.getElementById("addTradeModal");
+
+	if (!dateTimeInput || !profitLossInput || !accountBalanceInput || !accountIdInput) {
+		return;
+	}
+
+	let debounceTimer = null;
+
+	function calculateBalance() {
+		clearTimeout(debounceTimer);
+
+		debounceTimer = setTimeout(() => {
+			const dateTime = dateTimeInput.value;
+			const profitLoss = profitLossInput.value || "0";
+			const accountId = accountIdInput.value;
+
+			if (!dateTime || !accountId) {
+				accountBalanceInput.value = "";
+				return;
+			}
+
+			const params = new URLSearchParams({
+				accountId: accountId,
+				dateTime: dateTime,
+				profitLoss: profitLoss
+			});
+
+			fetch(`/api/dashboard/account-balance-preview?${params.toString()}`)
+				.then(response => {
+					if (!response.ok) {
+						throw new Error("Errore calcolo account balance");
+					}
+					return response.json();
+				})
+				.then(balance => {
+					accountBalanceInput.value = Number(balance).toFixed(2);
+				})
+				.catch(error => {
+					console.error(error);
+					accountBalanceInput.value = "";
+				});
+		}, 250);
+	}
+
+	dateTimeInput.addEventListener("change", calculateBalance);
+	dateTimeInput.addEventListener("input", calculateBalance);
+	profitLossInput.addEventListener("input", calculateBalance);
+	profitLossInput.addEventListener("change", calculateBalance);
+
+	if (addTradeModal) {
+		addTradeModal.addEventListener("shown.bs.modal", calculateBalance);
+	}
+}
+
 
 function initTradeDynamicSelects() {
 	const modal = document.getElementById("addTradeModal");

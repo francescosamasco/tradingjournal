@@ -1,5 +1,7 @@
 package it.samfrafx.tradingjournal.bl.service;
 
+import java.time.LocalDate;
+import java.time.temporal.WeekFields;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -17,6 +19,25 @@ public class PerformanceService {
         this.performanceRepository = performanceRepository;
     }
 
+    public PerformanceData findByAccountIdAndWeek(String accountId, LocalDate date) {
+
+        int year = date.getYear();
+        int month = date.getMonthValue();
+
+        WeekFields weekFields = WeekFields.ISO;
+        int week = date.get(weekFields.weekOfWeekBasedYear());
+
+        String idPerformance = year + "-" + month + "-" + week;
+
+        return performanceRepository
+                .findByAccountAndIdPerformance(accountId, idPerformance)
+                .map(PerformanceData::from)
+                .orElseThrow(() -> new IllegalStateException(
+                        "Performance settimanale non trovata per account " + accountId +
+                        " e performance " + idPerformance
+                ));
+    }
+    
     // =========================
     // 🔹 PERFORMANCE MENSILE (lista settimane)
     // =========================

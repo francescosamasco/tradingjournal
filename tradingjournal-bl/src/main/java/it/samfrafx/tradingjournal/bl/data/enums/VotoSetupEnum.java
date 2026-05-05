@@ -16,5 +16,18 @@ public enum VotoSetupEnum {
 	public String getDescrizione() {
 		return descrizione;
 	}
+	
+	public static VotoSetupEnum fromDescrizione(String descrizione) {
+	    if (descrizione == null || descrizione.trim().isEmpty()) {
+	        return null; // oppure lancia eccezione se preferisci
+	    }
+
+	    for (VotoSetupEnum s : values()) {
+	        if (s.getDescrizione().equalsIgnoreCase(descrizione.trim())) {
+	            return s;
+	        }
+	    }
+	    return null; // oppure IllegalArgumentException
+	}
 
 }

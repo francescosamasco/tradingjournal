@@ -3,6 +3,7 @@ package it.samfrafx.tradingjournal.webapp.controller;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.temporal.WeekFields;
 import java.util.HashMap;
 import java.util.List;
@@ -79,23 +80,26 @@ public class DashboardViewController {
 		model.addAttribute("dashboard", dash);
 
 		model.addAttribute("strutture", List.of(
-		        new OptionData("Prostruttura", "Prostruttura"),
-		        new OptionData("Controstruttura", "Controstruttura")
-		));
+				new OptionData("Prostruttura", "Prostruttura"),
+				new OptionData("Controstruttura", "Controstruttura")
+				));
 		return "dashboard";
 	}
 
 	@GetMapping("/api/dashboard/confluenze")
 	@ResponseBody
 	public List<OptionData> getConfluenze(
-	        @RequestParam String struttura,
-	        @RequestParam String setup) {
-	    return List.of(
-	            new OptionData("1", "Confluenza 1"),
-	            new OptionData("2", "Confluenza 2")
-	    );
+			@RequestParam String struttura,
+			@RequestParam String setup) {
+
+
+		List<String> confluenze = tradeService.calculateConfluenze(struttura, setup);
+
+		return confluenze.stream()
+				.map(c -> new OptionData(c, c))
+				.toList();
 	}
-	
+
 	@GetMapping("/api/dashboard/voto-setup")
 	@ResponseBody
 	public OptionData getVotoSetup(
@@ -103,10 +107,32 @@ public class DashboardViewController {
 	        @RequestParam String setup,
 	        @RequestParam String confluenze) {
 
+	    VotoSetupEnum voto = tradeService.getVotoSetupEnum(struttura, setup, confluenze);
+
+	    if (voto != VotoSetupEnum.ALTO && voto != VotoSetupEnum.MEDIO) {
+	        voto = VotoSetupEnum.NON_STRATEGIA;
+	    }
+
 	    return new OptionData(
-	            VotoSetupEnum.ALTO.name(),
-	            VotoSetupEnum.ALTO.getDescrizione()
+	            voto.name(),
+	            voto.getDescrizione()
 	    );
+	}
+
+	@GetMapping("/api/dashboard/account-balance-preview")
+	@ResponseBody
+	public BigDecimal getAccountBalancePreview(
+			@RequestParam String accountId,
+			@RequestParam String dateTime,
+			@RequestParam BigDecimal profitLoss) {
+
+		LocalDateTime tradeDateTime = LocalDateTime.parse(dateTime);
+
+		return service.calculateAccountBalancePreview(
+				accountId,
+				tradeDateTime,
+				profitLoss
+		);
 	}
 	
 

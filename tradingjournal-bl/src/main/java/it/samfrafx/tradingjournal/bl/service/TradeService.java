@@ -5,12 +5,18 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
 import it.samfrafx.tradingjournal.bl.PeriodEnum;
+import it.samfrafx.tradingjournal.bl.data.Config;
 import it.samfrafx.tradingjournal.bl.data.PerformanceData;
 import it.samfrafx.tradingjournal.bl.data.TradeData;
+import it.samfrafx.tradingjournal.bl.data.TradingConfig;
+import it.samfrafx.tradingjournal.bl.data.enums.SetupEnum;
+import it.samfrafx.tradingjournal.bl.data.enums.StrutturaEnum;
+import it.samfrafx.tradingjournal.bl.data.enums.VotoSetupEnum;
 import it.samfrafx.tradingjournal.bl.util.DateUtils;
 import it.samfrafx.tradingjournal.datamodel.data.Trade;
 import it.samfrafx.tradingjournal.datamodel.repository.TradeRepository;
@@ -158,4 +164,50 @@ public class TradeService {
 
         return result;
     }
+    
+    public BigDecimal sumProfitLossBeforeDateTime(
+    		String accountId,
+    		LocalDateTime dateTime) {
+
+    	BigDecimal total = tradeRepository.sumProfitLossBeforeDateTime(
+    			accountId,
+    			dateTime
+    	);
+
+    	return total != null ? total : BigDecimal.ZERO;
+    }
+    
+    public List<String> calculateConfluenze(String strutturaId, String setupId) {
+
+        StrutturaEnum struttura = StrutturaEnum.fromDescrizione(strutturaId);
+        SetupEnum setup = SetupEnum.fromDescrizione(setupId);
+
+        return Optional.ofNullable(TradingConfig.CONFIG.get(struttura))
+                .map(m -> m.get(setup))
+                .map(Config::getConfluenze)
+                .orElse(List.of());
+    }
+    
+    public VotoSetupEnum getVotoSetupEnum(String strutturaId, String setupId, String confluenze) {
+
+        StrutturaEnum struttura = StrutturaEnum.fromDescrizione(strutturaId);
+        SetupEnum setup = SetupEnum.fromDescrizione(setupId);
+
+        Config config = Optional.ofNullable(TradingConfig.CONFIG.get(struttura))
+                .map(m -> m.get(setup))
+                .orElse(null);
+
+        if (config == null || confluenze == null || confluenze.isBlank()) {
+            return VotoSetupEnum.NON_STRATEGIA;
+        }
+
+        String c = confluenze.toLowerCase();
+
+        boolean match = config.getConfluenze().stream()
+                .allMatch(c::contains);
+
+        return match ? config.getVoto() : VotoSetupEnum.BASSO;
+    }
+    
+    
 }

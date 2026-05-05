@@ -2,6 +2,9 @@ package it.samfrafx.tradingjournal.bl.service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.function.Function;
 
@@ -10,14 +13,18 @@ import org.springframework.stereotype.Service;
 import it.samfrafx.tradingjournal.bl.PeriodEnum;
 import it.samfrafx.tradingjournal.bl.data.DashboardData;
 import it.samfrafx.tradingjournal.bl.data.PerformanceData;
+import it.samfrafx.tradingjournal.datamodel.data.Performance;
 
 @Service
 public class DashboardService {
 
     private final PerformanceService performanceService;
+    private final TradeService tradeService;
 
-    public DashboardService(PerformanceService performanceService) {
+    
+    public DashboardService(PerformanceService performanceService, TradeService tradeService) {
         this.performanceService = performanceService;
+        this.tradeService = tradeService;
     }
 
     public DashboardData buildDashboard(String accountId, Integer year, PeriodEnum period) {
@@ -88,7 +95,32 @@ public class DashboardService {
         return total;
     }
 
+    public BigDecimal calculateAccountBalancePreview(
+    		String accountId,
+    		LocalDateTime tradeDateTime,
+    		BigDecimal currentProfitLoss) {
 
+    	PerformanceData performance = performanceService.findByAccountIdAndWeek(
+    			accountId,
+    			tradeDateTime.toLocalDate()
+    	);
+
+    	BigDecimal bilancioBase = performance.getBilancioIniziale() != null
+    			? performance.getBilancioIniziale()
+    			: BigDecimal.ZERO;
+
+    	BigDecimal previousTradesProfitLoss =
+    			tradeService.sumProfitLossBeforeDateTime(accountId, tradeDateTime);
+
+    	BigDecimal current = currentProfitLoss != null
+    			? currentProfitLoss
+    			: BigDecimal.ZERO;
+
+    	return bilancioBase
+    			.add(previousTradesProfitLoss)
+    			.add(current);
+    }
+    
     private BigDecimal averageWinrate(List<PerformanceData> performances) {
         return average(performances, PerformanceData::getWinrate);
     }

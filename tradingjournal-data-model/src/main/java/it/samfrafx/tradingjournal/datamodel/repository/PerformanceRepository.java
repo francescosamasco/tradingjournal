@@ -1,5 +1,6 @@
 package it.samfrafx.tradingjournal.datamodel.repository;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -46,4 +47,15 @@ public interface PerformanceRepository extends JpaRepository<Performance, String
             @Param("idAccount") String idAccount,
             @Param("year") int year
     );
+    
+    @Query("""
+    	    SELECT p
+    	    FROM Performance p
+    	    WHERE p.idAccount = :idAccount
+    	    AND p.idPerformance = :idPerformance
+    	""")
+    	Optional<Performance> findByAccountAndIdPerformance(
+    	        @Param("idAccount") String idAccount,
+    	        @Param("idPerformance") String idPerformance
+    	);
 }
