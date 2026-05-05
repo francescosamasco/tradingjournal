@@ -11,7 +11,7 @@
 <link
 	href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
 	rel="stylesheet">
-	
+
 <link
 	href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
 	rel="stylesheet">
@@ -353,17 +353,13 @@
 						</div>
 
 						<div class="d-flex gap-2">
-							<button type="button"
-									class="btn btn-sm btn-success"
-									data-bs-toggle="modal"
-									data-bs-target="#addTradeModal">
-								<i class="bi bi-plus-lg me-1"></i>
-								Aggiungi Trade
+							<button type="button" class="btn btn-sm btn-success"
+								data-bs-toggle="modal" data-bs-target="#addTradeModal">
+								<i class="bi bi-plus-lg me-1"></i> Aggiungi Trade
 							</button>
-						
+
 							<button type="button" class="btn btn-sm btn-outline-secondary">
-								<i class="bi bi-download me-1"></i>
-								Esporta
+								<i class="bi bi-download me-1"></i> Esporta
 							</button>
 						</div>
 					</div>
@@ -398,29 +394,25 @@
 								<tr th:each="t : ${trades}">
 									<td class="text-center">
 										<div class="dropdown trade-dropdown">
-											<button class="trade-more-btn"
-													type="button"
-													data-bs-toggle="dropdown"
-													aria-expanded="false">
+											<button class="trade-more-btn" type="button"
+												data-bs-toggle="dropdown" aria-expanded="false">
 												<i class="bi bi-three-dots-vertical"></i>
 											</button>
-									
-											<ul class="dropdown-menu dropdown-menu-end trade-dropdown-menu">
+
+											<ul
+												class="dropdown-menu dropdown-menu-end trade-dropdown-menu">
 												<li>
 													<button class="dropdown-item trade-dropdown-item"
-															type="button"
-															th:attr="data-trade-id=${t.idTrade}">
-														<i class="bi bi-pencil-square me-2"></i>
-														Modifica
+														type="button" th:attr="data-trade-id=${t.idTrade}">
+														<i class="bi bi-pencil-square me-2"></i> Modifica
 													</button>
 												</li>
-									
+
 												<li>
-													<button class="dropdown-item trade-dropdown-item text-danger"
-															type="button"
-															th:attr="data-trade-id=${t.idTrade}">
-														<i class="bi bi-trash3 me-2"></i>
-														Rimuovi
+													<button
+														class="dropdown-item trade-dropdown-item text-danger"
+														type="button" th:attr="data-trade-id=${t.idTrade}">
+														<i class="bi bi-trash3 me-2"></i> Rimuovi
 													</button>
 												</li>
 											</ul>
@@ -511,6 +503,45 @@
 						</div>
 
 						<div class="mb-3">
+							<label class="form-label">Struttura</label> <select
+								class="form-select tj-input" id="strutturaSelect"
+								name="struttura" required>
+								<option value="">Seleziona struttura</option>
+								<option th:each="s : ${strutture}" th:value="${s.id}"
+									th:text="${s.descrizione}"></option>
+							</select>
+						</div>
+
+						<div class="mb-3">
+							<label class="form-label">Setup</label> <select
+								class="form-select tj-input" id="setupSelect" name="setup"
+								required>
+								<option value="">Seleziona setup</option>
+								<option value="Diretta">Diretta</option>
+								<option value="Conferma">Conferma</option>
+								<option value="Manipolazione">Manipolazione</option>
+							</select>
+						</div>
+
+						<div class="mb-3">
+							<label class="form-label">Confluenze</label>
+
+							<div id="confluenzeCheckboxGroup" class="confluenze-box disabled">
+								<div class="text-muted small">Seleziona struttura e setup</div>
+							</div>
+
+							<input type="hidden" id="confluenzeInput" name="confluenze">
+						</div>
+
+						<div class="mb-3">
+							<label class="form-label">Voto Setup</label> <select
+								class="form-select tj-input" id="votoSetupSelect"
+								name="votoSetup" disabled>
+								<option value="">Voto setup</option>
+							</select>
+						</div>
+
+						<div class="mb-3">
 							<label class="form-label">Profit / Loss</label> <input
 								type="number" step="0.01" class="form-control tj-input"
 								name="profitLoss" placeholder="Es. 150 oppure -80">
@@ -540,7 +571,6 @@
 			</div>
 		</div>
 	</div>
-
 	<script th:inline="javascript">
 		window.tradingCalendarData = /*[[${calendar.days}]]*/{};
 		window.weekSummaryData = /*[[${calendar.weeks}]]*/{};

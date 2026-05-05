@@ -153,15 +153,46 @@ window.TradingCalendar = (function () {
 			return;
 		}
 
-		dateInput.value = dateKey;
+		resetAddTradeForm(modalEl);
+
+		dateInput.value = dateKey + "T09:00";
 
 		const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
 		modal.show();
 	}
 
+	function resetAddTradeForm(modalEl) {
+		const form = modalEl.querySelector("form");
+
+		if (form) {
+			form.reset();
+		}
+
+		const setupSelect = document.getElementById("setupSelect");
+		const confluenzeSelect = document.getElementById("confluenzeSelect");
+
+		//if (setupSelect) {
+		//	resetSelect(setupSelect, "Seleziona setup");
+		//}
+
+		if (confluenzeSelect) {
+			resetSelect(confluenzeSelect, "Seleziona confluenza");
+		}
+	}
+
+	function resetSelect(select, placeholder) {
+		select.innerHTML = "";
+
+		const option = document.createElement("option");
+		option.value = "";
+		option.textContent = placeholder;
+
+		select.appendChild(option);
+	}
+
 	function applyTradeToCell(cell, trade) {
 		const amount = Number(trade.amount || 0);
-		debugger;
+
 		const profitPercent = trade.percentage != null
 			? Number(trade.percentage)
 			: null;
@@ -181,7 +212,7 @@ window.TradingCalendar = (function () {
 
 		cell.appendChild(box);
 	}
-	
+
 	function formatPercent(value) {
 		const numericValue = Number(value || 0);
 		const sign = numericValue > 0 ? "+" : "";
@@ -304,7 +335,8 @@ window.TradingCalendar = (function () {
 	}
 
 	return {
-		init: init
+		init: init,
+		openAddTradeModal: openAddTradeModal
 	};
 
 })();

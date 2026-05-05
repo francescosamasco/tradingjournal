@@ -13,6 +13,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import it.samfrafx.tradingjournal.bl.PeriodEnum;
 import it.samfrafx.tradingjournal.bl.data.DashboardData;
@@ -20,8 +21,10 @@ import it.samfrafx.tradingjournal.bl.data.TradeData;
 import it.samfrafx.tradingjournal.bl.data.chart.CalendarData;
 import it.samfrafx.tradingjournal.bl.data.chart.DayData;
 import it.samfrafx.tradingjournal.bl.data.chart.WeekData;
+import it.samfrafx.tradingjournal.bl.data.enums.VotoSetupEnum;
 import it.samfrafx.tradingjournal.bl.service.DashboardService;
 import it.samfrafx.tradingjournal.bl.service.TradeService;
+import it.samfrafx.tradingjournal.webapp.data.OptionData;
 
 @Controller
 public class DashboardViewController {
@@ -75,35 +78,64 @@ public class DashboardViewController {
 		model.addAttribute("calendar", calendar);
 		model.addAttribute("dashboard", dash);
 
+		model.addAttribute("strutture", List.of(
+		        new OptionData("Prostruttura", "Prostruttura"),
+		        new OptionData("Controstruttura", "Controstruttura")
+		));
 		return "dashboard";
 	}
 
-	@PostMapping("/trades/add")
-	public String addTrade(
-	        @RequestParam String accountId,
-	        @RequestParam String date,
-	        @RequestParam String result,
-	        @RequestParam(required = false) BigDecimal profitLoss,
-	        @RequestParam(required = false) BigDecimal rr,
-	        @RequestParam(required = false) String note,
-	        @RequestParam Integer year,
-	        @RequestParam Integer month
-	) {
-
-	 //  tradeService.addTrade(
-	 //          accountId,
-	 //          LocalDate.parse(date),
-	 //          result,
-	 //          profitLoss,
-	 //          rr,
-	 //          note
-	 //  );
-
-	    return "redirect:/dashboard?year=" + year
-	            + "&period=" + month
-	            + "&accountId=" + accountId;
+	@GetMapping("/api/dashboard/confluenze")
+	@ResponseBody
+	public List<OptionData> getConfluenze(
+	        @RequestParam String struttura,
+	        @RequestParam String setup) {
+	    return List.of(
+	            new OptionData("1", "Confluenza 1"),
+	            new OptionData("2", "Confluenza 2")
+	    );
 	}
 	
+	@GetMapping("/api/dashboard/voto-setup")
+	@ResponseBody
+	public OptionData getVotoSetup(
+	        @RequestParam String struttura,
+	        @RequestParam String setup,
+	        @RequestParam String confluenze) {
+
+	    return new OptionData(
+	            VotoSetupEnum.ALTO.name(),
+	            VotoSetupEnum.ALTO.getDescrizione()
+	    );
+	}
+	
+
+	@PostMapping("/trades/add")
+	public String addTrade(
+			@RequestParam String accountId,
+			@RequestParam String date,
+			@RequestParam String result,
+			@RequestParam(required = false) BigDecimal profitLoss,
+			@RequestParam(required = false) BigDecimal rr,
+			@RequestParam(required = false) String note,
+			@RequestParam Integer year,
+			@RequestParam Integer month
+			) {
+
+		//  tradeService.addTrade(
+		//          accountId,
+		//          LocalDate.parse(date),
+		//          result,
+		//          profitLoss,
+		//          rr,
+		//          note
+		//  );
+
+		return "redirect:/dashboard?year=" + year
+				+ "&period=" + month
+				+ "&accountId=" + accountId;
+	}
+
 	private CalendarData buildCalendarData(List<TradeData> trades) {
 
 		Map<String, DayData> days = new HashMap<>();
@@ -120,7 +152,7 @@ public class DashboardViewController {
 
 			BigDecimal profit = trade.getProfit() != null
 					? trade.getProfit()
-					: BigDecimal.ZERO;
+							: BigDecimal.ZERO;
 
 			// =====================
 			// DAY
@@ -133,7 +165,7 @@ public class DashboardViewController {
 						0,
 						trade.getAccountBalance(),
 						BigDecimal.ZERO
-				);
+						);
 				days.put(dateKey, day);
 			}
 
@@ -171,7 +203,7 @@ public class DashboardViewController {
 
 			BigDecimal rr = trade.getReturnPercent() != null
 					? trade.getReturnPercent()
-					: BigDecimal.ZERO;
+							: BigDecimal.ZERO;
 
 			// ---- aggregazioni base ----
 			BigDecimal newWeekAmount = week.getAmount().add(profit);
@@ -210,9 +242,9 @@ public class DashboardViewController {
 			if (winLossTotal > 0) {
 				week.setWinrate(
 						BigDecimal.valueOf(wins)
-								.divide(BigDecimal.valueOf(winLossTotal), 4, RoundingMode.HALF_UP)
-								.multiply(BigDecimal.valueOf(100))
-				);
+						.divide(BigDecimal.valueOf(winLossTotal), 4, RoundingMode.HALF_UP)
+						.multiply(BigDecimal.valueOf(100))
+						);
 			} else {
 				week.setWinrate(BigDecimal.ZERO);
 			}
@@ -228,8 +260,8 @@ public class DashboardViewController {
 								BigDecimal.valueOf(newTradeCount),
 								2,
 								RoundingMode.HALF_UP
-						)
-				);
+								)
+						);
 			}
 
 			// =====================
@@ -347,8 +379,8 @@ public class DashboardViewController {
 	}
 
 	private int getWeekOfYear(LocalDate date) {
-	    WeekFields weekFields = WeekFields.ISO;
-	    return date.get(weekFields.weekOfWeekBasedYear());
+		WeekFields weekFields = WeekFields.ISO;
+		return date.get(weekFields.weekOfWeekBasedYear());
 	}
 
 	@GetMapping("/")

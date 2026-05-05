@@ -1,8 +1,11 @@
 document.addEventListener("DOMContentLoaded", function () {
 
 	initWeeklyPerformance();
+	updateRingCircleFromMonthlyWinrate();
+
 	initCalendarViewToggle();
 	initCurrentMonthButton();
+	initTradeDynamicSelects();
 
 	if (window.TradingCalendar) {
 		window.TradingCalendar.init();
@@ -35,7 +38,6 @@ const emptyDoughnutPlugin = {
 		if (!chartArea) return;
 
 		const isEmpty = chart.config._isEmpty === true;
-
 		if (!isEmpty) return;
 
 		const centerX = (chartArea.left + chartArea.right) / 2;
@@ -108,7 +110,6 @@ function initWeeklyPerformance() {
 
 	if (!weekKeysOrdered.length) {
 		renderEmptyWeeklyPerformance();
-		updateRingCircleFromWeekly({});
 		initWeeklyModeSwitch();
 		return;
 	}
@@ -134,7 +135,6 @@ function renderSelectedWeek() {
 
 	renderWeeklyStats(weekKey, week);
 	renderWeeklyDoughnut(week);
-	updateRingCircleFromWeekly(week);
 	updateWeeklyNavigationState();
 }
 
@@ -159,7 +159,6 @@ function renderWeeklyStats(weekNumber, week) {
 
 	if (label) {
 		label.textContent = amount > 0 ? "Profit" : amount < 0 ? "Loss" : "Flat";
-
 		label.classList.remove("text-success", "text-danger");
 
 		if (amount > 0) {
@@ -174,17 +173,15 @@ function renderWeeklyStats(weekNumber, week) {
 	setText("weeklyPercent", percent !== null ? formatSignedPercent(percent) : "--");
 	setText("weeklyDays", days);
 	setText("weeklyTrades", trades);
-	
+
 	setText("weeklyKpiWinrate", winrate !== null ? winrate.toFixed(1) + "%" : "--");
 	setText("weeklyKpiRR", rr !== null ? rr.toFixed(2) : "--");
-	setText("weeklyKpiPercent", percent !== null ? formatSignedPercent(percent) : "--");
 
 	setValueWithProfitClass(
 		"weeklyKpiPercent",
 		percent !== null ? formatSignedPercent(percent) : "--",
 		percent !== null ? percent : 0
 	);
-	
 }
 
 function renderWeeklyDoughnut(week) {
@@ -323,6 +320,9 @@ function renderEmptyWeeklyPerformance() {
 	setText("weeklyDays", "--");
 	setText("weeklyTrades", "--");
 	setText("weeklyResultLabel", "--");
+	setText("weeklyKpiWinrate", "--");
+	setText("weeklyKpiRR", "--");
+	setText("weeklyKpiPercent", "--");
 
 	renderWeeklyDoughnut({});
 }
@@ -387,13 +387,8 @@ function initWeeklyModeSwitch() {
 				chartsView.classList.remove("d-none");
 				statsView.classList.add("d-none");
 
-				if (weeklyWinLossChart) {
-					weeklyWinLossChart.resize();
-				}
-
-				if (weeklyOutcomeChart) {
-					weeklyOutcomeChart.resize();
-				}
+				if (weeklyWinLossChart) weeklyWinLossChart.resize();
+				if (weeklyOutcomeChart) weeklyOutcomeChart.resize();
 			}
 
 			if (mode === "stats") {
@@ -406,57 +401,283 @@ function initWeeklyModeSwitch() {
 
 function initCurrentWeekButton() {
 	const btn = document.getElementById("currentWeekBtn");
-
 	if (!btn) return;
 
 	btn.addEventListener("click", function () {
 		const currentWeek = getCurrentIsoWeek();
 		const index = weekKeysOrdered.indexOf(String(currentWeek));
 
-		if (index !== -1) {
-			currentWeekIndex = index;
-		} else {
-			currentWeekIndex = weekKeysOrdered.length - 1;
-		}
+		currentWeekIndex = index !== -1 ? index : weekKeysOrdered.length - 1;
 
 		renderSelectedWeek();
 	});
 }
 
 /* =========================
-   RING CIRCLE BASATO SU WIN/LOSS
+   MODALE TRADE: CONFLUENZE CHECKBOX
 ========================= */
 
-function updateRingCircleFromWeekly(week) {
+function initTradeDynamicSelects() {
+	const modal = document.getElementById("addTradeModal");
+	const strutturaSelect = document.getElementById("strutturaSelect");
+	const setupSelect = document.getElementById("setupSelect");
+
+	if (!modal) return;
+
+	modal.addEventListener("hidden.bs.modal", function () {
+		resetTradeDynamicSelects();
+	});
+
+	if (!strutturaSelect || !setupSelect) return;
+
+	strutturaSelect.addEventListener("change", function () {
+		resetConfluenzeBox("Seleziona struttura e setup");
+		resetVotoSetup();
+
+		const struttura = strutturaSelect.value;
+		const setup = setupSelect.value;
+
+		if (struttura && setup) {
+			loadConfluenze(struttura, setup);
+		}
+	});
+
+	setupSelect.addEventListener("change", function () {
+		resetConfluenzeBox("Seleziona struttura e setup");
+		resetVotoSetup();
+
+		const struttura = strutturaSelect.value;
+		const setup = setupSelect.value;
+
+		if (struttura && setup) {
+			loadConfluenze(struttura, setup);
+		}
+	});
+}
+
+function loadConfluenze(struttura, setup) {
+	const box = document.getElementById("confluenzeCheckboxGroup");
+	const hiddenInput = document.getElementById("confluenzeInput");
+
+	if (!box || !hiddenInput) return;
+
+	box.classList.add("disabled");
+	box.innerHTML = `<div class="text-muted small">Caricamento confluenze...</div>`;
+	hiddenInput.value = "";
+	resetVotoSetup();
+
+	const url = "/api/dashboard/confluenze"
+		+ "?struttura=" + encodeURIComponent(struttura)
+		+ "&setup=" + encodeURIComponent(setup);
+
+	fetch(url)
+		.then(function (response) {
+			if (!response.ok) {
+				throw new Error("Errore HTTP " + response.status);
+			}
+
+			return response.json();
+		})
+		.then(function (items) {
+			renderConfluenzeCheckboxes(items);
+		})
+		.catch(function (error) {
+			console.error("Errore caricamento confluenze:", error);
+			box.innerHTML = `<div class="text-danger small">Errore caricamento confluenze</div>`;
+			box.classList.add("disabled");
+			hiddenInput.value = "";
+			resetVotoSetup("Errore");
+		});
+}
+
+function renderConfluenzeCheckboxes(items) {
+	const box = document.getElementById("confluenzeCheckboxGroup");
+	const hiddenInput = document.getElementById("confluenzeInput");
+
+	if (!box || !hiddenInput) return;
+
+	box.innerHTML = "";
+	hiddenInput.value = "";
+
+	if (!Array.isArray(items) || items.length === 0) {
+		box.innerHTML = `<div class="text-muted small">Nessuna confluenza disponibile</div>`;
+		box.classList.add("disabled");
+		return;
+	}
+
+	items.forEach(function (item) {
+		const id = item.id || item.value || item.codice || "";
+		const label = item.descrizione || item.label || item.text || item.nome || "";
+
+		const wrapper = document.createElement("label");
+		wrapper.className = "confluenza-check";
+
+		wrapper.innerHTML = `
+			<input type="checkbox" value="${escapeHtml(id)}">
+			<span>${escapeHtml(label)}</span>
+		`;
+
+		const checkbox = wrapper.querySelector("input");
+
+		checkbox.addEventListener("change", function () {
+			updateSelectedConfluenze();
+			loadVotoSetup();
+		});
+
+		box.appendChild(wrapper);
+	});
+
+	box.classList.remove("disabled");
+}
+
+function updateSelectedConfluenze() {
+	const box = document.getElementById("confluenzeCheckboxGroup");
+	const hiddenInput = document.getElementById("confluenzeInput");
+
+	if (!box || !hiddenInput) return [];
+
+	const selected = Array.from(box.querySelectorAll('input[type="checkbox"]:checked'))
+		.map(function (checkbox) {
+			return checkbox.value;
+		})
+		.filter(function (value) {
+			return value !== "";
+		});
+
+	hiddenInput.value = selected.join(",");
+
+	return selected;
+}
+
+function loadVotoSetup() {
+	const strutturaSelect = document.getElementById("strutturaSelect");
+	const setupSelect = document.getElementById("setupSelect");
+	const votoSetupSelect = document.getElementById("votoSetupSelect");
+
+	if (!strutturaSelect || !setupSelect || !votoSetupSelect) return;
+
+	const struttura = strutturaSelect.value;
+	const setup = setupSelect.value;
+	const confluenze = updateSelectedConfluenze();
+
+	resetVotoSetup();
+
+	if (!struttura || !setup || !confluenze.length) return;
+
+	const url = "/api/dashboard/voto-setup"
+		+ "?struttura=" + encodeURIComponent(struttura)
+		+ "&setup=" + encodeURIComponent(setup)
+		+ "&confluenze=" + encodeURIComponent(confluenze.join(","));
+
+	fetch(url)
+		.then(function (response) {
+			if (!response.ok) {
+				throw new Error("Errore HTTP " + response.status);
+			}
+
+			return response.json();
+		})
+		.then(function (data) {
+			if (!data) return;
+
+			const voto = data.id || data.value || data.codice || data.voto || "";
+			const descrizione = data.descrizione || data.label || data.text || voto || "Voto setup";
+
+			votoSetupSelect.innerHTML = "";
+
+			const option = document.createElement("option");
+			option.value = voto;
+			option.textContent = descrizione;
+			option.selected = true;
+
+			votoSetupSelect.appendChild(option);
+			votoSetupSelect.disabled = false;
+		})
+		.catch(function (error) {
+			console.error("Errore caricamento voto setup:", error);
+			resetVotoSetup("Errore calcolo voto");
+		});
+}
+
+function resetTradeDynamicSelects() {
+	resetConfluenzeBox("Seleziona struttura e setup");
+	resetVotoSetup();
+}
+
+function resetConfluenzeBox(label) {
+	const box = document.getElementById("confluenzeCheckboxGroup");
+	const hiddenInput = document.getElementById("confluenzeInput");
+
+	if (box) {
+		box.innerHTML = `<div class="text-muted small">${label || "Seleziona struttura e setup"}</div>`;
+		box.classList.add("disabled");
+	}
+
+	if (hiddenInput) {
+		hiddenInput.value = "";
+	}
+}
+
+function resetVotoSetup(label) {
+	const votoSetupSelect = document.getElementById("votoSetupSelect");
+	if (!votoSetupSelect) return;
+
+	votoSetupSelect.innerHTML = "";
+
+	const option = document.createElement("option");
+	option.value = "";
+	option.textContent = label || "Voto setup";
+
+	votoSetupSelect.appendChild(option);
+	votoSetupSelect.disabled = true;
+}
+
+/* =========================
+   RING CIRCLE MENSILE
+========================= */
+
+function updateRingCircleFromMonthlyWinrate() {
 	const ring = document.querySelector(".ring-circle");
 	if (!ring) return;
 
-	const wins = getNumberValue(week, ["wins", "win", "winTrades"], 0);
-	const losses = getNumberValue(week, ["losses", "loss", "lossTrades"], 0);
+	let winrate = null;
 
-	const total = wins + losses;
+	document.querySelectorAll(".metric-head span").forEach(function (head) {
+		if (head.textContent.trim() === "Trade win %") {
+			const card = head.closest(".metric-card");
+			const valueEl = card ? card.querySelector(".metric-main") : null;
 
-	let winrate = 0;
+			if (valueEl) {
+				const value = parseFloat(
+					valueEl.textContent
+						.replace("%", "")
+						.replace(",", ".")
+						.trim()
+				);
 
-	if (total > 0) {
-		winrate = wins / total;
+				if (!Number.isNaN(value)) {
+					winrate = value;
+				}
+			}
+		}
+	});
+
+	if (winrate === null) {
+		ring.style.background = "conic-gradient(#e5e7eb 0deg, #e5e7eb 360deg)";
+		ring.innerHTML = "<span>--</span>";
+		return;
 	}
 
-	const degrees = Math.round(winrate * 360);
-	const percentLabel = total > 0 ? Math.round(winrate * 100) + "%" : "--";
-
-	let color = "#94a3b8";
-
-	if (total > 0) {
-		color = winrate >= 0.5 ? CHART_COLORS.win : CHART_COLORS.loss;
-	}
+	const safeWinrate = Math.max(0, Math.min(100, winrate));
+	const degrees = Math.round((safeWinrate / 100) * 360);
+	const color = safeWinrate >= 50 ? CHART_COLORS.win : CHART_COLORS.loss;
 
 	ring.style.background = `conic-gradient(
 		${color} 0deg ${degrees}deg,
 		#e5e7eb ${degrees}deg 360deg
 	)`;
 
-	ring.innerHTML = `<span>${percentLabel}</span>`;
+	ring.innerHTML = `<span>${safeWinrate.toFixed(0)}%</span>`;
 }
 
 /* =========================
@@ -788,4 +1009,13 @@ function getCurrentIsoWeek() {
 	const yearStart = new Date(Date.UTC(tempDate.getUTCFullYear(), 0, 1));
 
 	return Math.ceil((((tempDate - yearStart) / 86400000) + 1) / 7);
+}
+
+function escapeHtml(value) {
+	return String(value)
+		.replace(/&/g, "&amp;")
+		.replace(/</g, "&lt;")
+		.replace(/>/g, "&gt;")
+		.replace(/"/g, "&quot;")
+		.replace(/'/g, "&#039;");
 }

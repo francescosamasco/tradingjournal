@@ -18,11 +18,18 @@ public class SecurityConfig {
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/", "/dashboard", "/css/**", "/js/**", "/img/**").permitAll()
-                .requestMatchers("/admin/**").hasRole("ADMIN")
-                .anyRequest().authenticated()
-            )
+        	.authorizeHttpRequests(auth -> auth
+        	    .requestMatchers(
+        	        "/", 
+        	        "/dashboard",
+        	        "/api/dashboard/**",
+        	        "/css/**",
+        	        "/js/**",
+        	        "/img/**"
+        	    ).permitAll()
+        	    .requestMatchers("/admin/**").hasRole("ADMIN")
+        	    .anyRequest().authenticated()
+        	)
 
             .formLogin(form -> form
                 .loginPage("/login") // opzionale (se vuoi pagina custom)
