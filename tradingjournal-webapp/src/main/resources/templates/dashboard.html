@@ -408,7 +408,7 @@
 
 					<!-- GRUPPO 1 -->
 					<div class="trade-form-section">
-						<div class="trade-form-section-title">Dati principali</div>
+						<div class="trade-form-section-title">Data e asset</div>
 
 						<div class="row g-3">
 							<div class="col-12 col-md-4">
@@ -425,7 +425,15 @@
 									<option value="NAS100">NAS100</option>
 								</select>
 							</div>
+						</div>
+					</div>
 
+					<!-- GRUPPO 2 -->
+					<div class="trade-form-section">
+						<div class="trade-form-section-title">Risultato economico</div>
+
+						<div class="row g-3">
+						
 							<div class="col-12 col-md-4">
 								<label class="form-label">Risultato</label>
 								<select class="form-select tj-input" name="result" required>
@@ -436,10 +444,31 @@
 									<option value="MISS">Miss</option>
 								</select>
 							</div>
+							
+							<div class="col-12 col-md-4">
+								<label class="form-label">Profit / Loss</label>
+								<input type="number" step="0.01" class="form-control tj-input" name="profitLoss" placeholder="Es. 150 oppure -80">
+							</div>
+							<!-- 
+							<div class="col-12 col-md-4">
+								<label class="form-label">RR</label>
+								<input type="number" step="0.01" class="form-control tj-input" name="rr" placeholder="Es. 2.5">
+							</div>
+ 							-->
+							<div class="col-12 col-md-4">
+								<label class="form-label">Bilancio</label>
+								<input
+									type="number"
+									class="form-control"
+									id="accountBalance"
+									name="accountBalance"
+									step="0.01"
+									readonly>							
+								</div>
 						</div>
 					</div>
 
-					<!-- GRUPPO 2 -->
+					<!-- GRUPPO 3-->
 					<div class="trade-form-section">
 						<div class="trade-form-section-title">Setup operativo</div>
 
@@ -490,33 +519,6 @@
 						</div>
 					</div>
 
-					<!-- GRUPPO 3 -->
-					<div class="trade-form-section">
-						<div class="trade-form-section-title">Risultato economico</div>
-
-						<div class="row g-3">
-							<div class="col-12 col-md-4">
-								<label class="form-label">Profit / Loss</label>
-								<input type="number" step="0.01" class="form-control tj-input" name="profitLoss" placeholder="Es. 150 oppure -80">
-							</div>
-
-							<div class="col-12 col-md-4">
-								<label class="form-label">RR</label>
-								<input type="number" step="0.01" class="form-control tj-input" name="rr" placeholder="Es. 2.5">
-							</div>
-
-							<div class="col-12 col-md-4">
-								<label class="form-label">Bilancio</label>
-								<input
-									type="number"
-									class="form-control"
-									id="accountBalance"
-									name="accountBalance"
-									step="0.01"
-									readonly>							
-								</div>
-						</div>
-					</div>
 
 					<!-- GRUPPO 4 -->
 					<div class="trade-form-section mb-0">

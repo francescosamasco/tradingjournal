@@ -97,7 +97,7 @@ window.TradingCalendar = (function () {
 	}
 
 	function renderDayNames(calendarGrid) {
-		const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+		const days = ["Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato", "Domenica"];
 		
 		days.forEach(function (day) {
 			const dayName = document.createElement("div");

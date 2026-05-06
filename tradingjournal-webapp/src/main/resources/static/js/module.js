@@ -722,7 +722,7 @@ function loadVotoSetup() {
 			if (!data) return;
 
 			const voto = data.id || data.value || data.codice || data.voto || "";
-			const descrizione = data.descrizione || data.label || data.text || voto || "Voto setup";
+			const descrizione = data.descrizione || data.label || data.text || voto || "";
 
 			votoSetupSelect.innerHTML = "";
 
@@ -767,7 +767,7 @@ function resetVotoSetup(label) {
 
 	const option = document.createElement("option");
 	option.value = "";
-	option.textContent = label || "Voto setup";
+	option.textContent = label || "";
 
 	votoSetupSelect.appendChild(option);
 	votoSetupSelect.disabled = true;
