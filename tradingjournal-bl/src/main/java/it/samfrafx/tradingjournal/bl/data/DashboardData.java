@@ -4,8 +4,6 @@ import java.math.BigDecimal;
 
 import it.samfrafx.tradingjournal.bl.PeriodEnum;
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 
 @Data
 public class DashboardData {
@@ -14,6 +12,7 @@ public class DashboardData {
 	private PeriodEnum periodEnum;
 	private BigDecimal bilancioIniziale;
 	private BigDecimal bilancioFinale;
+	private BigDecimal profitTotale;
 	private BigDecimal profitPercent;
 	private BigDecimal winrate;
 	private BigDecimal rrAverage;

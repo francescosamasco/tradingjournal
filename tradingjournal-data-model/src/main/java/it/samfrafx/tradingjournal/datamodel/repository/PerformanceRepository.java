@@ -58,4 +58,17 @@ public interface PerformanceRepository extends JpaRepository<Performance, String
     	        @Param("idAccount") String idAccount,
     	        @Param("idPerformance") String idPerformance
     	);
+    
+    
+    @Query("""
+    	    SELECT p
+    	    FROM Performance p
+    	    WHERE p.idAccount = :idAccount
+    	    AND p.idPerformance < :idPerformance
+    	    ORDER BY p.idPerformance DESC
+    	""")
+    	List<Performance> findPreviousPerformances(
+    	        @Param("idAccount") String idAccount,
+    	        @Param("idPerformance") String idPerformance
+    	);
 }

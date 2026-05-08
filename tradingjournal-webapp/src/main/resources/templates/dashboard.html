@@ -212,9 +212,9 @@
 							<div class="metric-main"
 								th:classappend="${dashboard.profitPercent != null && dashboard.profitPercent.compareTo(T(java.math.BigDecimal).ZERO) >= 0} ? ' text-success' : ' text-danger'"
 								th:text="${
-						dashboard.bilancioFinale != null ?
-						(dashboard.bilancioFinale.compareTo(T(java.math.BigDecimal).ZERO) >= 0 ? '+' : '-') +
-						'$' + #numbers.formatDecimal(dashboard.bilancioFinale.abs(), 1, 2)
+						dashboard.profitTotale != null ?
+						(dashboard.profitTotale.compareTo(T(java.math.BigDecimal).ZERO) >= 0 ? '+' : '-') +
+						'$' + #numbers.formatDecimal(dashboard.profitTotale.abs(), 1, 2)
 						: '--'
 					 }">
 								+$25,000.00</div>

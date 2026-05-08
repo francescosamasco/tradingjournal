@@ -38,6 +38,7 @@ public class DashboardService {
         dashboard.setPeriodEnum(period);
         dashboard.setBilancioIniziale(bilancioIniziale);
         dashboard.setBilancioFinale(bilancioFinale);
+        dashboard.setProfitTotale(profitTotale);
         dashboard.setProfitPercent( getTotalProfitPercent(performances) );
 
         dashboard.setWinrate(averageWinrate(performances));
@@ -87,27 +88,48 @@ public class DashboardService {
         return total;
     }
 
-    public BigDecimal calculateAccountBalancePreview( String accountId, LocalDateTime tradeDateTime, BigDecimal currentProfitLoss) {
+    public BigDecimal calculateAccountBalancePreview(
+            String accountId,
+            LocalDateTime tradeDateTime,
+            BigDecimal currentProfitLoss
+    ) {
 
-    	PerformanceData performance = performanceService.findByAccountIdAndWeek(
-    			accountId,
-    			tradeDateTime.toLocalDate()
-    	);
+        PerformanceData performance = null;
 
-    	BigDecimal bilancioBase = performance.getBilancioIniziale() != null
-    			? performance.getBilancioIniziale()
-    			: BigDecimal.ZERO;
+        try {
+            performance = performanceService.findByAccountIdAndWeek(
+                    accountId,
+                    tradeDateTime.toLocalDate()
+            );
+        } catch (IllegalStateException ex) {
+            performance = performanceService.findClosestPreviousPerformance(
+                    accountId,
+                    tradeDateTime.toLocalDate()
+            );
+        }
 
-    	BigDecimal previousTradesProfitLoss =
-    			tradeService.sumProfitLossBeforeDateTime(accountId, tradeDateTime);
+        BigDecimal bilancioBase = BigDecimal.ZERO;
 
-    	BigDecimal current = currentProfitLoss != null
-    			? currentProfitLoss
-    			: BigDecimal.ZERO;
+        if (performance != null) {
+            if (performance.getBilancioIniziale() != null) {
+                bilancioBase = performance.getBilancioIniziale();
+            }
 
-    	return bilancioBase
-    			.add(previousTradesProfitLoss)
-    			.add(current);
+            if (performance.getBilancioFinale() != null) {
+                bilancioBase = performance.getBilancioFinale();
+            }
+        }
+
+        BigDecimal previousTradesProfitLoss =
+                tradeService.sumProfitLossBeforeDateTime(accountId, tradeDateTime);
+
+        BigDecimal current = currentProfitLoss != null
+                ? currentProfitLoss
+                : BigDecimal.ZERO;
+
+        return bilancioBase
+                .add(previousTradesProfitLoss)
+                .add(current);
     }
     
     private BigDecimal averageWinrate(List<PerformanceData> performances) {

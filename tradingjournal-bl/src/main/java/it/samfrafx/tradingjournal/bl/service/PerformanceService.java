@@ -53,6 +53,25 @@ public class PerformanceService {
 						" e performance " + idPerformance
 						));
 	}
+	
+	public PerformanceData findClosestPreviousPerformance(
+	        String accountId,
+	        LocalDate date
+	) {
+	    int year = date.getYear();
+	    int month = date.getMonthValue();
+	    int week = date.get(WeekFields.ISO.weekOfWeekBasedYear());
+
+	    String idPerformance = year + "-" + month + "-" + week;
+
+	    return performanceRepository
+	            .findPreviousPerformances(accountId, idPerformance)
+	            .stream()
+	            .findFirst()
+	            .map(PerformanceData::from)
+	            .orElse(null);
+	}
+	
 
 	// =========================
 	// 🔹 PERFORMANCE MENSILE (lista settimane)
