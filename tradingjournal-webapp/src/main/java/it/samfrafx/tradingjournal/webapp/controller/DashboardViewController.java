@@ -48,6 +48,7 @@ public class DashboardViewController {
 			@RequestParam(name = "accountId", required = false) String accountId,
 			@RequestParam(name = "year", required = false) Integer year,
 			@RequestParam(name = "period", required = false) String period,
+			@RequestParam(required = false, defaultValue = "false") Boolean excludeErrors,
 			Model model
 			) {
 
@@ -117,6 +118,9 @@ public class DashboardViewController {
 			new OptionData("12", "Dicembre")
 		));
 		
+		
+	    model.addAttribute("excludeErrors", excludeErrors);
+
 		return "dashboard";
 	}
 

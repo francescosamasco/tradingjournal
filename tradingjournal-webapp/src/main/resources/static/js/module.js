@@ -16,6 +16,7 @@ document.addEventListener("DOMContentLoaded", function () {
 	resetVotoSetup();
 	
 	initAddTradeSubmit();
+	initExcludeErrorsSwitch();
 
 	if (window.TradingCalendar) {
 		window.TradingCalendar.init();
@@ -1160,6 +1161,72 @@ function initSidebarCollapse() {
 	toggle.addEventListener("click", function () {
 		document.body.classList.toggle("sidebar-collapsed");
 	});
+}
+
+function initExcludeErrorsSwitch() {
+
+	const switchEl = document.getElementById("excludeErrorsSwitch");
+
+	if (!switchEl) return;
+
+	/* =========================
+	   LOAD SAVED STATE
+	========================= */
+
+	const savedState = localStorage.getItem("excludeErrors");
+
+	const excludeErrors = savedState === "true";
+
+	switchEl.checked = excludeErrors;
+
+	updateDashboardLinks(excludeErrors);
+
+	/* =========================
+	   CHANGE
+	========================= */
+
+	switchEl.addEventListener("change", function () {
+
+		const enabled = this.checked;
+
+		localStorage.setItem("excludeErrors", enabled);
+
+		updateDashboardLinks(enabled);
+
+		const url = new URL(window.location.href);
+
+		url.searchParams.set("excludeErrors", enabled);
+
+		window.location.href = url.toString();
+
+	});
+
+}
+
+/* =========================
+   UPDATE ALL LINKS
+========================= */
+
+function updateDashboardLinks(excludeErrors) {
+
+	const links = document.querySelectorAll("a[href*='/dashboard']");
+
+	links.forEach(link => {
+
+		try {
+
+			const url = new URL(link.href);
+
+			url.searchParams.set("excludeErrors", excludeErrors);
+
+			link.href = url.toString();
+
+		} catch (e) {
+			console.error(e);
+		}
+
+	});
+
 }
 
 /* =========================

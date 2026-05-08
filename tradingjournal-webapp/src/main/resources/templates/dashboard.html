@@ -24,12 +24,13 @@
 <link th:href="@{/css/dashboard-sidebar.css}" rel="stylesheet">
 </head>
 
-<body class="dashboard-body">
+<body class="dashboard-body sidebar-collapsed">
 
 	<div class="dashboard-shell">
 
 		<!-- SIDEBAR -->
 		<aside class="tj-sidebar" id="tjSidebar">
+
 			<div class="sidebar-brand">
 				<div class="sidebar-logo">TJ</div>
 				<div class="sidebar-brand-text">
@@ -37,166 +38,181 @@
 				</div>
 			</div>
 
-			<nav class="sidebar-nav">
+			<div class="sidebar-scroll">
+				<nav class="sidebar-nav">
 
-				<a
-					th:href="@{/dashboard(accountId=${accountId}, year=${calendarYear}, period=${calendarMonth})}"
-					class="sidebar-link active"> <i class="bi bi-grid-1x2-fill"></i>
-					<span>Dashboard</span>
-				</a>
+					<div class="sidebar-filter-card">
 
-				<!-- ACCOUNTS -->
-				<div class="sidebar-group">
-					<button class="sidebar-group-toggle" type="button"
-						data-bs-toggle="collapse" data-bs-target="#accountsMenu">
-						<span> <i class="bi bi-wallet2"></i> Accounts
-						</span> <i class="bi bi-chevron-down sidebar-arrow"></i>
-					</button>
+						<div class="sidebar-filter-head">
+							<div class="sidebar-filter-icon">
+								<i class="bi bi-grid-1x2-fill"></i>
+							</div>
 
-					<div class="collapse show" id="accountsMenu">
-						<div class="sidebar-submenu">
-							<a th:each="acc : ${accounts}"
-								th:href="@{/dashboard(accountId=${acc.idAccount}, year=${calendarYear}, period=${calendarMonth})}"
-								class="sidebar-sublink"
-								th:classappend="${acc.idAccount == accountId} ? ' active' : ''">
-								<span th:text="${acc.nome}">Account</span>
-							</a>
+							<div class="sidebar-filter-text">
+								<strong>Dashboard</strong> <span id="excludeErrorsLabel">Escludi
+									errori</span>
+							</div>
+						</div>
+
+						<div class="form-check form-switch sidebar-switch">
+							<input class="form-check-input" type="checkbox" role="switch"
+								id="excludeErrorsSwitch" th:checked="${excludeErrors == true}">
+						</div>
+
+					</div>
+
+					<!-- ACCOUNTS -->
+					<div class="sidebar-group">
+						<button class="sidebar-group-toggle" type="button"
+							data-bs-toggle="collapse" data-bs-target="#accountsMenu">
+							<span> <i class="bi bi-wallet2"></i> Accounts
+							</span> <i class="bi bi-chevron-down sidebar-arrow"></i>
+						</button>
+
+						<div class="collapse show" id="accountsMenu">
+							<div class="sidebar-submenu">
+								<a th:each="acc : ${accounts}"
+									th:href="@{/dashboard(accountId=${acc.idAccount}, year=${calendarYear}, period=${calendarMonth})}"
+									class="sidebar-sublink"
+									th:classappend="${acc.idAccount == accountId} ? ' active' : ''">
+									<span th:text="${acc.nome}">Account</span>
+								</a>
+							</div>
 						</div>
 					</div>
-				</div>
 
-				<!-- ANNO 2025 -->
-				<div class="sidebar-group">
-					<button class="sidebar-group-toggle" type="button"
-						data-bs-toggle="collapse" data-bs-target="#year2025Menu"
-						th:classappend="${calendarYear == 2025} ? ' active' : ''">
+					<!-- ANNO 2025 -->
+					<div class="sidebar-group">
+						<button class="sidebar-group-toggle" type="button"
+							data-bs-toggle="collapse" data-bs-target="#year2025Menu"
+							th:classappend="${calendarYear == 2025} ? ' active' : ''">
 
-						<span> <i class="bi bi-calendar3"></i> <span>Anno
-								2025</span>
-						</span> <i class="bi bi-chevron-down sidebar-arrow"></i>
-					</button>
+							<span> <i class="bi bi-calendar3"></i> <span>Anno
+									2025</span>
+							</span> <i class="bi bi-chevron-down sidebar-arrow"></i>
+						</button>
 
-					<div class="collapse"
-						th:classappend="${calendarYear == 2025} ? ' show' : ''"
-						id="year2025Menu">
+						<div class="collapse"
+							th:classappend="${calendarYear == 2025} ? ' show' : ''"
+							id="year2025Menu">
 
-						<div class="sidebar-submenu">
+							<div class="sidebar-submenu">
 
-							<div class="sidebar-subtitle">Periodo</div>
+								<div class="sidebar-subtitle">Periodo</div>
 
-							<a
-								th:href="@{/dashboard(accountId=${accountId}, year=2025, period='YEAR')}"
-								class="sidebar-sublink"
-								th:classappend="${calendarYear == 2025 && period == 'YEAR'} ? ' active' : ''">
-								Tutto l'anno </a>
+								<a
+									th:href="@{/dashboard(accountId=${accountId}, year=2025, period='YEAR')}"
+									class="sidebar-sublink"
+									th:classappend="${calendarYear == 2025 && period == 'YEAR'} ? ' active' : ''">
+									Tutto l'anno </a>
 
-							<div class="sidebar-subtitle">Quarter</div>
+								<div class="sidebar-subtitle">Quarter</div>
 
-							<a
-								th:href="@{/dashboard(accountId=${accountId}, year=2025, period='Q1')}"
-								class="sidebar-sublink"
-								th:classappend="${calendarYear == 2025 && period == 'Q1'} ? ' active' : ''">Q1</a>
+								<a
+									th:href="@{/dashboard(accountId=${accountId}, year=2025, period='Q1')}"
+									class="sidebar-sublink"
+									th:classappend="${calendarYear == 2025 && period == 'Q1'} ? ' active' : ''">Q1</a>
 
-							<a
-								th:href="@{/dashboard(accountId=${accountId}, year=2025, period='Q2')}"
-								class="sidebar-sublink"
-								th:classappend="${calendarYear == 2025 && period == 'Q2'} ? ' active' : ''">Q2</a>
+								<a
+									th:href="@{/dashboard(accountId=${accountId}, year=2025, period='Q2')}"
+									class="sidebar-sublink"
+									th:classappend="${calendarYear == 2025 && period == 'Q2'} ? ' active' : ''">Q2</a>
 
-							<a
-								th:href="@{/dashboard(accountId=${accountId}, year=2025, period='Q3')}"
-								class="sidebar-sublink"
-								th:classappend="${calendarYear == 2025 && period == 'Q3'} ? ' active' : ''">Q3</a>
+								<a
+									th:href="@{/dashboard(accountId=${accountId}, year=2025, period='Q3')}"
+									class="sidebar-sublink"
+									th:classappend="${calendarYear == 2025 && period == 'Q3'} ? ' active' : ''">Q3</a>
 
-							<a
-								th:href="@{/dashboard(accountId=${accountId}, year=2025, period='Q4')}"
-								class="sidebar-sublink"
-								th:classappend="${calendarYear == 2025 && period == 'Q4'} ? ' active' : ''">Q4</a>
+								<a
+									th:href="@{/dashboard(accountId=${accountId}, year=2025, period='Q4')}"
+									class="sidebar-sublink"
+									th:classappend="${calendarYear == 2025 && period == 'Q4'} ? ' active' : ''">Q4</a>
 
-							<div class="sidebar-subtitle">Mesi</div>
+								<div class="sidebar-subtitle">Mesi</div>
 
-							<a th:each="m : ${months}"
-								th:href="@{/dashboard(accountId=${accountId}, year=2025, period=${m.id})}"
-								class="sidebar-sublink"
-								th:classappend="${calendarYear == 2025 && period == m.id} ? ' active' : ''"
-								th:text="${m.descrizione}"> Gennaio </a>
+								<a th:each="m : ${months}"
+									th:href="@{/dashboard(accountId=${accountId}, year=2025, period=${m.id})}"
+									class="sidebar-sublink"
+									th:classappend="${calendarYear == 2025 && period == m.id} ? ' active' : ''"
+									th:text="${m.descrizione}"> Gennaio </a>
 
+							</div>
 						</div>
 					</div>
-				</div>
 
+					<!-- ANNO 2026 -->
+					<div class="sidebar-group">
+						<button class="sidebar-group-toggle" type="button"
+							data-bs-toggle="collapse" data-bs-target="#year2026Menu"
+							th:classappend="${calendarYear == 2026} ? ' active' : ''">
 
-				<!-- ANNO 2026 -->
-				<div class="sidebar-group">
-					<button class="sidebar-group-toggle" type="button"
-						data-bs-toggle="collapse" data-bs-target="#year2026Menu"
-						th:classappend="${calendarYear == 2026} ? ' active' : ''">
+							<span> <i class="bi bi-calendar3-week"></i> <span>Anno
+									2026</span>
+							</span> <i class="bi bi-chevron-down sidebar-arrow"></i>
+						</button>
 
-						<span> <i class="bi bi-calendar3-week"></i> <span>Anno
-								2026</span>
-						</span> <i class="bi bi-chevron-down sidebar-arrow"></i>
-					</button>
+						<div class="collapse"
+							th:classappend="${calendarYear == 2026} ? ' show' : ''"
+							id="year2026Menu">
 
-					<div class="collapse"
-						th:classappend="${calendarYear == 2026} ? ' show' : ''"
-						id="year2026Menu">
+							<div class="sidebar-submenu">
 
-						<div class="sidebar-submenu">
+								<div class="sidebar-subtitle">Periodo</div>
 
-							<div class="sidebar-subtitle">Periodo</div>
+								<a
+									th:href="@{/dashboard(accountId=${accountId}, year=2026, period='YEAR')}"
+									class="sidebar-sublink"
+									th:classappend="${calendarYear == 2026 && period == 'YEAR'} ? ' active' : ''">
+									Tutto l'anno </a>
 
-							<a
-								th:href="@{/dashboard(accountId=${accountId}, year=2026, period='YEAR')}"
-								class="sidebar-sublink"
-								th:classappend="${calendarYear == 2026 && period == 'YEAR'} ? ' active' : ''">
-								Tutto l'anno </a>
+								<div class="sidebar-subtitle">Quarter</div>
 
-							<div class="sidebar-subtitle">Quarter</div>
+								<a
+									th:href="@{/dashboard(accountId=${accountId}, year=2026, period='Q1')}"
+									class="sidebar-sublink"
+									th:classappend="${calendarYear == 2026 && period == 'Q1'} ? ' active' : ''">Q1</a>
 
-							<a
-								th:href="@{/dashboard(accountId=${accountId}, year=2026, period='Q1')}"
-								class="sidebar-sublink"
-								th:classappend="${calendarYear == 2026 && period == 'Q1'} ? ' active' : ''">Q1</a>
+								<a
+									th:href="@{/dashboard(accountId=${accountId}, year=2026, period='Q2')}"
+									class="sidebar-sublink"
+									th:classappend="${calendarYear == 2026 && period == 'Q2'} ? ' active' : ''">Q2</a>
 
-							<a
-								th:href="@{/dashboard(accountId=${accountId}, year=2026, period='Q2')}"
-								class="sidebar-sublink"
-								th:classappend="${calendarYear == 2026 && period == 'Q2'} ? ' active' : ''">Q2</a>
+								<a
+									th:href="@{/dashboard(accountId=${accountId}, year=2026, period='Q3')}"
+									class="sidebar-sublink"
+									th:classappend="${calendarYear == 2026 && period == 'Q3'} ? ' active' : ''">Q3</a>
 
-							<a
-								th:href="@{/dashboard(accountId=${accountId}, year=2026, period='Q3')}"
-								class="sidebar-sublink"
-								th:classappend="${calendarYear == 2026 && period == 'Q3'} ? ' active' : ''">Q3</a>
+								<a
+									th:href="@{/dashboard(accountId=${accountId}, year=2026, period='Q4')}"
+									class="sidebar-sublink"
+									th:classappend="${calendarYear == 2026 && period == 'Q4'} ? ' active' : ''">Q4</a>
 
-							<a
-								th:href="@{/dashboard(accountId=${accountId}, year=2026, period='Q4')}"
-								class="sidebar-sublink"
-								th:classappend="${calendarYear == 2026 && period == 'Q4'} ? ' active' : ''">Q4</a>
+								<div class="sidebar-subtitle">Mesi</div>
 
-							<div class="sidebar-subtitle">Mesi</div>
+								<a th:each="m : ${months}"
+									th:href="@{/dashboard(accountId=${accountId}, year=2026, period=${m.id})}"
+									class="sidebar-sublink"
+									th:classappend="${calendarYear == 2026 && period == m.id} ? ' active' : ''"
+									th:text="${m.descrizione}"> Gennaio </a>
 
-							<a th:each="m : ${months}"
-								th:href="@{/dashboard(accountId=${accountId}, year=2026, period=${m.id})}"
-								class="sidebar-sublink"
-								th:classappend="${calendarYear == 2026 && period == m.id} ? ' active' : ''"
-								th:text="${m.descrizione}"> Gennaio </a>
-
+							</div>
 						</div>
 					</div>
-				</div>
 
-				<a href="#" class="sidebar-link"> <i class="bi bi-journal-text"></i>
-					<span>Trades</span>
-				</a> <a href="#" class="sidebar-link"> <i class="bi bi-gear-fill"></i>
-					<span>Impostazioni</span>
-				</a>
+					<a href="#" class="sidebar-link"> <i class="bi bi-journal-text"></i>
+						<span>Trades</span>
+					</a> <a href="#" class="sidebar-link"> <i class="bi bi-gear-fill"></i>
+						<span>Impostazioni</span>
+					</a>
 
-			</nav>
+				</nav>
+			</div>
 
 			<button type="button" class="sidebar-collapse-btn" id="sidebarToggle">
 				<i class="bi bi-chevron-left"></i> <span>Comprimi</span>
 			</button>
-		</aside>
 
+		</aside>
 		<!-- CONTENT -->
 		<main class="dashboard-main">
 
