@@ -149,6 +149,8 @@ function renderSelectedWeek() {
 }
 
 function renderWeeklyStats(weekNumber, week) {
+	const bilancioIniziale = getNumberValue(week, ["bilancioIniziale", "startBalance", "initialBalance"], null);
+	const bilancioFinale = getNumberValue(week, ["bilancioFinale", "currentBalance", "finalBalance"], null);
 	const amount = getNumberValue(week, ["amount", "total", "profit", "netPnl"], 0);
 	const rr = getNumberValue(week, ["rr", "rrAverage", "riskReward"], null);
 	const percent = getNumberValue(week, ["percent", "percentage", "profitPercent"], null);
@@ -160,7 +162,7 @@ function renderWeeklyStats(weekNumber, week) {
 
 	const winrate = wins + losses > 0 ? (wins / (wins + losses)) * 100 : null;
 
-	setText("weeklyTitle", "Week " + weekNumber);
+	setText("weeklyTitle", "Settimana " + weekNumber);
 
 	setValueWithProfitClass("weeklyAmount", formatMoney(amount), amount);
 	setValueWithProfitClass("weeklyAmountStats", formatMoney(amount), amount);
@@ -187,6 +189,17 @@ function renderWeeklyStats(weekNumber, week) {
 	setText("weeklyKpiWinrate", winrate !== null ? winrate.toFixed(1) + "%" : "--");
 	setText("weeklyKpiRR", rr !== null ? rr.toFixed(2) : "--");
 
+	setText(
+		"weeklyStartBalance",
+		bilancioIniziale !== null ? formatMoneyUnsymbol(bilancioIniziale) : "--"
+	);
+
+	setText(
+		"weeklyCurrentBalance",
+		bilancioFinale !== null ? formatMoneyUnsymbol(bilancioFinale) : "--",
+		bilancioFinale !== null ? bilancioFinale : 0
+	);
+	
 	setValueWithProfitClass(
 		"weeklyKpiPercent",
 		percent !== null ? formatSignedPercent(percent) : "--",
@@ -333,7 +346,8 @@ function renderEmptyWeeklyPerformance() {
 	setText("weeklyKpiWinrate", "--");
 	setText("weeklyKpiRR", "--");
 	setText("weeklyKpiPercent", "--");
-
+	setText("weeklyStartBalance", "--");
+	setText("weeklyCurrentBalance", "--");
 	renderWeeklyDoughnut({});
 }
 
@@ -1235,7 +1249,14 @@ function setValueWithProfitClass(id, text, value) {
 function formatMoney(value) {
 	const sign = value >= 0 ? "+" : "-";
 
-	return sign + "$" + Math.abs(value).toLocaleString("en-US", {
+	return sign + Math.abs(value).toLocaleString("it-IT", {
+		minimumFractionDigits: 2,
+		maximumFractionDigits: 2
+	});
+}
+
+function formatMoneyUnsymbol(value) {
+	return Math.abs(value).toLocaleString("it-IT", {
 		minimumFractionDigits: 2,
 		maximumFractionDigits: 2
 	});
@@ -1252,7 +1273,7 @@ function formatCurrency(value) {
 
 function formatSignedPercent(value) {
 	const sign = value >= 0 ? "+" : "-";
-	return sign + Math.abs(value).toFixed(2) + "%";
+	return sign + Math.abs(value).toFixed(1) + "%";
 }
 
 function formatDateShort(dateKey) {

@@ -195,7 +195,7 @@ public class DashboardViewController {
 
 			BigDecimal profit = trade.getProfit() != null
 					? trade.getProfit()
-							: BigDecimal.ZERO;
+					: BigDecimal.ZERO;
 
 			// =====================
 			// DAY
@@ -208,22 +208,25 @@ public class DashboardViewController {
 						0,
 						trade.getAccountBalance(),
 						BigDecimal.ZERO
-						);
+				);
 				days.put(dateKey, day);
 			}
 
-			BigDecimal newAmount = day.getAmount().add(profit);
+			BigDecimal newDayAmount = day.getAmount().add(profit);
 
-			BigDecimal percentage = BigDecimal.ZERO;
-			if (day.getStartBalance() != null && day.getStartBalance().compareTo(BigDecimal.ZERO) != 0) {
-				percentage = newAmount
+			BigDecimal dayPercentage = BigDecimal.ZERO;
+
+			if (day.getStartBalance() != null
+					&& day.getStartBalance().compareTo(BigDecimal.ZERO) != 0) {
+
+				dayPercentage = newDayAmount
 						.divide(day.getStartBalance(), 4, RoundingMode.HALF_UP)
 						.multiply(BigDecimal.valueOf(100));
 			}
 
-			day.setAmount(newAmount);
+			day.setAmount(newDayAmount);
 			day.setTrades(day.getTrades() + 1);
-			day.setPercentage(percentage);
+			day.setPercentage(dayPercentage);
 
 			// =====================
 			// WEEK
@@ -241,14 +244,21 @@ public class DashboardViewController {
 				week.setBeTrades(0);
 				week.setMissTrades(0);
 				week.setRrTotal(BigDecimal.ZERO);
+
+				BigDecimal initialBalance = trade.getAccountBalance() != null
+						? trade.getAccountBalance()
+						: BigDecimal.ZERO;
+
+				week.setBilancioIniziale(initialBalance);
+				week.setBilancioFinale(initialBalance);
+
 				weeks.put(weekNumber, week);
 			}
 
 			BigDecimal rr = trade.getReturnPercent() != null
 					? trade.getReturnPercent()
-							: BigDecimal.ZERO;
+					: BigDecimal.ZERO;
 
-			// ---- aggregazioni base ----
 			BigDecimal newWeekAmount = week.getAmount().add(profit);
 			BigDecimal newRrTotal = week.getRrTotal().add(rr);
 			int newTradeCount = week.getTrades() + 1;
@@ -258,7 +268,6 @@ public class DashboardViewController {
 			int be = week.getBeTrades();
 			int miss = week.getMissTrades();
 
-			// ---- esiti ----
 			if (trade.isWin()) {
 				wins++;
 			} else if (trade.isLoss()) {
@@ -276,48 +285,54 @@ public class DashboardViewController {
 
 			week.setAmount(newWeekAmount);
 			week.setTrades(newTradeCount);
+			week.setRrTotal(newRrTotal);
+
+			BigDecimal weekStartBalance = week.getBilancioIniziale() != null
+					? week.getBilancioIniziale()
+					: BigDecimal.ZERO;
+
+			BigDecimal weekFinalBalance = weekStartBalance.add(newWeekAmount);
+			week.setBilancioFinale(weekFinalBalance);
 
 			// =====================
-			// WINRATE (solo win/loss)
+			// WINRATE
 			// =====================
 			int winLossTotal = wins + losses;
 
 			if (winLossTotal > 0) {
 				week.setWinrate(
 						BigDecimal.valueOf(wins)
-						.divide(BigDecimal.valueOf(winLossTotal), 4, RoundingMode.HALF_UP)
-						.multiply(BigDecimal.valueOf(100))
-						);
+								.divide(BigDecimal.valueOf(winLossTotal), 4, RoundingMode.HALF_UP)
+								.multiply(BigDecimal.valueOf(100))
+				);
 			} else {
 				week.setWinrate(BigDecimal.ZERO);
 			}
 
 			// =====================
-			// RR
+			// RR MEDIO
 			// =====================
-			week.setRrTotal(newRrTotal);
-
 			if (newTradeCount > 0) {
 				week.setRrAverage(
 						newRrTotal.divide(
 								BigDecimal.valueOf(newTradeCount),
 								2,
 								RoundingMode.HALF_UP
-								)
-						);
+						)
+				);
 			}
 
 			// =====================
 			// PROFIT %
 			// =====================
-			BigDecimal weekStartBalance = trade.getAccountBalance();
-
-			if (weekStartBalance != null && weekStartBalance.compareTo(BigDecimal.ZERO) != 0) {
+			if (weekStartBalance.compareTo(BigDecimal.ZERO) != 0) {
 				BigDecimal profitPercent = newWeekAmount
 						.divide(weekStartBalance, 4, RoundingMode.HALF_UP)
 						.multiply(BigDecimal.valueOf(100));
 
 				week.setProfitPercent(profitPercent);
+			} else {
+				week.setProfitPercent(BigDecimal.ZERO);
 			}
 
 			week.addDay(dateKey);
@@ -325,7 +340,6 @@ public class DashboardViewController {
 
 		return new CalendarData(days, weeks);
 	}
-
 
 
 	private int getWeekOfYear(LocalDate date) {

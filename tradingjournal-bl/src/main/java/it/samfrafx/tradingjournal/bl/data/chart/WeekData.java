@@ -14,6 +14,8 @@ public class WeekData {
     // =========================
     // PERFORMANCE
     // =========================
+	private BigDecimal bilancioIniziale = BigDecimal.ZERO;
+	private BigDecimal bilancioFinale = BigDecimal.ZERO;
     private BigDecimal amount = BigDecimal.ZERO;
     private BigDecimal profitPercent = BigDecimal.ZERO;
 
