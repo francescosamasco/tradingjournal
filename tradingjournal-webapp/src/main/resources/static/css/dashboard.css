@@ -784,6 +784,28 @@ body {
 }
 
 /* =========================
+   VOTO SETUP
+========================= */
+
+#votoSetupInput.voto-setup-alto {
+	background: rgba(78, 191, 148, 0.18) !important;
+	border: 1px solid #4EBF94 !important;
+	font-weight: 700;
+}
+
+#votoSetupInput.voto-setup-medio {
+	background: rgba(251, 191, 36, 0.18) !important;
+	border: 1px solid #f59e0b !important;
+	font-weight: 700;
+}
+
+#votoSetupInput.voto-setup-none {
+	background: rgba(255, 255, 255, 0.04) !important;
+	font-weight: 700;
+}
+
+
+/* =========================
    RESPONSIVE
 ========================= */
 @media (max-width: 992px) {

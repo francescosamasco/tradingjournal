@@ -3,9 +3,12 @@ package it.samfrafx.tradingjournal.bl.service;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.WeekFields;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
@@ -207,6 +210,54 @@ public class TradeService {
                 .allMatch(c::contains);
 
         return match ? config.getVoto() : VotoSetupEnum.BASSO;
+    }
+    
+    
+    public TradeData save(TradeData data) {
+
+        if (data == null) {
+            throw new IllegalArgumentException("Trade obbligatorio");
+        }
+
+        if (data.getAccountId() == null || data.getAccountId().isBlank()) {
+            throw new IllegalArgumentException("Account obbligatorio");
+        }
+
+        if (data.getDateOpen() == null) {
+            throw new IllegalArgumentException("Data trade obbligatoria");
+        }
+
+        Trade trade = new Trade();
+
+        trade.setIdTrade(UUID.randomUUID().toString());
+        trade.setIdAccount(data.getAccountId());
+
+        trade.setDateOpen(data.getDateOpen());
+        trade.setAsset(data.getAsset());
+        trade.setEsito(data.getEsito());
+        trade.setPosizione(data.getPosizione());
+
+        trade.setStruttura(data.getStruttura());
+        trade.setSetup(data.getSetup());
+        trade.setConfluenze(data.getConfluenze());
+        trade.setTags(data.getTags());
+
+        trade.setProfit(data.getProfit());
+        trade.setRisk(data.getRisk());
+        trade.setNote(data.getNote());
+
+        int week = data.getDateOpen()
+                .get(WeekFields.of(Locale.ITALY).weekOfWeekBasedYear());
+
+        trade.setWeekN(week);
+
+        Trade saved = tradeRepository.save(trade);
+        
+        this.performanceService.recalculatePerformance(
+                saved.getIdAccount(),
+                saved.getDateOpen());
+
+        return TradeData.from(saved, data.getAccountBalance());
     }
     
     

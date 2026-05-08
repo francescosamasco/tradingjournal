@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 public class TradeData {
 
     private String idTrade;
+    private String accountId;
     private String asset;
     private String esito;
     private LocalDateTime dateOpen;
@@ -35,6 +36,7 @@ public class TradeData {
 
         TradeData dto = new TradeData();
 
+        dto.setAccountId( t.getIdAccount());
         dto.setIdTrade(t.getIdTrade());
         dto.setAsset(t.getAsset());
         dto.setEsito(t.getEsito());

@@ -18,23 +18,26 @@ public class SecurityConfig {
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
-        	.authorizeHttpRequests(auth -> auth
-        	    .requestMatchers(
-        	        "/", 
-        	        "/dashboard",
-        	        "/api/dashboard/**",
-        	        "/css/**",
-        	        "/js/**",
-        	        "/img/**"
-        	    ).permitAll()
-        	    .requestMatchers("/admin/**").hasRole("ADMIN")
-        	    .anyRequest().authenticated()
-        	)
+            .csrf(csrf -> csrf.disable())
 
-            .formLogin(form -> form
-                .loginPage("/login") // opzionale (se vuoi pagina custom)
-                .permitAll()
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers(
+                    "/",
+                    "/dashboard",
+                    "/dashboard/**",
+                    "/api/dashboard/**",
+                    "/css/**",
+                    "/js/**",
+                    "/img/**",
+                    "/images/**"
+                ).permitAll()
+
+                .requestMatchers("/admin/**").hasRole("ADMIN")
+
+                .anyRequest().authenticated()
             )
+
+            .formLogin(Customizer.withDefaults())
 
             .logout(logout -> logout
                 .logoutSuccessUrl("/")
@@ -43,13 +46,11 @@ public class SecurityConfig {
         return http.build();
     }
 
-    // 🔐 PASSWORD ENCODER SICURO
     @Bean
     PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    // 👤 UTENTE IN MEMORY
     @Bean
     InMemoryUserDetailsManager users(PasswordEncoder encoder) {
 

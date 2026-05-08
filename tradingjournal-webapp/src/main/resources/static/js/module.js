@@ -5,10 +5,18 @@ document.addEventListener("DOMContentLoaded", function () {
 
 	initCalendarViewToggle();
 	initCurrentMonthButton();
+
+	initTagsSelect();
+	initConfluenzeSelect();
 	initTradeDynamicSelects();
+
 	initProfitLossControl();
 	initAccountBalancePreview();
+	initSidebarCollapse();
+	resetVotoSetup();
 	
+	initAddTradeSubmit();
+
 	if (window.TradingCalendar) {
 		window.TradingCalendar.init();
 	}
@@ -416,23 +424,329 @@ function initCurrentWeekButton() {
 }
 
 /* =========================
-   MODALE TRADE: CONFLUENZE CHECKBOX
+   MODALE TRADE
 ========================= */
 
+function initAddTradeSubmit() {
+	const form = document.getElementById("addTradeForm");
+
+	if (!form) return;
+
+	form.addEventListener("submit", function (event) {
+		event.preventDefault();
+
+		const submitButton = form.querySelector("button[type='submit']");
+		const originalText = submitButton ? submitButton.innerHTML : "";
+
+		if (submitButton) {
+			submitButton.disabled = true;
+			submitButton.innerHTML = "Salvataggio...";
+		}
+
+		const formData = new FormData(form);
+
+		fetch("/dashboard/trade/add", {
+			method: "POST",
+			body: formData
+		})
+			.then(function (response) {
+				if (!response.ok) {
+					throw new Error("Errore salvataggio trade");
+				}
+
+				return response.json();
+			})
+			.then(function (data) {
+				console.log("Trade salvato:", data);
+
+				const modalElement = document.getElementById("addTradeModal");
+				const modal = bootstrap.Modal.getInstance(modalElement);
+
+				if (modal) {
+					modal.hide();
+				}
+
+				form.reset();
+
+				if (tagsTomSelect) {
+					tagsTomSelect.clear(true);
+				}
+
+				resetTradeDynamicSelects();
+
+				window.location.reload();
+			})
+			.catch(function (error) {
+				console.error(error);
+				alert("Errore durante il salvataggio del trade");
+			})
+			.finally(function () {
+				if (submitButton) {
+					submitButton.disabled = false;
+					submitButton.innerHTML = originalText;
+				}
+			});
+	});
+}
+
+let tagsTomSelect = null;
+let confluenzeTomSelect = null;
+
+function initTagsSelect() {
+	const tagsSelect = document.getElementById("tagsSelect");
+
+	if (!tagsSelect || typeof TomSelect === "undefined") return;
+	if (tagsSelect.tomselect) return;
+
+	tagsTomSelect = new TomSelect(tagsSelect, {
+		plugins: ["remove_button"],
+		create: false,
+		persist: false,
+		placeholder: "Seleziona uno o più tags...",
+		maxItems: null
+	});
+}
+
+function initConfluenzeSelect() {
+	const select = document.getElementById("confluenzeSelect");
+
+	if (!select || typeof TomSelect === "undefined") return;
+	if (select.tomselect) {
+		confluenzeTomSelect = select.tomselect;
+		return;
+	}
+
+	confluenzeTomSelect = new TomSelect(select, {
+		plugins: ["remove_button"],
+		create: false,
+		persist: false,
+		placeholder: "Seleziona struttura e setup...",
+		maxItems: null,
+		valueField: "value",
+		labelField: "text",
+		searchField: ["text"],
+		onChange: function () {
+			loadVotoSetup();
+		}
+	});
+
+	setConfluenzeDisabled(true);
+}
+
+function initTradeDynamicSelects() {
+	const modal = document.getElementById("addTradeModal");
+	const strutturaSelect = document.getElementById("strutturaSelect");
+	const setupSelect = document.getElementById("setupSelect");
+
+	if (!modal) return;
+
+	modal.addEventListener("hidden.bs.modal", function () {
+		resetTradeDynamicSelects();
+	});
+
+	if (!strutturaSelect || !setupSelect) return;
+
+	strutturaSelect.addEventListener("change", function () {
+		resetConfluenzeSelect("Seleziona struttura e setup...");
+		resetVotoSetup();
+
+		const struttura = strutturaSelect.value;
+		const setup = setupSelect.value;
+
+		if (struttura && setup) {
+			loadConfluenze(struttura, setup);
+		}
+	});
+
+	setupSelect.addEventListener("change", function () {
+		resetConfluenzeSelect("Seleziona struttura e setup...");
+		resetVotoSetup();
+
+		const struttura = strutturaSelect.value;
+		const setup = setupSelect.value;
+
+		if (struttura && setup) {
+			loadConfluenze(struttura, setup);
+		}
+	});
+}
+
+function loadConfluenze(struttura, setup) {
+	if (!confluenzeTomSelect) return;
+
+	resetConfluenzeSelect("Caricamento confluenze...");
+	resetVotoSetup();
+
+	const url = "/api/dashboard/confluenze"
+		+ "?struttura=" + encodeURIComponent(struttura)
+		+ "&setup=" + encodeURIComponent(setup);
+
+	fetch(url)
+		.then(function (response) {
+			if (!response.ok) {
+				throw new Error("Errore HTTP " + response.status);
+			}
+
+			return response.json();
+		})
+		.then(function (items) {
+			renderConfluenzeOptions(items);
+		})
+		.catch(function (error) {
+			console.error("Errore caricamento confluenze:", error);
+			resetConfluenzeSelect("Errore caricamento confluenze");
+			resetVotoSetup("Errore");
+		});
+}
+
+function renderConfluenzeOptions(items) {
+	if (!confluenzeTomSelect) return;
+
+	confluenzeTomSelect.clear(true);
+	confluenzeTomSelect.clearOptions();
+
+	if (!Array.isArray(items) || items.length === 0) {
+		confluenzeTomSelect.settings.placeholder = "Nessuna confluenza disponibile";
+		confluenzeTomSelect.inputState();
+		setConfluenzeDisabled(true);
+		return;
+	}
+
+	items.forEach(function (item) {
+		const value = item.id || item.value || item.codice || "";
+		const text = item.descrizione || item.label || item.text || item.nome || value;
+
+		if (!value) return;
+
+		confluenzeTomSelect.addOption({
+			value: String(value),
+			text: String(text)
+		});
+	});
+
+	confluenzeTomSelect.settings.placeholder = "Seleziona confluenze...";
+	confluenzeTomSelect.refreshOptions(false);
+	confluenzeTomSelect.inputState();
+	setConfluenzeDisabled(false);
+}
+
+function getSelectedConfluenze() {
+	if (!confluenzeTomSelect) return [];
+
+	const value = confluenzeTomSelect.getValue();
+
+	if (Array.isArray(value)) {
+		return value.filter(function (item) {
+			return item !== "";
+		});
+	}
+
+	if (!value) return [];
+
+	return String(value).split(",").filter(function (item) {
+		return item !== "";
+	});
+}
+
+function loadVotoSetup() {
+	const strutturaSelect = document.getElementById("strutturaSelect");
+	const setupSelect = document.getElementById("setupSelect");
+	const votoSetupInput = document.getElementById("votoSetupInput");
+
+	if (!strutturaSelect || !setupSelect || !votoSetupInput) return;
+
+	const struttura = strutturaSelect.value;
+	const setup = setupSelect.value;
+	const confluenze = getSelectedConfluenze();
+
+	resetVotoSetup();
+
+	if (!struttura || !setup || !confluenze.length) return;
+
+	const url = "/api/dashboard/voto-setup"
+		+ "?struttura=" + encodeURIComponent(struttura)
+		+ "&setup=" + encodeURIComponent(setup)
+		+ "&confluenze=" + encodeURIComponent(confluenze.join(","));
+
+	fetch(url)
+		.then(function (response) {
+			if (!response.ok) {
+				throw new Error("Errore HTTP " + response.status);
+			}
+
+			return response.json();
+		})
+		.then(function (data) {
+
+			if (!data) {
+				resetVotoSetup();
+				return;
+			}
+
+			const voto = data.id || data.value || data.codice || data.voto || "";
+			const descrizione = data.descrizione || data.label || data.text || voto || "Non strategia";
+
+			votoSetupInput.value = descrizione;
+
+			applyVotoSetupStyle(descrizione);
+		})
+}
+
+function resetTradeDynamicSelects() {
+	resetConfluenzeSelect("Seleziona struttura e setup...");
+	resetVotoSetup();
+}
+
+function resetConfluenzeSelect(placeholder) {
+	if (!confluenzeTomSelect) return;
+
+	confluenzeTomSelect.clear(true);
+	confluenzeTomSelect.clearOptions();
+	confluenzeTomSelect.settings.placeholder = placeholder || "Seleziona struttura e setup...";
+	confluenzeTomSelect.refreshOptions(false);
+	confluenzeTomSelect.inputState();
+
+	setConfluenzeDisabled(true);
+}
+
+function setConfluenzeDisabled(disabled) {
+	const select = document.getElementById("confluenzeSelect");
+
+	if (confluenzeTomSelect) {
+		if (disabled) {
+			confluenzeTomSelect.disable();
+		} else {
+			confluenzeTomSelect.enable();
+		}
+	}
+
+	if (select) {
+		select.disabled = disabled;
+	}
+}
+
+function resetVotoSetup(label) {
+	const votoSetupInput = document.getElementById("votoSetupInput");
+	if (!votoSetupInput) return;
+	const value = label || "Non strategia";
+	votoSetupInput.value = value;
+	applyVotoSetupStyle(value);
+}
+
 function initProfitLossControl() {
-	const resultSelect = document.querySelector("[name='result']");
-	const profitLossInput = document.querySelector("[name='profitLoss']");
+	const resultSelect = document.querySelector("[name='esito']");
+	const profitLossInput = document.querySelector("[name='profit']");
 
 	if (!resultSelect || !profitLossInput) return;
 
 	function applyProfitLossRules() {
 		const result = resultSelect.value;
 
-		// RESET BASE
 		profitLossInput.readOnly = false;
 		profitLossInput.disabled = false;
+		profitLossInput.removeAttribute("min");
+		profitLossInput.removeAttribute("max");
 
-		// ❌ SE NON È SELEZIONATO NULLA → DISABILITA
 		if (!result) {
 			profitLossInput.value = "";
 			profitLossInput.disabled = true;
@@ -440,30 +754,21 @@ function initProfitLossControl() {
 			return;
 		}
 
-		// ✅ WIN
 		if (result === "WIN") {
 			profitLossInput.min = "0";
-			profitLossInput.removeAttribute("max");
 			profitLossInput.placeholder = "Valore positivo";
 
 			if (profitLossInput.value && Number(profitLossInput.value) < 0) {
 				profitLossInput.value = "";
 			}
-		}
-
-		// ❌ LOSS
-		else if (result === "LOSS") {
+		} else if (result === "LOSS") {
 			profitLossInput.max = "0";
-			profitLossInput.removeAttribute("min");
 			profitLossInput.placeholder = "Valore negativo";
 
 			if (profitLossInput.value && Number(profitLossInput.value) > 0) {
 				profitLossInput.value = "";
 			}
-		}
-
-		// ➖ BE / MISS
-		else if (result === "BE" || result === "MISS") {
+		} else if (result === "BE" || result === "MISS") {
 			profitLossInput.value = "0";
 			profitLossInput.readOnly = true;
 			profitLossInput.min = "0";
@@ -471,7 +776,6 @@ function initProfitLossControl() {
 			profitLossInput.placeholder = "0";
 		}
 
-		// 🔄 trigger ricalcolo balance
 		profitLossInput.dispatchEvent(new Event("input"));
 	}
 
@@ -494,13 +798,12 @@ function initProfitLossControl() {
 		}
 	});
 
-	// stato iniziale
 	applyProfitLossRules();
 }
 
 function initAccountBalancePreview() {
-	const dateTimeInput = document.querySelector("[name='dateTime']");
-	const profitLossInput = document.querySelector("[name='profitLoss']");
+	const dateTimeInput = document.querySelector("[name='dateOpen']");
+	const profitLossInput = document.querySelector("[name='profit']");
 	const accountBalanceInput = document.querySelector("[name='accountBalance']");
 	const accountIdInput = document.querySelector("[name='accountId']");
 	const addTradeModal = document.getElementById("addTradeModal");
@@ -514,7 +817,7 @@ function initAccountBalancePreview() {
 	function calculateBalance() {
 		clearTimeout(debounceTimer);
 
-		debounceTimer = setTimeout(() => {
+		debounceTimer = setTimeout(function () {
 			const dateTime = dateTimeInput.value;
 			const profitLoss = profitLossInput.value || "0";
 			const accountId = accountIdInput.value;
@@ -531,16 +834,16 @@ function initAccountBalancePreview() {
 			});
 
 			fetch(`/api/dashboard/account-balance-preview?${params.toString()}`)
-				.then(response => {
+				.then(function (response) {
 					if (!response.ok) {
 						throw new Error("Errore calcolo account balance");
 					}
 					return response.json();
 				})
-				.then(balance => {
+				.then(function (balance) {
 					accountBalanceInput.value = Number(balance).toFixed(2);
 				})
-				.catch(error => {
+				.catch(function (error) {
 					console.error(error);
 					accountBalanceInput.value = "";
 				});
@@ -555,222 +858,6 @@ function initAccountBalancePreview() {
 	if (addTradeModal) {
 		addTradeModal.addEventListener("shown.bs.modal", calculateBalance);
 	}
-}
-
-
-function initTradeDynamicSelects() {
-	const modal = document.getElementById("addTradeModal");
-	const strutturaSelect = document.getElementById("strutturaSelect");
-	const setupSelect = document.getElementById("setupSelect");
-
-	if (!modal) return;
-
-	modal.addEventListener("hidden.bs.modal", function () {
-		resetTradeDynamicSelects();
-	});
-
-	if (!strutturaSelect || !setupSelect) return;
-
-	strutturaSelect.addEventListener("change", function () {
-		resetConfluenzeBox("Seleziona struttura e setup");
-		resetVotoSetup();
-
-		const struttura = strutturaSelect.value;
-		const setup = setupSelect.value;
-
-		if (struttura && setup) {
-			loadConfluenze(struttura, setup);
-		}
-	});
-
-	setupSelect.addEventListener("change", function () {
-		resetConfluenzeBox("Seleziona struttura e setup");
-		resetVotoSetup();
-
-		const struttura = strutturaSelect.value;
-		const setup = setupSelect.value;
-
-		if (struttura && setup) {
-			loadConfluenze(struttura, setup);
-		}
-	});
-}
-
-function loadConfluenze(struttura, setup) {
-	const box = document.getElementById("confluenzeCheckboxGroup");
-	const hiddenInput = document.getElementById("confluenzeInput");
-
-	if (!box || !hiddenInput) return;
-
-	box.classList.add("disabled");
-	box.innerHTML = `<div class="text-muted small">Caricamento confluenze...</div>`;
-	hiddenInput.value = "";
-	resetVotoSetup();
-
-	const url = "/api/dashboard/confluenze"
-		+ "?struttura=" + encodeURIComponent(struttura)
-		+ "&setup=" + encodeURIComponent(setup);
-
-	fetch(url)
-		.then(function (response) {
-			if (!response.ok) {
-				throw new Error("Errore HTTP " + response.status);
-			}
-
-			return response.json();
-		})
-		.then(function (items) {
-			renderConfluenzeCheckboxes(items);
-		})
-		.catch(function (error) {
-			console.error("Errore caricamento confluenze:", error);
-			box.innerHTML = `<div class="text-danger small">Errore caricamento confluenze</div>`;
-			box.classList.add("disabled");
-			hiddenInput.value = "";
-			resetVotoSetup("Errore");
-		});
-}
-
-function renderConfluenzeCheckboxes(items) {
-	const box = document.getElementById("confluenzeCheckboxGroup");
-	const hiddenInput = document.getElementById("confluenzeInput");
-
-	if (!box || !hiddenInput) return;
-
-	box.innerHTML = "";
-	hiddenInput.value = "";
-
-	if (!Array.isArray(items) || items.length === 0) {
-		box.innerHTML = `<div class="text-muted small">Nessuna confluenza disponibile</div>`;
-		box.classList.add("disabled");
-		return;
-	}
-
-	items.forEach(function (item) {
-		const id = item.id || item.value || item.codice || "";
-		const label = item.descrizione || item.label || item.text || item.nome || "";
-
-		const wrapper = document.createElement("label");
-		wrapper.className = "confluenza-check";
-
-		wrapper.innerHTML = `
-			<input type="checkbox" value="${escapeHtml(id)}">
-			<span>${escapeHtml(label)}</span>
-		`;
-
-		const checkbox = wrapper.querySelector("input");
-
-		checkbox.addEventListener("change", function () {
-			updateSelectedConfluenze();
-			loadVotoSetup();
-		});
-
-		box.appendChild(wrapper);
-	});
-
-	box.classList.remove("disabled");
-}
-
-function updateSelectedConfluenze() {
-	const box = document.getElementById("confluenzeCheckboxGroup");
-	const hiddenInput = document.getElementById("confluenzeInput");
-
-	if (!box || !hiddenInput) return [];
-
-	const selected = Array.from(box.querySelectorAll('input[type="checkbox"]:checked'))
-		.map(function (checkbox) {
-			return checkbox.value;
-		})
-		.filter(function (value) {
-			return value !== "";
-		});
-
-	hiddenInput.value = selected.join(",");
-
-	return selected;
-}
-
-function loadVotoSetup() {
-	const strutturaSelect = document.getElementById("strutturaSelect");
-	const setupSelect = document.getElementById("setupSelect");
-	const votoSetupSelect = document.getElementById("votoSetupSelect");
-
-	if (!strutturaSelect || !setupSelect || !votoSetupSelect) return;
-
-	const struttura = strutturaSelect.value;
-	const setup = setupSelect.value;
-	const confluenze = updateSelectedConfluenze();
-
-	resetVotoSetup();
-
-	if (!struttura || !setup || !confluenze.length) return;
-
-	const url = "/api/dashboard/voto-setup"
-		+ "?struttura=" + encodeURIComponent(struttura)
-		+ "&setup=" + encodeURIComponent(setup)
-		+ "&confluenze=" + encodeURIComponent(confluenze.join(","));
-
-	fetch(url)
-		.then(function (response) {
-			if (!response.ok) {
-				throw new Error("Errore HTTP " + response.status);
-			}
-
-			return response.json();
-		})
-		.then(function (data) {
-			if (!data) return;
-
-			const voto = data.id || data.value || data.codice || data.voto || "";
-			const descrizione = data.descrizione || data.label || data.text || voto || "";
-
-			votoSetupSelect.innerHTML = "";
-
-			const option = document.createElement("option");
-			option.value = voto;
-			option.textContent = descrizione;
-			option.selected = true;
-
-			votoSetupSelect.appendChild(option);
-			votoSetupSelect.disabled = false;
-		})
-		.catch(function (error) {
-			console.error("Errore caricamento voto setup:", error);
-			resetVotoSetup("Errore calcolo voto");
-		});
-}
-
-function resetTradeDynamicSelects() {
-	resetConfluenzeBox("Seleziona struttura e setup");
-	resetVotoSetup();
-}
-
-function resetConfluenzeBox(label) {
-	const box = document.getElementById("confluenzeCheckboxGroup");
-	const hiddenInput = document.getElementById("confluenzeInput");
-
-	if (box) {
-		box.innerHTML = `<div class="text-muted small">${label || "Seleziona struttura e setup"}</div>`;
-		box.classList.add("disabled");
-	}
-
-	if (hiddenInput) {
-		hiddenInput.value = "";
-	}
-}
-
-function resetVotoSetup(label) {
-	const votoSetupSelect = document.getElementById("votoSetupSelect");
-	if (!votoSetupSelect) return;
-
-	votoSetupSelect.innerHTML = "";
-
-	const option = document.createElement("option");
-	option.value = "";
-	option.textContent = label || "";
-
-	votoSetupSelect.appendChild(option);
-	votoSetupSelect.disabled = true;
 }
 
 /* =========================
@@ -818,7 +905,7 @@ function updateRingCircleFromMonthlyWinrate() {
 		#e5e7eb ${degrees}deg 360deg
 	)`;
 
-	ring.innerHTML = `<span>${safeWinrate.toFixed(0)}%</span>`;
+	ring.innerHTML = `<span>${safeWinrate.toFixed(1)}%</span>`;
 }
 
 /* =========================
@@ -946,11 +1033,11 @@ function renderCalendarStatsView() {
 			maxConsecutiveLoss = Math.max(maxConsecutiveLoss, currentLoss);
 		}
 
-		if (position.toLowerCase() === "long") {
+		if (position.toLowerCase() === "long" || position.toLowerCase() === "buy") {
 			longTrades += trades;
 		}
 
-		if (position.toLowerCase() === "short") {
+		if (position.toLowerCase() === "short" || position.toLowerCase() === "sell") {
 			shortTrades += trades;
 		}
 	});
@@ -1048,8 +1135,49 @@ function renderCalendarEquityChart() {
 }
 
 /* =========================
+   SIDEBAR
+========================= */
+
+function initSidebarCollapse() {
+	const toggle = document.getElementById("sidebarToggle");
+
+	if (!toggle) return;
+
+	toggle.addEventListener("click", function () {
+		document.body.classList.toggle("sidebar-collapsed");
+	});
+}
+
+/* =========================
    UTILS
 ========================= */
+
+function applyVotoSetupStyle(value) {
+
+	const input = document.getElementById("votoSetupInput");
+
+	if (!input) return;
+
+	input.classList.remove(
+		"voto-setup-alto",
+		"voto-setup-medio",
+		"voto-setup-none"
+	);
+
+	const normalized = String(value || "").toLowerCase();
+
+	if (normalized.includes("alto")) {
+		input.classList.add("voto-setup-alto");
+		return;
+	}
+
+	if (normalized.includes("medio")) {
+		input.classList.add("voto-setup-medio");
+		return;
+	}
+
+	input.classList.add("voto-setup-none");
+}
 
 function getNumberValue(obj, keys, defaultValue) {
 	if (!obj) return defaultValue;

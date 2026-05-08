@@ -9,9 +9,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -25,6 +27,7 @@ import it.samfrafx.tradingjournal.bl.data.chart.WeekData;
 import it.samfrafx.tradingjournal.bl.data.enums.VotoSetupEnum;
 import it.samfrafx.tradingjournal.bl.service.DashboardService;
 import it.samfrafx.tradingjournal.bl.service.TradeService;
+import it.samfrafx.tradingjournal.webapp.data.AccountSidebarData;
 import it.samfrafx.tradingjournal.webapp.data.OptionData;
 
 @Controller
@@ -64,9 +67,8 @@ public class DashboardViewController {
 
 		PeriodEnum periodEnum = PeriodEnum.getEnum(period);
 
-		DashboardData dash = service.buildDashboard(accountId, year, periodEnum);
-
-		List<TradeData> trades = tradeService.getTrades(accountId, year, periodEnum);
+		DashboardData dashboard = this.service.buildDashboard(accountId, year, periodEnum);
+		List<TradeData> trades = this.tradeService.getTrades(accountId, year, periodEnum);
 
 		CalendarData calendar = buildCalendarData(trades);
 
@@ -77,12 +79,44 @@ public class DashboardViewController {
 		model.addAttribute("trades", trades);
 
 		model.addAttribute("calendar", calendar);
-		model.addAttribute("dashboard", dash);
+		model.addAttribute("dashboard", dashboard);
 
 		model.addAttribute("strutture", List.of(
 				new OptionData("Prostruttura", "Prostruttura"),
 				new OptionData("Controstruttura", "Controstruttura")
 				));
+		
+		
+		List<AccountSidebarData> accounts = List.of(
+				new AccountSidebarData("fa54de65-9679-406f-9bcd-d3110ab4cc6e", "Personale 25k"),
+				new AccountSidebarData("0000", "Demo test")
+			);
+
+		model.addAttribute("accounts", accounts);
+		model.addAttribute("accountId", accountId);
+		model.addAttribute("calendarYear", year);
+		model.addAttribute("period", period);
+
+		model.addAttribute("tags", List.of(
+				new OptionData("1", "Errore1"),
+				new OptionData("2", "Errore2"),
+				new OptionData("3", "Tags1")
+			));		
+		model.addAttribute("months", List.of(
+			new OptionData("1", "Gennaio"),
+			new OptionData("2", "Febbraio"),
+			new OptionData("3", "Marzo"),
+			new OptionData("4", "Aprile"),
+			new OptionData("5", "Maggio"),
+			new OptionData("6", "Giugno"),
+			new OptionData("7", "Luglio"),
+			new OptionData("8", "Agosto"),
+			new OptionData("9", "Settembre"),
+			new OptionData("10", "Ottobre"),
+			new OptionData("11", "Novembre"),
+			new OptionData("12", "Dicembre")
+		));
+		
 		return "dashboard";
 	}
 
@@ -121,10 +155,7 @@ public class DashboardViewController {
 
 	@GetMapping("/api/dashboard/account-balance-preview")
 	@ResponseBody
-	public BigDecimal getAccountBalancePreview(
-			@RequestParam String accountId,
-			@RequestParam String dateTime,
-			@RequestParam BigDecimal profitLoss) {
+	public BigDecimal getAccountBalancePreview( @RequestParam String accountId, @RequestParam String dateTime, @RequestParam BigDecimal profitLoss) {
 
 		LocalDateTime tradeDateTime = LocalDateTime.parse(dateTime);
 
@@ -136,30 +167,16 @@ public class DashboardViewController {
 	}
 	
 
-	@PostMapping("/trades/add")
-	public String addTrade(
-			@RequestParam String accountId,
-			@RequestParam String date,
-			@RequestParam String result,
-			@RequestParam(required = false) BigDecimal profitLoss,
-			@RequestParam(required = false) BigDecimal rr,
-			@RequestParam(required = false) String note,
-			@RequestParam Integer year,
-			@RequestParam Integer month
-			) {
+	@PostMapping("/dashboard/trade/add")
+	@ResponseBody
+	public ResponseEntity<?> addTrade(@ModelAttribute TradeData tradeData) {
 
-		//  tradeService.addTrade(
-		//          accountId,
-		//          LocalDate.parse(date),
-		//          result,
-		//          profitLoss,
-		//          rr,
-		//          note
-		//  );
+	    TradeData saved = tradeService.save(tradeData);
 
-		return "redirect:/dashboard?year=" + year
-				+ "&period=" + month
-				+ "&accountId=" + accountId;
+	    return ResponseEntity.ok(Map.of(
+	            "success", true,
+	            "tradeId", saved.getIdTrade()
+	    ));
 	}
 
 	private CalendarData buildCalendarData(List<TradeData> trades) {
@@ -310,99 +327,6 @@ public class DashboardViewController {
 	}
 
 
-	private Map<String, Object> buildTradesByDate(List<TradeData> trades) {
-
-		Map<String, Object> tradesByDate = new HashMap<>();
-
-		for (TradeData trade : trades) {
-
-			if (trade.getDateOpen() == null) {
-				continue;
-			}
-
-			String dateKey = trade.getDateOpen().toLocalDate().toString();
-
-			@SuppressWarnings("unchecked")
-			Map<String, Object> dayData = (Map<String, Object>) tradesByDate.get(dateKey);
-
-			if (dayData == null) {
-				dayData = new HashMap<>();
-				dayData.put("amount", BigDecimal.ZERO);
-				dayData.put("trades", 0);
-				dayData.put("startBalance", trade.getAccountBalance());
-				dayData.put("percentage", BigDecimal.ZERO);
-
-				tradesByDate.put(dateKey, dayData);
-			}
-
-			BigDecimal currentAmount = (BigDecimal) dayData.get("amount");
-			Integer currentTrades = (Integer) dayData.get("trades");
-
-			BigDecimal profit = trade.getProfit() != null
-					? trade.getProfit()
-							: BigDecimal.ZERO;
-
-			BigDecimal newAmount = currentAmount.add(profit);
-
-			BigDecimal startBalance = (BigDecimal) dayData.get("startBalance");
-
-			BigDecimal percentage = BigDecimal.ZERO;
-
-			if (startBalance != null && startBalance.compareTo(BigDecimal.ZERO) != 0) {
-				percentage = newAmount
-						.divide(startBalance, 4, RoundingMode.HALF_UP)
-						.multiply(BigDecimal.valueOf(100));
-			}
-
-			dayData.put("amount", newAmount);
-			dayData.put("trades", currentTrades + 1);
-			dayData.put("percentage", percentage);
-		}
-
-		return tradesByDate;
-	}
-
-	private Map<Integer, Object> buildWeeksSummary(List<TradeData> trades) {
-
-		Map<Integer, Object> weeksSummary = new HashMap<>();
-
-		for (TradeData trade : trades) {
-
-			if (trade.getDateOpen() == null) {
-				continue;
-			}
-
-			LocalDate tradeDate = trade.getDateOpen().toLocalDate();
-
-			int weekNumber = getWeekOfYear(tradeDate);
-
-			@SuppressWarnings("unchecked")
-			Map<String, Object> weekData = (Map<String, Object>) weeksSummary.get(weekNumber);
-
-			if (weekData == null) {
-				weekData = new HashMap<>();
-				weekData.put("amount", BigDecimal.ZERO);
-				weekData.put("days", 0);
-				weekData.put("trades", 0);
-
-				weeksSummary.put(weekNumber, weekData);
-			}
-
-			BigDecimal currentAmount = (BigDecimal) weekData.get("amount");
-			Integer currentDays = (Integer) weekData.get("days");
-			Integer currentTrades = (Integer) weekData.get("trades");
-
-			BigDecimal profit = trade.getProfit() != null
-					? trade.getProfit()
-							: BigDecimal.ZERO;
-
-			weekData.put("amount", currentAmount.add(profit));
-			weekData.put("days", currentDays + 1);
-			weekData.put("trades", currentTrades + 1);
-		}
-
-		return weeksSummary;
-	}
 
 	private int getWeekOfYear(LocalDate date) {
 		WeekFields weekFields = WeekFields.ISO;

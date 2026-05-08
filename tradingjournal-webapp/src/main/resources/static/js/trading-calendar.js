@@ -62,10 +62,14 @@ window.TradingCalendar = (function () {
 		const year = currentCalendarDate.getFullYear();
 		const month = currentCalendarDate.getMonth();
 
-		title.textContent = currentCalendarDate.toLocaleString("en-US", {
+		const formattedDate = currentCalendarDate.toLocaleString("it-IT", {
 			month: "long",
 			year: "numeric"
 		});
+
+		title.textContent =
+			formattedDate.charAt(0).toUpperCase() +
+			formattedDate.slice(1);
 
 		calendarGrid.innerHTML = "";
 
@@ -213,7 +217,7 @@ window.TradingCalendar = (function () {
 			<div class="trade-percent">
 				${profitPercent != null ? formatPercent(profitPercent) : "--"}
 			</div>
-			<small>${Number(trade.trades || 0)} trades</small>
+			<small>${Number(trade.trades || 0)} trade</small>
 		`;
 
 		cell.appendChild(box);
@@ -242,11 +246,11 @@ window.TradingCalendar = (function () {
 		}
 
 		if (monthlyDays) {
-			monthlyDays.textContent = monthData.tradeDays + " days";
+			monthlyDays.textContent = monthData.tradeDays + " giorni";
 		}
 
 		if (monthlyTrades) {
-			monthlyTrades.textContent = monthData.tradeCount + " trades";
+			monthlyTrades.textContent = monthData.tradeCount + " trade";
 		}
 	}
 
@@ -273,7 +277,7 @@ window.TradingCalendar = (function () {
 			card.className = "week-card" + (amount < 0 ? " negative" : "");
 
 			card.innerHTML = `
-				<strong>Week ${weekNumber}</strong>
+				<strong>Settimana ${weekNumber}</strong>
 
 				<span>${days > 0 ? formatMoney(amount) : "--"}</span>
 
@@ -284,7 +288,7 @@ window.TradingCalendar = (function () {
 
 				<div class="week-footer">
 					<small>%: <b>${week.profitPercent != null ? Number(week.profitPercent).toFixed(1) + "%" : "--"}</b></small>
-					<small>${days} days</small>
+					<small>${days} giorni</small>
 				</div>
 			`;
 

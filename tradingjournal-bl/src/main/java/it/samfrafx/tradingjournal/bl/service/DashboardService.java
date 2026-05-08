@@ -2,8 +2,6 @@ package it.samfrafx.tradingjournal.bl.service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.DayOfWeek;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.function.Function;
@@ -13,7 +11,6 @@ import org.springframework.stereotype.Service;
 import it.samfrafx.tradingjournal.bl.PeriodEnum;
 import it.samfrafx.tradingjournal.bl.data.DashboardData;
 import it.samfrafx.tradingjournal.bl.data.PerformanceData;
-import it.samfrafx.tradingjournal.datamodel.data.Performance;
 
 @Service
 public class DashboardService {
@@ -21,7 +18,6 @@ public class DashboardService {
     private final PerformanceService performanceService;
     private final TradeService tradeService;
 
-    
     public DashboardService(PerformanceService performanceService, TradeService tradeService) {
         this.performanceService = performanceService;
         this.tradeService = tradeService;
@@ -40,13 +36,9 @@ public class DashboardService {
 
         dashboard.setAccountId(accountId);
         dashboard.setPeriodEnum(period);
-
         dashboard.setBilancioIniziale(bilancioIniziale);
         dashboard.setBilancioFinale(bilancioFinale);
-
-        dashboard.setProfitPercent(
-                getTotalProfitPercent(performances)
-        );
+        dashboard.setProfitPercent( getTotalProfitPercent(performances) );
 
         dashboard.setWinrate(averageWinrate(performances));
         dashboard.setRrAverage(averageRr(performances));
@@ -95,10 +87,7 @@ public class DashboardService {
         return total;
     }
 
-    public BigDecimal calculateAccountBalancePreview(
-    		String accountId,
-    		LocalDateTime tradeDateTime,
-    		BigDecimal currentProfitLoss) {
+    public BigDecimal calculateAccountBalancePreview( String accountId, LocalDateTime tradeDateTime, BigDecimal currentProfitLoss) {
 
     	PerformanceData performance = performanceService.findByAccountIdAndWeek(
     			accountId,
@@ -133,9 +122,7 @@ public class DashboardService {
         return BigDecimal.ZERO;
     }
 
-    private BigDecimal average(
-            List<PerformanceData> performances,
-            Function<PerformanceData, BigDecimal> extractor
+    private BigDecimal average(   List<PerformanceData> performances,    Function<PerformanceData, BigDecimal> extractor
     ) {
         if (performances == null || performances.isEmpty()) {
             return BigDecimal.ZERO;
