@@ -245,7 +245,9 @@ public class TradeService {
         trade.setProfit(data.getProfit());
         trade.setRisk(data.getRisk());
         trade.setNote(data.getNote());
-
+        
+        trade.setVotoSetup( VotoSetupEnum.fromDescrizione(data.getVotoSetup()).getNumeric());
+        
         int week = data.getDateOpen()
                 .get(WeekFields.of(Locale.ITALY).weekOfWeekBasedYear());
 

@@ -804,6 +804,23 @@ body {
 	font-weight: 700;
 }
 
+/* ALTO */
+.trade-badge-win {
+	background: rgba(78, 191, 148, 0.14);
+	color: #4EBF94;
+}
+
+/* MEDIO */
+.trade-badge-medium {
+	background: rgba(251, 146, 60, 0.14);
+	color: #fb923c;
+}
+
+/* BASSO */
+.trade-badge-low {
+	background: rgba(250, 204, 21, 0.16);
+	color: #eab308;
+}
 
 /* =========================
    RESPONSIVE

@@ -61,6 +61,9 @@ public class Trade {
     @Column(name = "week_n")
     private Integer weekN;
 
+    @Column(name = "voto_setup")
+    private Integer votoSetup;
+    
     public String getIdTrade() {
         return idTrade;
     }
@@ -188,4 +191,12 @@ public class Trade {
     public void setWeekN(Integer weekN) {
         this.weekN = weekN;
     }
+
+	public Integer getVotoSetup() {
+		return votoSetup;
+	}
+
+	public void setVotoSetup(Integer votoSetup) {
+		this.votoSetup = votoSetup;
+	}
 }

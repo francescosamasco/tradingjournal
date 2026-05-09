@@ -553,10 +553,10 @@
 											<th>Confluenze</th>
 											<th class="text-end">Profit</th>
 											<th class="text-end">Risk</th>
-											<th class="text-end">R/R</th>
+											<th class="text-end">Profit %</th>
 											<th>Week</th>
 											<th>Tags</th>
-											<th>Note</th>
+											<th>Voto Setup</th>
 										</tr>
 									</thead>
 
@@ -610,24 +610,47 @@
 											<td th:text="${t.struttura ?: '-'}">Struttura</td>
 											<td th:text="${t.setup ?: '-'}">Setup</td>
 											<td th:text="${t.confluenze ?: '-'}">Confluenze</td>
-
+											<!--  
 											<td class="text-end"
 												th:classappend="${t.win} ? ' trade-result-positive' : (${t.loss} ? ' trade-result-negative' : '')"
 												th:text="${t.profit != null ? #numbers.formatDecimal(t.profit, 1, 2) : '-'}">120.00</td>
+-->
+											<td class="text-end">
+												<strong
+													th:classappend="${t.win} ? ' trade-result-positive' : (${t.loss} ? ' trade-result-negative' : '')"
+													th:text="${t.profit != null ? #numbers.formatDecimal(t.profit, 1, 'POINT', 2, 'COMMA') : '-'}">
+												</strong>
+											
+												<div class="text-muted small"
+													th:text="${t.currentBalance != null ? #numbers.formatDecimal(t.currentBalance, 1, 'POINT', 2, 'COMMA') : '-'}">
+												</div>
+											</td>
 
 											<td class="text-end"
 												th:text="${t.risk != null ? #numbers.formatDecimal(t.risk, 1, 2) : '-'}">50.00</td>
 
 											<td class="text-end fw-bold"
-												th:text="${t.returnPercent != null ? #numbers.formatDecimal(t.returnPercent, 1, 2) : '-'}">2.40</td>
+												th:text="${t.returnPercent != null ? #numbers.formatDecimal(t.returnPercent, 1, 1) : '-'}">2.40</td>
 
 											<td th:text="${t.weekN ?: '-'}">14</td>
 
 											<td><span class="tag-badge" th:text="${t.tags ?: '-'}">tag</span>
 											</td>
 
-											<td class="text-truncate" style="max-width: 180px;"
-												th:text="${t.note ?: '-'}">Note trade</td>
+											<td class="text-truncate" style="max-width: 180px;">
+    
+											    <span th:if="${t.votoSetupEnum != null}"
+											          class="trade-badge"
+											          th:classappend="
+											              ${t.votoSetupEnum.name() == 'ALTO'} ? ' trade-badge-win' :
+											              (${t.votoSetupEnum.name() == 'MEDIO'} ? ' trade-badge-medium' :
+											              (${t.votoSetupEnum.name() == 'BASSO'} ? ' trade-badge-low' : ''))"
+											          th:text="${t.votoSetupEnum.descrizione}">
+											    </span>
+											
+											    <span th:if="${t.votoSetupEnum == null}">-</span>
+											
+											</td>
 										</tr>
 									</tbody>
 								</table>

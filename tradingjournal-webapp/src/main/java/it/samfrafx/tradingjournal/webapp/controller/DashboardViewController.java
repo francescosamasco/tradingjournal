@@ -99,9 +99,9 @@ public class DashboardViewController {
 		model.addAttribute("period", period);
 
 		model.addAttribute("tags", List.of(
-				new OptionData("1", "Errore1"),
-				new OptionData("2", "Errore2"),
-				new OptionData("3", "Tags1")
+				new OptionData("Tags1", "Tags1"),
+				new OptionData("Tags2", "Tags2"),
+				new OptionData("Tags3", "Tags3")
 			));		
 		model.addAttribute("months", List.of(
 			new OptionData("1", "Gennaio"),
@@ -120,7 +120,6 @@ public class DashboardViewController {
 		
 		
 	    model.addAttribute("excludeErrors", excludeErrors);
-
 		return "dashboard";
 	}
 

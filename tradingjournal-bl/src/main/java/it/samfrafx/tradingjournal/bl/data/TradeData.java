@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 
+import it.samfrafx.tradingjournal.bl.data.enums.VotoSetupEnum;
 import it.samfrafx.tradingjournal.datamodel.data.Trade;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -21,6 +22,7 @@ public class TradeData {
     private String struttura;
     private String setup;
     private String confluenze;
+    private String votoSetup; 
     private String tags;
     private BigDecimal profit;
     private BigDecimal risk;
@@ -50,6 +52,7 @@ public class TradeData {
         dto.setRisk(t.getRisk());
         dto.setNote(t.getNote());
         dto.setWeekN(t.getWeekN());
+        dto.setVotoSetup( VotoSetupEnum.fromNumeric(t.getVotoSetup()).getDescrizione() );
         dto.setAccountBalance(balance);
 
         return dto;
@@ -99,4 +102,9 @@ public class TradeData {
     public boolean isMiss() {
         return "MISS".equalsIgnoreCase(esito);
     }
+    
+    public VotoSetupEnum getVotoSetupEnum() {
+    	return VotoSetupEnum.fromDescrizione(votoSetup);
+    }
+    
 }

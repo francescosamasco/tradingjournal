@@ -274,23 +274,34 @@ window.TradingCalendar = (function () {
 			const days = Number(week.days || 0);
 
 			const card = document.createElement("div");
-			card.className = "week-card" + (amount < 0 ? " negative" : "");
+			if (amount > 0) {
+				card.className = "week-card positive";
+			} else if (amount < 0) {
+				card.className = "week-card negative";
+			} else {
+				card.className = "week-card neutral";
+			}
+
+			const profitPercent = week.profitPercent != null
+				? Number(week.profitPercent)
+				: null;
 
 			card.innerHTML = `
 				<strong>Settimana ${weekNumber}</strong>
-
-				<span>${days > 0 ? formatMoney(amount) : "--"}</span>
-
-				<div class="week-extra">
-					<div>WR: <b>${week.winrate != null ? Number(week.winrate).toFixed(1) + "%" : "--"}</b></div>
-					<div>RR: <b>${week.rrAverage != null ? Number(week.rrAverage).toFixed(1) : "--"}</b></div>
+	
+				<div class="week-center">
+					<span>${days > 0 ? formatMoney(amount) : "--"}</span>
+	
+					<div class="week-profit-percent">
+						${profitPercent != null ? formatPercent(profitPercent) : "--"}
+					</div>
 				</div>
-
-				<div class="week-footer">
-					<small>%: <b>${week.profitPercent != null ? Number(week.profitPercent).toFixed(1) + "%" : "--"}</b></small>
+	
+				<div class="week-meta">
+					<small>${Number(week.trades || 0)} trade</small>
 					<small>${days} giorni</small>
 				</div>
-			`;
+				`;
 
 			container.appendChild(card);
 		});
