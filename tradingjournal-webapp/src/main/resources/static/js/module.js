@@ -6,16 +6,8 @@ document.addEventListener("DOMContentLoaded", function () {
 	initCalendarViewToggle();
 	initCurrentMonthButton();
 
-	initTagsSelect();
-	initConfluenzeSelect();
-	initTradeDynamicSelects();
-
-	initProfitLossControl();
-	initAccountBalancePreview();
 	initSidebarCollapse();
-	resetVotoSetup();
-	
-	initAddTradeSubmit();
+	initDeleteTradeButtons();
 	initExcludeErrorsSwitch();
 
 	if (window.TradingCalendar) {
@@ -197,10 +189,9 @@ function renderWeeklyStats(weekNumber, week) {
 
 	setText(
 		"weeklyCurrentBalance",
-		bilancioFinale !== null ? formatMoneyUnsymbol(bilancioFinale) : "--",
-		bilancioFinale !== null ? bilancioFinale : 0
+		bilancioFinale !== null ? formatMoneyUnsymbol(bilancioFinale) : "--"
 	);
-	
+
 	setValueWithProfitClass(
 		"weeklyKpiPercent",
 		percent !== null ? formatSignedPercent(percent) : "--",
@@ -349,6 +340,7 @@ function renderEmptyWeeklyPerformance() {
 	setText("weeklyKpiPercent", "--");
 	setText("weeklyStartBalance", "--");
 	setText("weeklyCurrentBalance", "--");
+
 	renderWeeklyDoughnut({});
 }
 
@@ -439,440 +431,36 @@ function initCurrentWeekButton() {
 }
 
 /* =========================
-   MODALE TRADE
+   DELETE TRADE
 ========================= */
 
-function initAddTradeSubmit() {
-	const form = document.getElementById("addTradeForm");
+function initDeleteTradeButtons() {
+	document.querySelectorAll(".delete-trade-btn").forEach(function (btn) {
+		btn.addEventListener("click", function () {
+			const tradeId = btn.dataset.tradeId;
 
-	if (!form) return;
+			if (!tradeId) return;
 
-	form.addEventListener("submit", function (event) {
-		event.preventDefault();
-
-		const submitButton = form.querySelector("button[type='submit']");
-		const originalText = submitButton ? submitButton.innerHTML : "";
-
-		if (submitButton) {
-			submitButton.disabled = true;
-			submitButton.innerHTML = "Salvataggio...";
-		}
-
-		const formData = new FormData(form);
-
-		fetch("/dashboard/trade/add", {
-			method: "POST",
-			body: formData
-		})
-			.then(function (response) {
-				if (!response.ok) {
-					throw new Error("Errore salvataggio trade");
-				}
-
-				return response.json();
-			})
-			.then(function (data) {
-				console.log("Trade salvato:", data);
-
-				const modalElement = document.getElementById("addTradeModal");
-				const modal = bootstrap.Modal.getInstance(modalElement);
-
-				if (modal) {
-					modal.hide();
-				}
-
-				form.reset();
-
-				if (tagsTomSelect) {
-					tagsTomSelect.clear(true);
-				}
-
-				resetTradeDynamicSelects();
-
-				window.location.reload();
-			})
-			.catch(function (error) {
-				console.error(error);
-				alert("Errore durante il salvataggio del trade");
-			})
-			.finally(function () {
-				if (submitButton) {
-					submitButton.disabled = false;
-					submitButton.innerHTML = originalText;
-				}
-			});
-	});
-}
-
-let tagsTomSelect = null;
-let confluenzeTomSelect = null;
-
-function initTagsSelect() {
-	const tagsSelect = document.getElementById("tagsSelect");
-
-	if (!tagsSelect || typeof TomSelect === "undefined") return;
-	if (tagsSelect.tomselect) return;
-
-	tagsTomSelect = new TomSelect(tagsSelect, {
-		plugins: ["remove_button"],
-		create: false,
-		persist: false,
-		placeholder: "Seleziona uno o più tags...",
-		maxItems: null
-	});
-}
-
-function initConfluenzeSelect() {
-	const select = document.getElementById("confluenzeSelect");
-
-	if (!select || typeof TomSelect === "undefined") return;
-	if (select.tomselect) {
-		confluenzeTomSelect = select.tomselect;
-		return;
-	}
-
-	confluenzeTomSelect = new TomSelect(select, {
-		plugins: ["remove_button"],
-		create: false,
-		persist: false,
-		placeholder: "Seleziona struttura e setup...",
-		maxItems: null,
-		valueField: "value",
-		labelField: "text",
-		searchField: ["text"],
-		onChange: function () {
-			loadVotoSetup();
-		}
-	});
-
-	setConfluenzeDisabled(true);
-}
-
-function initTradeDynamicSelects() {
-	const modal = document.getElementById("addTradeModal");
-	const strutturaSelect = document.getElementById("strutturaSelect");
-	const setupSelect = document.getElementById("setupSelect");
-
-	if (!modal) return;
-
-	modal.addEventListener("hidden.bs.modal", function () {
-		resetTradeDynamicSelects();
-	});
-
-	if (!strutturaSelect || !setupSelect) return;
-
-	strutturaSelect.addEventListener("change", function () {
-		resetConfluenzeSelect("Seleziona struttura e setup...");
-		resetVotoSetup();
-
-		const struttura = strutturaSelect.value;
-		const setup = setupSelect.value;
-
-		if (struttura && setup) {
-			loadConfluenze(struttura, setup);
-		}
-	});
-
-	setupSelect.addEventListener("change", function () {
-		resetConfluenzeSelect("Seleziona struttura e setup...");
-		resetVotoSetup();
-
-		const struttura = strutturaSelect.value;
-		const setup = setupSelect.value;
-
-		if (struttura && setup) {
-			loadConfluenze(struttura, setup);
-		}
-	});
-}
-
-function loadConfluenze(struttura, setup) {
-	if (!confluenzeTomSelect) return;
-
-	resetConfluenzeSelect("Caricamento confluenze...");
-	resetVotoSetup();
-
-	const url = "/api/dashboard/confluenze"
-		+ "?struttura=" + encodeURIComponent(struttura)
-		+ "&setup=" + encodeURIComponent(setup);
-
-	fetch(url)
-		.then(function (response) {
-			if (!response.ok) {
-				throw new Error("Errore HTTP " + response.status);
-			}
-
-			return response.json();
-		})
-		.then(function (items) {
-			renderConfluenzeOptions(items);
-		})
-		.catch(function (error) {
-			console.error("Errore caricamento confluenze:", error);
-			resetConfluenzeSelect("Errore caricamento confluenze");
-			resetVotoSetup("Errore");
-		});
-}
-
-function renderConfluenzeOptions(items) {
-	if (!confluenzeTomSelect) return;
-
-	confluenzeTomSelect.clear(true);
-	confluenzeTomSelect.clearOptions();
-
-	if (!Array.isArray(items) || items.length === 0) {
-		confluenzeTomSelect.settings.placeholder = "Nessuna confluenza disponibile";
-		confluenzeTomSelect.inputState();
-		setConfluenzeDisabled(true);
-		return;
-	}
-
-	items.forEach(function (item) {
-		const value = item.id || item.value || item.codice || "";
-		const text = item.descrizione || item.label || item.text || item.nome || value;
-
-		if (!value) return;
-
-		confluenzeTomSelect.addOption({
-			value: String(value),
-			text: String(text)
-		});
-	});
-
-	confluenzeTomSelect.settings.placeholder = "Seleziona confluenze...";
-	confluenzeTomSelect.refreshOptions(false);
-	confluenzeTomSelect.inputState();
-	setConfluenzeDisabled(false);
-}
-
-function getSelectedConfluenze() {
-	if (!confluenzeTomSelect) return [];
-
-	const value = confluenzeTomSelect.getValue();
-
-	if (Array.isArray(value)) {
-		return value.filter(function (item) {
-			return item !== "";
-		});
-	}
-
-	if (!value) return [];
-
-	return String(value).split(",").filter(function (item) {
-		return item !== "";
-	});
-}
-
-function loadVotoSetup() {
-	const strutturaSelect = document.getElementById("strutturaSelect");
-	const setupSelect = document.getElementById("setupSelect");
-	const votoSetupInput = document.getElementById("votoSetupInput");
-
-	if (!strutturaSelect || !setupSelect || !votoSetupInput) return;
-
-	const struttura = strutturaSelect.value;
-	const setup = setupSelect.value;
-	const confluenze = getSelectedConfluenze();
-
-	resetVotoSetup();
-
-	if (!struttura || !setup || !confluenze.length) return;
-
-	const url = "/api/dashboard/voto-setup"
-		+ "?struttura=" + encodeURIComponent(struttura)
-		+ "&setup=" + encodeURIComponent(setup)
-		+ "&confluenze=" + encodeURIComponent(confluenze.join(","));
-
-	fetch(url)
-		.then(function (response) {
-			if (!response.ok) {
-				throw new Error("Errore HTTP " + response.status);
-			}
-
-			return response.json();
-		})
-		.then(function (data) {
-
-			if (!data) {
-				resetVotoSetup();
+			if (!confirm("Vuoi davvero eliminare questo trade?")) {
 				return;
 			}
 
-			const voto = data.id || data.value || data.codice || data.voto || "";
-			const descrizione = data.descrizione || data.label || data.text || voto || "Non strategia";
-
-			votoSetupInput.value = descrizione;
-
-			applyVotoSetupStyle(descrizione);
-		})
-}
-
-function resetTradeDynamicSelects() {
-	resetConfluenzeSelect("Seleziona struttura e setup...");
-	resetVotoSetup();
-}
-
-function resetConfluenzeSelect(placeholder) {
-	if (!confluenzeTomSelect) return;
-
-	confluenzeTomSelect.clear(true);
-	confluenzeTomSelect.clearOptions();
-	confluenzeTomSelect.settings.placeholder = placeholder || "Seleziona struttura e setup...";
-	confluenzeTomSelect.refreshOptions(false);
-	confluenzeTomSelect.inputState();
-
-	setConfluenzeDisabled(true);
-}
-
-function setConfluenzeDisabled(disabled) {
-	const select = document.getElementById("confluenzeSelect");
-
-	if (confluenzeTomSelect) {
-		if (disabled) {
-			confluenzeTomSelect.disable();
-		} else {
-			confluenzeTomSelect.enable();
-		}
-	}
-
-	if (select) {
-		select.disabled = disabled;
-	}
-}
-
-function resetVotoSetup(label) {
-	const votoSetupInput = document.getElementById("votoSetupInput");
-	if (!votoSetupInput) return;
-	const value = label || "Non strategia";
-	votoSetupInput.value = value;
-	applyVotoSetupStyle(value);
-}
-
-function initProfitLossControl() {
-	const resultSelect = document.querySelector("[name='esito']");
-	const profitLossInput = document.querySelector("[name='profit']");
-
-	if (!resultSelect || !profitLossInput) return;
-
-	function applyProfitLossRules() {
-		const result = resultSelect.value;
-
-		profitLossInput.readOnly = false;
-		profitLossInput.disabled = false;
-		profitLossInput.removeAttribute("min");
-		profitLossInput.removeAttribute("max");
-
-		if (!result) {
-			profitLossInput.value = "";
-			profitLossInput.disabled = true;
-			profitLossInput.placeholder = "Seleziona prima il risultato";
-			return;
-		}
-
-		if (result === "WIN") {
-			profitLossInput.min = "0";
-			profitLossInput.placeholder = "Valore positivo";
-
-			if (profitLossInput.value && Number(profitLossInput.value) < 0) {
-				profitLossInput.value = "";
-			}
-		} else if (result === "LOSS") {
-			profitLossInput.max = "0";
-			profitLossInput.placeholder = "Valore negativo";
-
-			if (profitLossInput.value && Number(profitLossInput.value) > 0) {
-				profitLossInput.value = "";
-			}
-		} else if (result === "BE" || result === "MISS") {
-			profitLossInput.value = "0";
-			profitLossInput.readOnly = true;
-			profitLossInput.min = "0";
-			profitLossInput.max = "0";
-			profitLossInput.placeholder = "0";
-		}
-
-		profitLossInput.dispatchEvent(new Event("input"));
-	}
-
-	resultSelect.addEventListener("change", applyProfitLossRules);
-
-	profitLossInput.addEventListener("input", function () {
-		const result = resultSelect.value;
-		const value = Number(profitLossInput.value);
-
-		if (result === "WIN" && value < 0) {
-			profitLossInput.value = "";
-		}
-
-		if (result === "LOSS" && value > 0) {
-			profitLossInput.value = "";
-		}
-
-		if (result === "BE" || result === "MISS") {
-			profitLossInput.value = "0";
-		}
-	});
-
-	applyProfitLossRules();
-}
-
-function initAccountBalancePreview() {
-	const dateTimeInput = document.querySelector("[name='dateOpen']");
-	const profitLossInput = document.querySelector("[name='profit']");
-	const accountBalanceInput = document.querySelector("[name='accountBalance']");
-	const accountIdInput = document.querySelector("[name='accountId']");
-	const addTradeModal = document.getElementById("addTradeModal");
-
-	if (!dateTimeInput || !profitLossInput || !accountBalanceInput || !accountIdInput) {
-		return;
-	}
-
-	let debounceTimer = null;
-
-	function calculateBalance() {
-		clearTimeout(debounceTimer);
-
-		debounceTimer = setTimeout(function () {
-			const dateTime = dateTimeInput.value;
-			const profitLoss = profitLossInput.value || "0";
-			const accountId = accountIdInput.value;
-
-			if (!dateTime || !accountId) {
-				accountBalanceInput.value = "";
-				return;
-			}
-
-			const params = new URLSearchParams({
-				accountId: accountId,
-				dateTime: dateTime,
-				profitLoss: profitLoss
-			});
-
-			fetch(`/api/dashboard/account-balance-preview?${params.toString()}`)
+			fetch("/dashboard/trade/delete/" + encodeURIComponent(tradeId), {
+				method: "DELETE"
+			})
 				.then(function (response) {
 					if (!response.ok) {
-						throw new Error("Errore calcolo account balance");
+						throw new Error("Errore eliminazione trade");
 					}
-					return response.json();
-				})
-				.then(function (balance) {
-					accountBalanceInput.value = Number(balance).toFixed(2);
+
+					window.location.reload();
 				})
 				.catch(function (error) {
 					console.error(error);
-					accountBalanceInput.value = "";
+					alert("Errore durante l'eliminazione del trade");
 				});
-		}, 250);
-	}
-
-	dateTimeInput.addEventListener("change", calculateBalance);
-	dateTimeInput.addEventListener("input", calculateBalance);
-	profitLossInput.addEventListener("input", calculateBalance);
-	profitLossInput.addEventListener("change", calculateBalance);
-
-	if (addTradeModal) {
-		addTradeModal.addEventListener("shown.bs.modal", calculateBalance);
-	}
+		});
+	});
 }
 
 /* =========================
@@ -985,6 +573,12 @@ function initCurrentMonthButton() {
 			url += "&accountId=" + encodeURIComponent(window.accountId);
 		}
 
+		const excludeErrors = localStorage.getItem("excludeErrors");
+
+		if (excludeErrors !== null) {
+			url += "&excludeErrors=" + encodeURIComponent(excludeErrors);
+		}
+
 		window.location.href = url;
 	});
 }
@@ -1065,8 +659,17 @@ function renderCalendarStatsView() {
 	setText("statsAverageWin", formatCurrency(averageWin));
 	setText("statsAverageLoss", formatCurrency(averageLoss));
 
-	setValueWithProfitClass("statsLargestWin", largestWin !== null ? formatCurrency(largestWin) : "--", largestWin || 0);
-	setValueWithProfitClass("statsLargestLoss", largestLoss !== null ? formatCurrency(largestLoss) : "--", largestLoss || 0);
+	setValueWithProfitClass(
+		"statsLargestWin",
+		largestWin !== null ? formatCurrency(largestWin) : "--",
+		largestWin || 0
+	);
+
+	setValueWithProfitClass(
+		"statsLargestLoss",
+		largestLoss !== null ? formatCurrency(largestLoss) : "--",
+		largestLoss || 0
+	);
 
 	setText("statsMaxConsecutiveWins", maxConsecutiveWins);
 	setText("statsMaxConsecutiveLoss", maxConsecutiveLoss);
@@ -1163,30 +766,23 @@ function initSidebarCollapse() {
 	});
 }
 
-function initExcludeErrorsSwitch() {
+/* =========================
+   EXCLUDE ERRORS
+========================= */
 
+function initExcludeErrorsSwitch() {
 	const switchEl = document.getElementById("excludeErrorsSwitch");
 
 	if (!switchEl) return;
 
-	/* =========================
-	   LOAD SAVED STATE
-	========================= */
-
 	const savedState = localStorage.getItem("excludeErrors");
-
 	const excludeErrors = savedState === "true";
 
 	switchEl.checked = excludeErrors;
 
 	updateDashboardLinks(excludeErrors);
 
-	/* =========================
-	   CHANGE
-	========================= */
-
 	switchEl.addEventListener("change", function () {
-
 		const enabled = this.checked;
 
 		localStorage.setItem("excludeErrors", enabled);
@@ -1198,67 +794,28 @@ function initExcludeErrorsSwitch() {
 		url.searchParams.set("excludeErrors", enabled);
 
 		window.location.href = url.toString();
-
 	});
-
 }
 
-/* =========================
-   UPDATE ALL LINKS
-========================= */
-
 function updateDashboardLinks(excludeErrors) {
-
 	const links = document.querySelectorAll("a[href*='/dashboard']");
 
-	links.forEach(link => {
-
+	links.forEach(function (link) {
 		try {
-
 			const url = new URL(link.href);
 
 			url.searchParams.set("excludeErrors", excludeErrors);
 
 			link.href = url.toString();
-
 		} catch (e) {
 			console.error(e);
 		}
-
 	});
-
 }
 
 /* =========================
    UTILS
 ========================= */
-
-function applyVotoSetupStyle(value) {
-
-	const input = document.getElementById("votoSetupInput");
-
-	if (!input) return;
-
-	input.classList.remove(
-		"voto-setup-alto",
-		"voto-setup-medio",
-		"voto-setup-none"
-	);
-
-	const normalized = String(value || "").toLowerCase();
-
-	if (normalized.includes("alto")) {
-		input.classList.add("voto-setup-alto");
-		return;
-	}
-
-	if (normalized.includes("medio")) {
-		input.classList.add("voto-setup-medio");
-		return;
-	}
-
-	input.classList.add("voto-setup-none");
-}
 
 function getNumberValue(obj, keys, defaultValue) {
 	if (!obj) return defaultValue;
@@ -1294,6 +851,7 @@ function getStringValue(obj, keys, defaultValue) {
 
 function setText(id, value) {
 	const el = document.getElementById(id);
+
 	if (el) {
 		el.textContent = value;
 	}
@@ -1301,6 +859,7 @@ function setText(id, value) {
 
 function setValueWithProfitClass(id, text, value) {
 	const el = document.getElementById(id);
+
 	if (!el) return;
 
 	el.textContent = text;
@@ -1340,11 +899,13 @@ function formatCurrency(value) {
 
 function formatSignedPercent(value) {
 	const sign = value >= 0 ? "+" : "-";
+
 	return sign + Math.abs(value).toFixed(1) + "%";
 }
 
 function formatDateShort(dateKey) {
 	const parts = dateKey.split("-");
+
 	if (parts.length !== 3) return dateKey;
 
 	return parts[2] + "/" + parts[1];

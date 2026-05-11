@@ -193,28 +193,34 @@ public class PerformanceService {
 
 	@Transactional
 	public void updateWeeklyPerformance(
-			String accountId,
-			Integer year,
-			Integer month,
-			Integer week
-			) {
+	        String accountId,
+	        Integer year,
+	        Integer month,
+	        Integer week
+	) {
 
-		LocalDateTime[] range = DateUtils.getStartEndOfWeek(year, month, week);
+	    LocalDateTime[] range = DateUtils.getStartEndOfWeek(year, month, week);
 
-		LocalDateTime start = range[0];
-		LocalDateTime end = range[1];
+	    LocalDateTime start = range[0];
+	    LocalDateTime end = range[1];
 
-		List<Trade> trades = tradeRepository.findByAccountAndPeriod(
-				accountId,
-				start,
-				end
-				);
+	    List<Trade> trades = tradeRepository.findByAccountAndPeriod(
+	            accountId,
+	            start,
+	            end
+	    );
 
-		if (trades.isEmpty()) {
-			return;
-		}
+	    String idPerformance = year + "-" + month + "-" + week;
 
-		BigDecimal bilancioIniziale = calculateInitialBalanceForWeek(accountId, trades);
+	    if (trades.isEmpty()) {
+
+	        performanceRepository
+	                .findByAccountAndIdPerformance(accountId, idPerformance)
+	                .ifPresent(performanceRepository::delete);
+	        return;
+	    }
+
+	    BigDecimal bilancioIniziale = calculateInitialBalanceForWeek(accountId, trades);
 
 		BigDecimal profitTotale = trades.stream()
 				.map(Trade::getProfit)
@@ -243,8 +249,6 @@ public class PerformanceService {
 		}
 
 		BigDecimal rr = calculateWeeklyRR(trades);
-
-		String idPerformance = year + "-" + month + "-" + week;
 
 		Performance performance = performanceRepository
 		        .findByAccountAndIdPerformance(accountId, idPerformance)

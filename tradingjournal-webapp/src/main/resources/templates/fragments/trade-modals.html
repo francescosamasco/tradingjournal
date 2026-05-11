@@ -1,0 +1,400 @@
+<!doctype html>
+<html lang="it" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<div th:fragment="tradeModals">
+
+	<!-- =========================
+	     MODALE AGGIUNGI TRADE
+	========================= -->
+	<div class="modal fade" id="addTradeModal" tabindex="-1" aria-hidden="true">
+		<div class="modal-dialog modal-xl modal-dialog-centered">
+			<div class="modal-content tj-modal">
+
+				<div class="modal-header border-0">
+					<h5 class="modal-title text-uppercase fw-bold letter-spacing-1">
+						Aggiungi Trade
+					</h5>
+					<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+				</div>
+
+				<form method="post" id="addTradeForm">
+					<div class="modal-body">
+
+						<input type="hidden" name="accountId" th:value="${accountId}">
+						<input type="hidden" name="year" th:value="${calendarYear}">
+						<input type="hidden" name="month" th:value="${calendarMonth}">
+
+						<div class="trade-form-section">
+							<div class="trade-form-section-title">Data e asset</div>
+
+							<div class="row g-3">
+								<div class="col-12 col-md-4">
+									<label class="form-label">Data trade</label>
+									<input type="datetime-local"
+										   class="form-control tj-input"
+										   id="tradeDateInput"
+										   name="dateOpen"
+										   required>
+								</div>
+
+								<div class="col-12 col-md-4">
+									<label class="form-label">Asset</label>
+									<select class="form-select tj-input" name="asset" required>
+										<option value="">Seleziona</option>
+										<option value="EURUSD">EURUSD</option>
+										<option value="GBPUSD">GBPUSD</option>
+										<option value="NAS100">NAS100</option>
+									</select>
+								</div>
+							</div>
+						</div>
+
+						<div class="trade-form-section">
+							<div class="trade-form-section-title">Risultato economico</div>
+
+							<div class="row g-3">
+								<div class="col-12 col-md-2">
+									<label class="form-label">Esito</label>
+									<select class="form-select tj-input" name="esito" required>
+										<option value="">Seleziona</option>
+										<option value="WIN">Win</option>
+										<option value="LOSS">Loss</option>
+										<option value="BE">Break Even</option>
+										<option value="MISS">Miss</option>
+									</select>
+								</div>
+
+								<div class="col-12 col-md-4">
+									<label class="form-label">Profit / Loss</label>
+									<input type="number"
+										   step="0.01"
+										   class="form-control tj-input"
+										   name="profit"
+										   placeholder="Es. 150 oppure -80">
+								</div>
+
+								<div class="col-12 col-md-4">
+									<label class="form-label">Bilancio</label>
+									<input type="number"
+										   class="form-control"
+										   id="accountBalance"
+										   name="accountBalance"
+										   step="0.01"
+										   readonly>
+								</div>
+							</div>
+						</div>
+
+						<div class="trade-form-section">
+							<div class="trade-form-section-title">Setup operativo</div>
+
+							<div class="row g-3">
+								<div class="col-12 col-md-2">
+									<label class="form-label">Posizione</label>
+									<select class="form-select tj-input" name="posizione" required>
+										<option value="">Seleziona</option>
+										<option value="BUY">Buy</option>
+										<option value="SELL">Sell</option>
+									</select>
+								</div>
+
+								<div class="col-12 col-md-2">
+									<label class="form-label">Struttura</label>
+									<select class="form-select tj-input"
+											id="strutturaSelect"
+											name="struttura"
+											required>
+										<option value="">Seleziona</option>
+										<option th:each="s : ${strutture}"
+												th:value="${s.id}"
+												th:text="${s.descrizione}">
+										</option>
+									</select>
+								</div>
+
+								<div class="col-12 col-md-2">
+									<label class="form-label">Setup</label>
+									<select class="form-select tj-input"
+											id="setupSelect"
+											name="setup"
+											required>
+										<option value="">Seleziona</option>
+										<option value="Diretta">Diretta</option>
+										<option value="Conferma">Conferma</option>
+										<option value="Manipolazione">Manipolazione</option>
+									</select>
+								</div>
+
+								<div class="col-12 col-md-4">
+									<label class="form-label">Confluenze</label>
+									<select class="form-select tj-input"
+											id="confluenzeSelect"
+											name="confluenze"
+											multiple>
+									</select>
+								</div>
+
+								<div class="col-12 col-md-2">
+									<label class="form-label">Voto Setup</label>
+									<input type="text"
+										   class="form-control tj-input text-center fw-bold"
+										   id="votoSetupInput"
+										   name="votoSetup"
+										   readonly
+										   placeholder="--">
+								</div>
+							</div>
+						</div>
+
+						<div class="trade-form-section mb-0">
+							<div class="trade-form-section-title">Analisi</div>
+
+							<div class="row g-3">
+								<div class="col-12 col-md-4">
+									<label class="form-label">Tags</label>
+									<select class="form-select tj-input"
+											id="tagsSelect"
+											name="tags"
+											multiple>
+										<option th:each="tag : ${tags}"
+												th:value="${tag.id}"
+												th:text="${tag.descrizione}">
+										</option>
+									</select>
+								</div>
+
+								<div class="col-12 col-md-4">
+									<label class="form-label">Analisi trade</label>
+									<textarea class="form-control tj-input"
+											  name="tradeAnalysis"
+											  rows="4"
+											  placeholder="Cosa hai visto prima dell’ingresso?"></textarea>
+								</div>
+
+								<div class="col-12 col-md-4">
+									<label class="form-label">Note</label>
+									<textarea class="form-control tj-input"
+											  name="note"
+											  rows="4"
+											  placeholder="Errori, emozioni, gestione trade..."></textarea>
+								</div>
+							</div>
+						</div>
+
+					</div>
+
+					<div class="modal-footer border-0">
+						<button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">
+							Annulla
+						</button>
+						<button type="submit" class="btn btn-success">
+							Salva Trade
+						</button>
+					</div>
+				</form>
+
+			</div>
+		</div>
+	</div>
+
+
+	<!-- =========================
+	     MODALE MODIFICA TRADE
+	========================= -->
+	<div class="modal fade" id="editTradeModal" tabindex="-1" aria-hidden="true">
+		<div class="modal-dialog modal-xl modal-dialog-centered">
+			<div class="modal-content tj-modal">
+
+				<div class="modal-header border-0">
+					<h5 class="modal-title text-uppercase fw-bold letter-spacing-1">
+						Modifica Trade
+					</h5>
+					<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+				</div>
+
+				<form method="post" id="editTradeForm">
+					<div class="modal-body">
+
+						<input type="hidden" id="editTradeIdInput" name="idTrade">
+						<input type="hidden" name="accountId" th:value="${accountId}">
+						<input type="hidden" name="year" th:value="${calendarYear}">
+						<input type="hidden" name="month" th:value="${calendarMonth}">
+
+						<div class="trade-form-section">
+							<div class="trade-form-section-title">Data e asset</div>
+
+							<div class="row g-3">
+								<div class="col-12 col-md-4">
+									<label class="form-label">Data trade</label>
+									<input type="datetime-local"
+										   class="form-control tj-input"
+										   id="editTradeDateInput"
+										   name="dateOpen"
+										   required>
+								</div>
+
+								<div class="col-12 col-md-4">
+									<label class="form-label">Asset</label>
+									<select class="form-select tj-input" name="asset" required>
+										<option value="">Seleziona</option>
+										<option value="EURUSD">EURUSD</option>
+										<option value="GBPUSD">GBPUSD</option>
+										<option value="NAS100">NAS100</option>
+									</select>
+								</div>
+							</div>
+						</div>
+
+						<div class="trade-form-section">
+							<div class="trade-form-section-title">Risultato economico</div>
+
+							<div class="row g-3">
+								<div class="col-12 col-md-2">
+									<label class="form-label">Esito</label>
+									<select class="form-select tj-input" name="esito" required>
+										<option value="">Seleziona</option>
+										<option value="WIN">Win</option>
+										<option value="LOSS">Loss</option>
+										<option value="BE">Break Even</option>
+										<option value="MISS">Miss</option>
+									</select>
+								</div>
+
+								<div class="col-12 col-md-4">
+									<label class="form-label">Profit / Loss</label>
+									<input type="number"
+										   step="0.01"
+										   class="form-control tj-input"
+										   name="profit"
+										   placeholder="Es. 150 oppure -80">
+								</div>
+
+								<div class="col-12 col-md-4">
+									<label class="form-label">Bilancio</label>
+									<input type="number"
+										   class="form-control"
+										   id="editAccountBalance"
+										   name="accountBalance"
+										   step="0.01"
+										   readonly>
+								</div>
+							</div>
+						</div>
+
+						<div class="trade-form-section">
+							<div class="trade-form-section-title">Setup operativo</div>
+
+							<div class="row g-3">
+								<div class="col-12 col-md-2">
+									<label class="form-label">Posizione</label>
+									<select class="form-select tj-input" name="posizione" required>
+										<option value="">Seleziona</option>
+										<option value="BUY">Buy</option>
+										<option value="SELL">Sell</option>
+									</select>
+								</div>
+
+								<div class="col-12 col-md-2">
+									<label class="form-label">Struttura</label>
+									<select class="form-select tj-input"
+											id="editStrutturaSelect"
+											name="struttura"
+											required>
+										<option value="">Seleziona</option>
+										<option th:each="s : ${strutture}"
+												th:value="${s.id}"
+												th:text="${s.descrizione}">
+										</option>
+									</select>
+								</div>
+
+								<div class="col-12 col-md-2">
+									<label class="form-label">Setup</label>
+									<select class="form-select tj-input"
+											id="editSetupSelect"
+											name="setup"
+											required>
+										<option value="">Seleziona</option>
+										<option value="Diretta">Diretta</option>
+										<option value="Conferma">Conferma</option>
+										<option value="Manipolazione">Manipolazione</option>
+									</select>
+								</div>
+
+								<div class="col-12 col-md-4">
+									<label class="form-label">Confluenze</label>
+									<select class="form-select tj-input"
+											id="editConfluenzeSelect"
+											name="confluenze"
+											multiple>
+									</select>
+								</div>
+
+								<div class="col-12 col-md-2">
+									<label class="form-label">Voto Setup</label>
+									<input type="text"
+										   class="form-control tj-input text-center fw-bold"
+										   id="editVotoSetupInput"
+										   name="votoSetup"
+										   readonly
+										   placeholder="--">
+								</div>
+							</div>
+						</div>
+
+						<div class="trade-form-section mb-0">
+							<div class="trade-form-section-title">Analisi</div>
+
+							<div class="row g-3">
+								<div class="col-12 col-md-4">
+									<label class="form-label">Tags</label>
+									<select class="form-select tj-input"
+											id="editTagsSelect"
+											name="tags"
+											multiple>
+										<option th:each="tag : ${tags}"
+												th:value="${tag.id}"
+												th:text="${tag.descrizione}">
+										</option>
+									</select>
+								</div>
+
+								<div class="col-12 col-md-4">
+									<label class="form-label">Analisi trade</label>
+									<textarea class="form-control tj-input"
+											  name="tradeAnalysis"
+											  rows="4"
+											  placeholder="Cosa hai visto prima dell’ingresso?"></textarea>
+								</div>
+
+								<div class="col-12 col-md-4">
+									<label class="form-label">Note</label>
+									<textarea class="form-control tj-input"
+											  name="note"
+											  rows="4"
+											  placeholder="Errori, emozioni, gestione trade..."></textarea>
+								</div>
+							</div>
+						</div>
+
+					</div>
+
+					<div class="modal-footer border-0">
+						<button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">
+							Annulla
+						</button>
+						<button type="submit" class="btn btn-success">
+							Aggiorna Trade
+						</button>
+					</div>
+				</form>
+
+			</div>
+		</div>
+	</div>
+
+</div>
+
+</body>
+</html>

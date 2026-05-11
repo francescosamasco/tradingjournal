@@ -12,9 +12,12 @@ import java.util.Map;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
@@ -162,13 +165,31 @@ public class DashboardViewController {
 
 		LocalDateTime tradeDateTime = LocalDateTime.parse(dateTime);
 
-		return service.calculateAccountBalancePreview(
+		return tradeService.calculateAccountBalancePreview(
 				accountId,
 				tradeDateTime,
 				profitLoss
 		);
 	}
 	
+	
+	@GetMapping("/api/dashboard/account-balance-preview-edit")
+	@ResponseBody
+	public BigDecimal getAccountBalancePreviewEdit(
+	        @RequestParam String accountId,
+	        @RequestParam String idTrade,
+	        @RequestParam String dateTime,
+	        @RequestParam BigDecimal profitLoss
+	) {
+	    LocalDateTime tradeDateTime = LocalDateTime.parse(dateTime);
+
+	    return tradeService.calculateAccountBalancePreviewEdit(
+	            accountId,
+	            idTrade,
+	            tradeDateTime,
+	            profitLoss
+	    );
+	}
 
 	@PostMapping("/dashboard/trade/add")
 	@ResponseBody
@@ -349,6 +370,32 @@ public class DashboardViewController {
 		WeekFields weekFields = WeekFields.ISO;
 		return date.get(weekFields.weekOfWeekBasedYear());
 	}
+	
+	@DeleteMapping("/dashboard/trade/delete/{idTrade}")
+	@ResponseBody
+	public ResponseEntity<Void> deleteTrade(@PathVariable String idTrade) {
+
+		tradeService.deleteById(idTrade);
+
+		return ResponseEntity.ok().build();
+	}
+	
+	@GetMapping("/dashboard/trade/{idTrade}")
+	@ResponseBody
+	public TradeData getTrade(@PathVariable String idTrade) {
+	    return tradeService.findById(idTrade);
+	}
+	
+	@PutMapping("/dashboard/trade/update/{idTrade}")
+	@ResponseBody
+	public TradeData updateTrade(
+	        @PathVariable String idTrade,
+	        TradeData data
+	) {
+	    data.setIdTrade(idTrade);
+	    return tradeService.update(data);
+	}
+	
 
 	@GetMapping("/")
 	public String home(Model model) {

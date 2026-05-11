@@ -47,6 +47,30 @@ public interface TradeRepository extends JpaRepository<Trade, String> {
 				@Param("accountId") String accountId,
 				@Param("dateTime") LocalDateTime dateTime
 		);
-	
+	@Query("""
+		       SELECT COALESCE(SUM(t.profit), 0)
+		       FROM Trade t
+		       WHERE t.idAccount = :accountId
+		       AND t.dateOpen < :dateTime
+		       AND t.idTrade <> :idTrade
+		       """)
+		BigDecimal sumProfitLossBeforeDateTimeExcludingTrade(
+		        String accountId,
+		        LocalDateTime dateTime,
+		        String idTrade
+		);
 
+	
+	@Query("""
+		       SELECT COALESCE(SUM(t.profit), 0)
+		       FROM Trade t
+		       WHERE t.idAccount = :accountId
+		       AND t.dateOpen >= :start
+		       AND t.dateOpen < :end
+		       """)
+		BigDecimal sumProfitLossBetweenDateTime(
+		        @Param("accountId") String accountId,
+		        @Param("start") LocalDateTime start,
+		        @Param("end") LocalDateTime end
+		);
 }

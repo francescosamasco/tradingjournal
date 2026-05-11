@@ -88,50 +88,6 @@ public class DashboardService {
         return total;
     }
 
-    public BigDecimal calculateAccountBalancePreview(
-            String accountId,
-            LocalDateTime tradeDateTime,
-            BigDecimal currentProfitLoss
-    ) {
-
-        PerformanceData performance = null;
-
-        try {
-            performance = performanceService.findByAccountIdAndWeek(
-                    accountId,
-                    tradeDateTime.toLocalDate()
-            );
-        } catch (IllegalStateException ex) {
-            performance = performanceService.findClosestPreviousPerformance(
-                    accountId,
-                    tradeDateTime.toLocalDate()
-            );
-        }
-
-        BigDecimal bilancioBase = BigDecimal.ZERO;
-
-        if (performance != null) {
-            if (performance.getBilancioIniziale() != null) {
-                bilancioBase = performance.getBilancioIniziale();
-            }
-
-            if (performance.getBilancioFinale() != null) {
-                bilancioBase = performance.getBilancioFinale();
-            }
-        }
-
-        BigDecimal previousTradesProfitLoss =
-                tradeService.sumProfitLossBeforeDateTime(accountId, tradeDateTime);
-
-        BigDecimal current = currentProfitLoss != null
-                ? currentProfitLoss
-                : BigDecimal.ZERO;
-
-        return bilancioBase
-                .add(previousTradesProfitLoss)
-                .add(current);
-    }
-    
     private BigDecimal averageWinrate(List<PerformanceData> performances) {
         return average(performances, PerformanceData::getWinrate);
     }
