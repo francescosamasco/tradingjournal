@@ -9,6 +9,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
 	resetAddTradeVotoSetup();
 	initAddTradeSubmit();
+	
+	initPrelievoMode();
 
 });
 
@@ -18,6 +20,71 @@ let addConfluenzeTomSelect = null;
 /* =========================
    PREPARE MODALE ADD
 ========================= */
+
+function initPrelievoMode() {
+	const assetSelect = document.querySelector('select[name="asset"]');
+	const resultSelect = document.querySelector('select[name="result"]');
+	const profitInput = document.querySelector('input[name="profitLoss"]');
+	const rrInput = document.querySelector('input[name="rr"]');
+
+	const fieldsToDisable = [
+		'select[name="posizione"]',
+		'select[name="struttura"]',
+		'select[name="setup"]',
+		'select[name="confluenze"]',
+		'select[name="votoSetup"]',
+		'input[name="rr"]'
+	];
+
+	if (!assetSelect || !resultSelect || !profitInput) return;
+
+	assetSelect.addEventListener("change", function () {
+		debugger;
+		const isPrelievo = assetSelect.value === "PRELIEVO";
+
+		if (isPrelievo) {
+			resultSelect.value = "LOSS";
+			resultSelect.disabled = true;
+
+			profitInput.readOnly = false;
+
+			if (profitInput.value && Number(profitInput.value) > 0) {
+				profitInput.value = -Math.abs(Number(profitInput.value));
+			}
+
+			if (rrInput) {
+				rrInput.value = "";
+			}
+		} else {
+			resultSelect.disabled = false;
+		}
+
+		fieldsToDisable.forEach(selector => {
+			const field = document.querySelector(selector);
+			if (field) {
+				field.disabled = isPrelievo;
+
+				if (isPrelievo) {
+					field.value = "";
+				}
+			}
+		});
+
+		updateAccountBalancePreview();
+	});
+
+	profitInput.addEventListener("input", function () {
+		if (assetSelect.value === "PRELIEVO") {
+			const value = Number(profitInput.value);
+
+			if (value > 0) {
+				profitInput.value = -Math.abs(value);
+			}
+		}
+
+		updateAccountBalancePreview();
+	});
+}
 
 function prepareAddTradeModal() {
 	const form = document.getElementById("addTradeForm");
