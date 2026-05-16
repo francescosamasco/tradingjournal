@@ -19,14 +19,26 @@ public class Trade {
     @Column(name = "id_account", nullable = false)
     private String idAccount;
 
+    @Column(name = "tipo_movimento", nullable = false)
+    private String tipoMovimento;
+
+    @Column(name = "date_open")
+    private LocalDateTime dateOpen;
+
     @Column(name = "asset")
     private String asset;
 
     @Column(name = "esito")
     private String esito;
 
-    @Column(name = "date_open")
-    private LocalDateTime dateOpen;
+    @Column(name = "risk", precision = 11, scale = 1, nullable = false)
+    private BigDecimal risk;
+
+    @Column(name = "profit", precision = 11, scale = 2, nullable = false)
+    private BigDecimal profit;
+
+    @Column(name = "account_balance", precision = 11, scale = 2, nullable = false)
+    private BigDecimal accountBalance;
 
     @Column(name = "posizione")
     private String posizione;
@@ -40,30 +52,18 @@ public class Trade {
     @Column(name = "confluenze")
     private String confluenze;
 
+    @Column(name = "voto_setup", nullable = false)
+    private Integer votoSetup;
+
     @Column(name = "tags")
     private String tags;
 
-    @Column(name = "profit", precision = 7, scale = 2)
-    private BigDecimal profit;
-
-    @Column(name = "risk", precision = 7, scale = 2)
-    private BigDecimal risk;
-
-    @Column(name = "analisi1")
-    private String analisi1;
-
-    @Column(name = "analisi2")
-    private String analisi2;
+    @Column(name = "analisi")
+    private String analisi;
 
     @Column(name = "note")
     private String note;
 
-    @Column(name = "week_n")
-    private Integer weekN;
-
-    @Column(name = "voto_setup")
-    private Integer votoSetup;
-    
     public String getIdTrade() {
         return idTrade;
     }
@@ -78,6 +78,22 @@ public class Trade {
 
     public void setIdAccount(String idAccount) {
         this.idAccount = idAccount;
+    }
+
+    public String getTipoMovimento() {
+        return tipoMovimento;
+    }
+
+    public void setTipoMovimento(String tipoMovimento) {
+        this.tipoMovimento = tipoMovimento;
+    }
+
+    public LocalDateTime getDateOpen() {
+        return dateOpen;
+    }
+
+    public void setDateOpen(LocalDateTime dateOpen) {
+        this.dateOpen = dateOpen;
     }
 
     public String getAsset() {
@@ -96,12 +112,28 @@ public class Trade {
         this.esito = esito;
     }
 
-    public LocalDateTime getDateOpen() {
-        return dateOpen;
+    public BigDecimal getRisk() {
+        return risk;
     }
 
-    public void setDateOpen(LocalDateTime dateOpen) {
-        this.dateOpen = dateOpen;
+    public void setRisk(BigDecimal risk) {
+        this.risk = risk;
+    }
+
+    public BigDecimal getProfit() {
+        return profit;
+    }
+
+    public void setProfit(BigDecimal profit) {
+        this.profit = profit;
+    }
+
+    public BigDecimal getAccountBalance() {
+        return accountBalance;
+    }
+
+    public void setAccountBalance(BigDecimal accountBalance) {
+        this.accountBalance = accountBalance;
     }
 
     public String getPosizione() {
@@ -136,6 +168,14 @@ public class Trade {
         this.confluenze = confluenze;
     }
 
+    public Integer getVotoSetup() {
+        return votoSetup;
+    }
+
+    public void setVotoSetup(Integer votoSetup) {
+        this.votoSetup = votoSetup;
+    }
+
     public String getTags() {
         return tags;
     }
@@ -144,36 +184,12 @@ public class Trade {
         this.tags = tags;
     }
 
-    public BigDecimal getProfit() {
-        return profit;
+    public String getAnalisi() {
+        return analisi;
     }
 
-    public void setProfit(BigDecimal profit) {
-        this.profit = profit;
-    }
-
-    public BigDecimal getRisk() {
-        return risk;
-    }
-
-    public void setRisk(BigDecimal risk) {
-        this.risk = risk;
-    }
-
-    public String getAnalisi1() {
-        return analisi1;
-    }
-
-    public void setAnalisi1(String analisi1) {
-        this.analisi1 = analisi1;
-    }
-
-    public String getAnalisi2() {
-        return analisi2;
-    }
-
-    public void setAnalisi2(String analisi2) {
-        this.analisi2 = analisi2;
+    public void setAnalisi(String analisi) {
+        this.analisi = analisi;
     }
 
     public String getNote() {
@@ -184,19 +200,15 @@ public class Trade {
         this.note = note;
     }
 
-    public Integer getWeekN() {
-        return weekN;
+    public boolean isTrade() {
+        return "trade".equalsIgnoreCase(tipoMovimento);
     }
 
-    public void setWeekN(Integer weekN) {
-        this.weekN = weekN;
+    public boolean isPrelievo() {
+        return "prelievo".equalsIgnoreCase(tipoMovimento);
     }
 
-	public Integer getVotoSetup() {
-		return votoSetup;
-	}
-
-	public void setVotoSetup(Integer votoSetup) {
-		this.votoSetup = votoSetup;
-	}
+    public boolean isDeposito() {
+        return "deposito".equalsIgnoreCase(tipoMovimento);
+    }
 }

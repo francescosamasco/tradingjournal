@@ -14,36 +14,33 @@ import org.springframework.transaction.annotation.Transactional;
 
 import it.samfrafx.tradingjournal.bl.PeriodEnum;
 import it.samfrafx.tradingjournal.bl.data.PerformanceData;
+import it.samfrafx.tradingjournal.bl.data.TradeData;
 import it.samfrafx.tradingjournal.bl.util.DateUtils;
 import it.samfrafx.tradingjournal.datamodel.data.Performance;
-import it.samfrafx.tradingjournal.datamodel.data.Trade;
 import it.samfrafx.tradingjournal.datamodel.repository.PerformanceRepository;
 import it.samfrafx.tradingjournal.datamodel.repository.TradeRepository;
 
 @Service
 public class PerformanceService {
 
-
+	private final AccountService accountService;
 	private final PerformanceRepository performanceRepository;
-	private final TradeRepository tradeRepository;
-
+	private final TradeService tradeService;
+	
 	public PerformanceService(
 	        PerformanceRepository performanceRepository,
-	        TradeRepository tradeRepository
+	        TradeRepository tradeRepository,
+	        AccountService accountService,
+	        TradeService tradeService
 	) {
 	    this.performanceRepository = performanceRepository;
-	    this.tradeRepository = tradeRepository;
+	    this.accountService = accountService;
+	    this.tradeService = tradeService;
 	}
 
 	public PerformanceData findByAccountIdAndWeek(String accountId, LocalDate date) {
 
-		int year = date.getYear();
-		int month = date.getMonthValue();
-
-		WeekFields weekFields = WeekFields.ISO;
-		int week = date.get(weekFields.weekOfWeekBasedYear());
-
-		String idPerformance = year + "-" + month + "-" + week;
+		String idPerformance = buildIdPerformance(date);
 
 		return performanceRepository
 				.findByAccountAndIdPerformance(accountId, idPerformance)
@@ -53,29 +50,19 @@ public class PerformanceService {
 						" e performance " + idPerformance
 						));
 	}
-	
-	public PerformanceData findClosestPreviousPerformance(
-	        String accountId,
-	        LocalDate date
-	) {
-	    int year = date.getYear();
-	    int month = date.getMonthValue();
-	    int week = date.get(WeekFields.ISO.weekOfWeekBasedYear());
 
-	    String idPerformance = year + "-" + month + "-" + week;
+	public PerformanceData findClosestPreviousPerformance(String accountId, LocalDate date) {
 
-	    return performanceRepository
-	            .findPreviousPerformances(accountId, idPerformance)
-	            .stream()
-	            .findFirst()
-	            .map(PerformanceData::from)
-	            .orElse(null);
+		String idPerformance = buildIdPerformance(date);
+
+		return performanceRepository
+				.findPreviousPerformances(accountId, idPerformance)
+				.stream()
+				.findFirst()
+				.map(PerformanceData::from)
+				.orElse(null);
 	}
-	
 
-	// =========================
-	// 🔹 PERFORMANCE MENSILE (lista settimane)
-	// =========================
 	public List<PerformanceData> getMonthlyPerformance(
 			String idAccount,
 			int year,
@@ -91,9 +78,6 @@ public class PerformanceService {
 				.toList();
 	}
 
-	// =========================
-	// 🔹 PERFORMANCE SETTIMANA
-	// =========================
 	public PerformanceData getWeeklyPerformance(
 			String idAccount,
 			int year,
@@ -101,7 +85,7 @@ public class PerformanceService {
 			int week
 			) {
 
-		String idPerformance = year + "-" + month + "-" + week;
+		String idPerformance = buildIdPerformance(year, month, week);
 
 		return performanceRepository
 				.findByAccountAndWeek(idAccount, idPerformance)
@@ -169,155 +153,282 @@ public class PerformanceService {
 				.findByAccountAndYear(idAccount, year)
 				.stream()
 				.map(PerformanceData::from)
+				.filter(p -> p.getMonth() != null)
 				.filter(p -> p.getMonth() >= startMonth && p.getMonth() <= endMonth)
 				.toList();
 	}
 
 	public void recalculatePerformance(String accountId, LocalDateTime dateOpen) {
 
-	    if (accountId == null || accountId.isBlank()) {
-	        throw new IllegalArgumentException("Account obbligatorio");
-	    }
+		if (accountId == null || accountId.isBlank()) {
+			throw new IllegalArgumentException("Account obbligatorio");
+		}
 
-	    if (dateOpen == null) {
-	        throw new IllegalArgumentException("Data trade obbligatoria");
-	    }
+		if (dateOpen == null) {
+			throw new IllegalArgumentException("Data trade obbligatoria");
+		}
 
-	    int year = dateOpen.getYear();
-	    int month = dateOpen.getMonthValue();
+		int year = dateOpen.getYear();
+		int month = dateOpen.getMonthValue();
+		int week = dateOpen.get(WeekFields.ISO.weekOfWeekBasedYear());
 
-	    int week = dateOpen.get(WeekFields.ISO.weekOfWeekBasedYear());
-
-	    updateWeeklyPerformance(accountId, year, month, week);
+		updateWeeklyPerformance(accountId, year, month, week);
 	}
 
 	@Transactional
 	public void updateWeeklyPerformance(
-	        String accountId,
-	        Integer year,
-	        Integer month,
-	        Integer week
-	) {
+			String accountId,
+			Integer year,
+			Integer month,
+			Integer week
+			) {
 
-	    LocalDateTime[] range = DateUtils.getStartEndOfWeek(year, month, week);
+		String idPerformance = buildIdPerformance(year, month, week);
 
-	    LocalDateTime start = range[0];
-	    LocalDateTime end = range[1];
+		LocalDateTime[] range = DateUtils.getStartEndOfWeek(year, month, week);
+		LocalDateTime start = range[0];
+		LocalDateTime end = range[1];
 
-	    List<Trade> trades = tradeRepository.findByAccountAndPeriod(
-	            accountId,
-	            start,
-	            end
-	    );
+		List<TradeData> trades = tradeService.findByAccountAndPeriod(
+		        accountId,
+		        start,
+		        end
+		);
 
-	    String idPerformance = year + "-" + month + "-" + week;
-
-	    if (trades.isEmpty()) {
-
-	        performanceRepository
-	                .findByAccountAndIdPerformance(accountId, idPerformance)
-	                .ifPresent(performanceRepository::delete);
-	        return;
-	    }
-
-	    BigDecimal bilancioIniziale = calculateInitialBalanceForWeek(accountId, trades);
-
-		BigDecimal profitTotale = trades.stream()
-				.map(Trade::getProfit)
-				.filter(Objects::nonNull)
-				.reduce(BigDecimal.ZERO, BigDecimal::add);
-
-		BigDecimal bilancioFinale = bilancioIniziale.add(profitTotale);
-
-		long wins = trades.stream()
-				.filter(t -> t.getProfit() != null)
-				.filter(t -> t.getProfit().compareTo(BigDecimal.ZERO) > 0)
-				.count();
-
-		long losses = trades.stream()
-				.filter(t -> t.getProfit() != null)
-				.filter(t -> t.getProfit().compareTo(BigDecimal.ZERO) < 0)
-				.count();
-
-		BigDecimal winrate = BigDecimal.ZERO;
-
-		if (wins + losses > 0) {
-			winrate = BigDecimal.valueOf(wins)
-					.divide(BigDecimal.valueOf(wins + losses), 4, RoundingMode.HALF_UP)
-					.multiply(BigDecimal.valueOf(100))
-					.setScale(1, RoundingMode.HALF_UP);
+		if (trades.isEmpty()) {
+			performanceRepository
+			.findByAccountAndIdPerformance(accountId, idPerformance)
+			.ifPresent(performanceRepository::delete);
+			return;
 		}
 
+		BigDecimal bilancioIniziale = calculateInitialBalanceForWeek( accountId, idPerformance );
+
+		BigDecimal profitTotale = calculateProfitTotale(trades);
+
+		BigDecimal bilancioFinale = bilancioIniziale
+				.add(profitTotale)
+				.setScale(2, RoundingMode.HALF_UP);
+
+		BigDecimal profitPercent = calculateProfitPercent(
+				bilancioIniziale,
+				profitTotale
+				);
+
+		Integer tradesCount = trades.size();
+		Integer winTrades = Math.toIntExact(trades.stream().filter(TradeData::isWin).count());
+		Integer lossTrades = Math.toIntExact(trades.stream().filter(TradeData::isLoss).count());
+		Integer beTrades = Math.toIntExact(trades.stream().filter(TradeData::isBe).count());
+		Integer missTrades = Math.toIntExact(trades.stream().filter(TradeData::isMiss).count());
+
+		BigDecimal winrate = calculateWinrate(winTrades, lossTrades);
 		BigDecimal rr = calculateWeeklyRR(trades);
 
-		Performance performance = performanceRepository
-		        .findByAccountAndIdPerformance(accountId, idPerformance)
-		        .orElseGet(() -> {
-		            Performance p = new Performance();
-		            p.setId(UUID.randomUUID().toString());
-		            return p;
-		        });
+		Performance performance = getOrCreatePerformance(accountId, idPerformance);
 
-		performance.setIdPerformance(idPerformance);
-		performance.setIdAccount(accountId);
 		performance.setBilancioIniziale(bilancioIniziale);
 		performance.setBilancioFinale(bilancioFinale);
+
+		performance.setProfitTotale(profitTotale);
+		performance.setProfitPercent(profitPercent);
+
 		performance.setWinrate(winrate);
 		performance.setRr(rr);
+
+		performance.setTrades(tradesCount);
+		performance.setWinTrades(winTrades);
+		performance.setLossTrades(lossTrades);
+		performance.setBeTrades(beTrades);
+		performance.setMissTrades(missTrades);
 
 		performanceRepository.save(performance);
 	}
 
-	private BigDecimal calculateInitialBalanceForWeek(
+	private Performance getOrCreatePerformance(
 			String accountId,
-			List<Trade> weeklyTrades
+			String idPerformance
 			) {
 
-		LocalDateTime firstTradeDate = weeklyTrades.stream()
-				.map(Trade::getDateOpen)
-				.filter(Objects::nonNull)
-				.min(LocalDateTime::compareTo)
-				.orElse(null);
-
-		if (firstTradeDate == null) {
-			return new BigDecimal("25000.00");
-		}
-
-		BigDecimal previousProfit = tradeRepository.sumProfitLossBeforeDateTime(
-				accountId,
-				firstTradeDate
-				);
-
-		if (previousProfit == null) {
-			previousProfit = BigDecimal.ZERO;
-		}
-
-		return new BigDecimal("25000.00").add(previousProfit);
+		return performanceRepository
+				.findByAccountAndIdPerformance(accountId, idPerformance)
+				.orElseGet(() -> {
+					Performance p = new Performance();
+					p.setId(UUID.randomUUID().toString());
+					p.setIdAccount(accountId);
+					p.setIdPerformance(idPerformance);
+					return p;
+				});
 	}
 
-	private BigDecimal calculateWeeklyRR(List<Trade> trades) {
+	private BigDecimal calculateInitialBalanceForWeek(
+			String accountId,
+			String idPerformance
+			) {
 
-		List<BigDecimal> risks = trades.stream()
-				.map(Trade::getRisk)
+		BigDecimal previousFinalBalance = findPreviousFinalBalance(
+				accountId,
+				idPerformance
+				);
+
+		if (previousFinalBalance != null) {
+			return previousFinalBalance.setScale(2, RoundingMode.HALF_UP);
+		}
+
+		return accountService.findById(accountId)
+				.getInitialBalance()
+				.setScale(2, RoundingMode.HALF_UP);
+	}
+
+	private BigDecimal findPreviousFinalBalance(
+			String accountId,
+			String idPerformance
+			) {
+
+		return performanceRepository
+				.findPreviousPerformances(accountId, idPerformance)
+				.stream()
+				.findFirst()
+				.map(Performance::getBilancioFinale)
 				.filter(Objects::nonNull)
-				.filter(r -> r.compareTo(BigDecimal.ZERO) > 0)
-				.toList();
+				.orElse(null);
+	}
 
-		if (risks.isEmpty()) {
+	private BigDecimal calculateProfitTotale(List<TradeData> trades) {
+
+		return trades.stream()
+				.map(TradeData::getProfit)
+				.filter(Objects::nonNull)
+				.reduce(BigDecimal.ZERO, BigDecimal::add)
+				.setScale(2, RoundingMode.HALF_UP);
+	}
+
+	private BigDecimal calculateProfitPercent(
+			BigDecimal bilancioIniziale,
+			BigDecimal profitTotale
+			) {
+
+		if (bilancioIniziale == null || bilancioIniziale.compareTo(BigDecimal.ZERO) == 0) {
 			return BigDecimal.ZERO;
 		}
 
-		BigDecimal totalR = trades.stream()
-				.filter(t -> t.getProfit() != null && t.getRisk() != null)
-				.filter(t -> t.getRisk().compareTo(BigDecimal.ZERO) > 0)
-				.map(t -> t.getProfit().divide(t.getRisk(), 4, RoundingMode.HALF_UP))
-				.reduce(BigDecimal.ZERO, BigDecimal::add);
+		if (profitTotale == null) {
+			return BigDecimal.ZERO;
+		}
 
-		return totalR.divide(
-				BigDecimal.valueOf(risks.size()),
-				1,
-				RoundingMode.HALF_UP
-				);
+		return profitTotale
+				.divide(bilancioIniziale, 4, RoundingMode.HALF_UP)
+				.multiply(BigDecimal.valueOf(100))
+				.setScale(2, RoundingMode.HALF_UP);
 	}
 
+	private BigDecimal calculateWinrate(
+			Integer wins,
+			Integer losses
+			) {
+
+		int total = wins + losses;
+
+		if (total == 0) {
+			return BigDecimal.ZERO;
+		}
+
+		return BigDecimal.valueOf(wins)
+				.divide(BigDecimal.valueOf(total), 4, RoundingMode.HALF_UP)
+				.multiply(BigDecimal.valueOf(100))
+				.setScale(2, RoundingMode.HALF_UP);
+	}
+
+	private BigDecimal calculateWeeklyRR(List<TradeData> trades) {
+
+	    List<TradeData> validTrades = trades.stream()
+	            .filter(t -> t.getProfit() != null)
+	            .toList();
+
+	    if (validTrades.isEmpty()) {
+	        return BigDecimal.ZERO;
+	    }
+
+	    List<BigDecimal> wins = validTrades.stream()
+	            .map(TradeData::getProfit)
+	            .filter(p -> p.compareTo(BigDecimal.ZERO) > 0)
+	            .toList();
+
+	    List<BigDecimal> losses = validTrades.stream()
+	            .map(TradeData::getProfit)
+	            .filter(p -> p.compareTo(BigDecimal.ZERO) < 0)
+	            .map(BigDecimal::abs)
+	            .toList();
+
+	    // =========================
+	    // CASO STANDARD
+	    // media win / media loss
+	    // =========================
+	    if (!losses.isEmpty()) {
+
+	        BigDecimal averageWin = wins.stream()
+	                .reduce(BigDecimal.ZERO, BigDecimal::add)
+	                .divide(
+	                        BigDecimal.valueOf(wins.size()),
+	                        4,
+	                        RoundingMode.HALF_UP
+	                );
+
+	        BigDecimal averageLoss = losses.stream()
+	                .reduce(BigDecimal.ZERO, BigDecimal::add)
+	                .divide(
+	                        BigDecimal.valueOf(losses.size()),
+	                        4,
+	                        RoundingMode.HALF_UP
+	                );
+
+	        if (averageLoss.compareTo(BigDecimal.ZERO) == 0) {
+	            return BigDecimal.ZERO;
+	        }
+
+	        return averageWin.divide(
+	                averageLoss,
+	                2,
+	                RoundingMode.HALF_UP
+	        );
+	    }
+
+	    // =========================
+	    // SOLO TRADE POSITIVI
+	    // media RR dei trade
+	    // =========================
+	    List<BigDecimal> rrs = validTrades.stream()
+	            .map(t -> t.getRr() )
+	            .filter(rr -> rr.compareTo(BigDecimal.ZERO) > 0)
+	            .toList();
+
+	    if (rrs.isEmpty()) {
+	        return BigDecimal.ZERO;
+	    }
+
+	    return rrs.stream()
+	            .reduce(BigDecimal.ZERO, BigDecimal::add)
+	            .divide(
+	                    BigDecimal.valueOf(rrs.size()),
+	                    2,
+	                    RoundingMode.HALF_UP
+	            );
+	}
+
+	private String buildIdPerformance(LocalDate date) {
+
+		int year = date.getYear();
+		int month = date.getMonthValue();
+		int week = date.get(WeekFields.ISO.weekOfWeekBasedYear());
+
+		return buildIdPerformance(year, month, week);
+	}
+
+	private String buildIdPerformance(
+			Integer year,
+			Integer month,
+			Integer week
+			) {
+
+		return year + "-" + month + "-" + week;
+	}
 }

@@ -23,12 +23,14 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import it.samfrafx.tradingjournal.bl.PeriodEnum;
 import it.samfrafx.tradingjournal.bl.data.DashboardData;
+import it.samfrafx.tradingjournal.bl.data.PerformanceData;
 import it.samfrafx.tradingjournal.bl.data.TradeData;
 import it.samfrafx.tradingjournal.bl.data.chart.CalendarData;
 import it.samfrafx.tradingjournal.bl.data.chart.DayData;
 import it.samfrafx.tradingjournal.bl.data.chart.WeekData;
 import it.samfrafx.tradingjournal.bl.data.enums.VotoSetupEnum;
 import it.samfrafx.tradingjournal.bl.service.DashboardService;
+import it.samfrafx.tradingjournal.bl.service.PerformanceService;
 import it.samfrafx.tradingjournal.bl.service.TradeService;
 import it.samfrafx.tradingjournal.webapp.data.AccountSidebarData;
 import it.samfrafx.tradingjournal.webapp.data.OptionData;
@@ -39,11 +41,14 @@ public class DashboardViewController {
 	private static final String DEFAULT_ACCOUNT_ID = "fa54de65-9679-406f-9bcd-d3110ab4cc6e";
 
 	private final TradeService tradeService;
+	private final PerformanceService performanceService;
+
 	private final DashboardService service;
 
-	public DashboardViewController(DashboardService service, TradeService tradeService) {
+	public DashboardViewController(DashboardService service, TradeService tradeService, PerformanceService performanceService) {
 		this.service = service;
 		this.tradeService = tradeService;
+		this.performanceService = performanceService;
 	}
 
 	@GetMapping("/dashboard")
@@ -72,10 +77,11 @@ public class DashboardViewController {
 		PeriodEnum periodEnum = PeriodEnum.getEnum(period);
 
 		DashboardData dashboard = this.service.buildDashboard(accountId, year, periodEnum);
+		List<PerformanceData> performances = performanceService.getPerformances( accountId, year, periodEnum);
 		List<TradeData> trades = this.tradeService.getTrades(accountId, year, periodEnum);
-
-		CalendarData calendar = buildCalendarData(trades);
-
+		
+		CalendarData calendar = buildCalendarData(trades, performances);
+		
 		model.addAttribute("title", "Dashboard");
 		model.addAttribute("accountId", accountId);
 		model.addAttribute("year", year);
@@ -165,7 +171,7 @@ public class DashboardViewController {
 
 		LocalDateTime tradeDateTime = LocalDateTime.parse(dateTime);
 
-		return tradeService.calculateAccountBalancePreview(
+		return tradeService.calculateAccountBalanceForNewTrade(
 				accountId,
 				tradeDateTime,
 				profitLoss
@@ -183,12 +189,14 @@ public class DashboardViewController {
 	) {
 	    LocalDateTime tradeDateTime = LocalDateTime.parse(dateTime);
 
-	    return tradeService.calculateAccountBalancePreviewEdit(
-	            accountId,
-	            idTrade,
-	            tradeDateTime,
-	            profitLoss
-	    );
+	   //return tradeService.calculateAccountBalancePreviewEdit(
+	   //        accountId,
+	   //        idTrade,
+	   //        tradeDateTime,
+	   //        profitLoss
+	   //);
+	    
+	    return null;
 	}
 
 	@PostMapping("/dashboard/trade/add")
@@ -196,6 +204,13 @@ public class DashboardViewController {
 	public ResponseEntity<?> addTrade(@ModelAttribute TradeData tradeData) {
 
 	    TradeData saved = tradeService.save(tradeData);
+	    
+	    
+	    this.performanceService.recalculatePerformance(
+                saved.getAccountId(),
+                saved.getDateOpen()
+        );
+	    
 
 	    return ResponseEntity.ok(Map.of(
 	            "success", true,
@@ -203,168 +218,164 @@ public class DashboardViewController {
 	    ));
 	}
 
-	private CalendarData buildCalendarData(List<TradeData> trades) {
+	private CalendarData buildCalendarData(
+	        List<TradeData> trades,
+	        List<PerformanceData> performances
+	) {
 
-		Map<String, DayData> days = new HashMap<>();
-		Map<Integer, WeekData> weeks = new HashMap<>();
+	    Map<String, DayData> days = new HashMap<>();
+	    Map<Integer, WeekData> weeks = new HashMap<>();
 
-		for (TradeData trade : trades) {
+	    // =====================
+	    // WEEK DA PERFORMANCE
+	    // =====================
+	    for (PerformanceData performance : performances) {
 
-			if (trade.getDateOpen() == null) {
-				continue;
-			}
+	        Integer weekNumber = performance.getWeek();
 
-			LocalDate date = trade.getDateOpen().toLocalDate();
-			String dateKey = date.toString();
+	        if (weekNumber == null) {
+	            continue;
+	        }
 
-			BigDecimal profit = trade.getProfit() != null
-					? trade.getProfit()
-					: BigDecimal.ZERO;
+	        WeekData week = new WeekData();
 
-			// =====================
-			// DAY
-			// =====================
-			DayData day = days.get(dateKey);
+	        week.setAmount(
+	                performance.getProfit() != null
+	                        ? performance.getProfit()
+	                        : BigDecimal.ZERO
+	        );
 
-			if (day == null) {
-				day = new DayData(
-						BigDecimal.ZERO,
-						0,
-						trade.getAccountBalance(),
-						BigDecimal.ZERO
-				);
-				days.put(dateKey, day);
-			}
+	        week.setBilancioIniziale(
+	                performance.getBilancioIniziale() != null
+	                        ? performance.getBilancioIniziale()
+	                        : BigDecimal.ZERO
+	        );
 
-			BigDecimal newDayAmount = day.getAmount().add(profit);
+	        week.setBilancioFinale(
+	                performance.getBilancioFinale() != null
+	                        ? performance.getBilancioFinale()
+	                        : BigDecimal.ZERO
+	        );
 
-			BigDecimal dayPercentage = BigDecimal.ZERO;
+	        week.setWinrate(
+	                performance.getWinrate() != null
+	                        ? performance.getWinrate()
+	                        : BigDecimal.ZERO
+	        );
 
-			if (day.getStartBalance() != null
-					&& day.getStartBalance().compareTo(BigDecimal.ZERO) != 0) {
+	        week.setRrAverage(
+	                performance.getRr() != null
+	                        ? performance.getRr()
+	                        : BigDecimal.ZERO
+	        );
 
-				dayPercentage = newDayAmount
-						.divide(day.getStartBalance(), 4, RoundingMode.HALF_UP)
-						.multiply(BigDecimal.valueOf(100));
-			}
+	        week.setProfitPercent(
+	                performance.getReturnPercent() != null
+	                        ? performance.getReturnPercent()
+	                        : BigDecimal.ZERO
+	        );
 
-			day.setAmount(newDayAmount);
-			day.setTrades(day.getTrades() + 1);
-			day.setPercentage(dayPercentage);
+	        week.setTrades(0);
+	        week.setWinTrades(0);
+	        week.setLossTrades(0);
+	        week.setBeTrades(0);
+	        week.setMissTrades(0);
+	        week.setRrTotal(BigDecimal.ZERO);
 
-			// =====================
-			// WEEK
-			// =====================
-			int weekNumber = getWeekOfYear(date);
+	        weeks.put(weekNumber, week);
+	    }
 
-			WeekData week = weeks.get(weekNumber);
+	    // =====================
+	    // DAY + DETTAGLI TRADE
+	    // =====================
+	    for (TradeData trade : trades) {
 
-			if (week == null) {
-				week = new WeekData();
-				week.setAmount(BigDecimal.ZERO);
-				week.setTrades(0);
-				week.setWinTrades(0);
-				week.setLossTrades(0);
-				week.setBeTrades(0);
-				week.setMissTrades(0);
-				week.setRrTotal(BigDecimal.ZERO);
+	        if (trade.getDateOpen() == null) {
+	            continue;
+	        }
 
-				BigDecimal initialBalance = trade.getAccountBalance() != null
-						? trade.getAccountBalance()
-						: BigDecimal.ZERO;
+	        LocalDate date = trade.getDateOpen().toLocalDate();
+	        String dateKey = date.toString();
 
-				week.setBilancioIniziale(initialBalance);
-				week.setBilancioFinale(initialBalance);
+	        BigDecimal profit = trade.getProfit() != null
+	                ? trade.getProfit()
+	                : BigDecimal.ZERO;
 
-				weeks.put(weekNumber, week);
-			}
+	        // =====================
+	        // DAY
+	        // =====================
+	        DayData day = days.get(dateKey);
 
-			BigDecimal rr = trade.getReturnPercent() != null
-					? trade.getReturnPercent()
-					: BigDecimal.ZERO;
+	        if (day == null) {
+	            day = new DayData(
+	                    BigDecimal.ZERO,
+	                    0,
+	                    trade.getAccountBalance(),
+	                    BigDecimal.ZERO
+	            );
+	            days.put(dateKey, day);
+	        }
 
-			BigDecimal newWeekAmount = week.getAmount().add(profit);
-			BigDecimal newRrTotal = week.getRrTotal().add(rr);
-			int newTradeCount = week.getTrades() + 1;
+	        BigDecimal newDayAmount = day.getAmount().add(profit);
 
-			int wins = week.getWinTrades();
-			int losses = week.getLossTrades();
-			int be = week.getBeTrades();
-			int miss = week.getMissTrades();
+	        BigDecimal dayPercentage = BigDecimal.ZERO;
 
-			if (trade.isWin()) {
-				wins++;
-			} else if (trade.isLoss()) {
-				losses++;
-			} else if (trade.isBe()) {
-				be++;
-			} else if (trade.isMiss()) {
-				miss++;
-			}
+	        if (day.getStartBalance() != null
+	                && day.getStartBalance().compareTo(BigDecimal.ZERO) != 0) {
 
-			week.setWinTrades(wins);
-			week.setLossTrades(losses);
-			week.setBeTrades(be);
-			week.setMissTrades(miss);
+	            dayPercentage = newDayAmount
+	                    .divide(day.getStartBalance(), 4, RoundingMode.HALF_UP)
+	                    .multiply(BigDecimal.valueOf(100));
+	        }
 
-			week.setAmount(newWeekAmount);
-			week.setTrades(newTradeCount);
-			week.setRrTotal(newRrTotal);
+	        day.setAmount(newDayAmount);
+	        day.setTrades(day.getTrades() + 1);
+	        day.setPercentage(dayPercentage);
 
-			BigDecimal weekStartBalance = week.getBilancioIniziale() != null
-					? week.getBilancioIniziale()
-					: BigDecimal.ZERO;
+	        // =====================
+	        // WEEK DETTAGLI TRADE
+	        // =====================
+	        int weekNumber = getWeekOfYear(date);
 
-			BigDecimal weekFinalBalance = weekStartBalance.add(newWeekAmount);
-			week.setBilancioFinale(weekFinalBalance);
+	        WeekData week = weeks.get(weekNumber);
 
-			// =====================
-			// WINRATE
-			// =====================
-			int winLossTotal = wins + losses;
+	        if (week == null) {
+	            week = new WeekData();
 
-			if (winLossTotal > 0) {
-				week.setWinrate(
-						BigDecimal.valueOf(wins)
-								.divide(BigDecimal.valueOf(winLossTotal), 4, RoundingMode.HALF_UP)
-								.multiply(BigDecimal.valueOf(100))
-				);
-			} else {
-				week.setWinrate(BigDecimal.ZERO);
-			}
+	            week.setAmount(BigDecimal.ZERO);
+	            week.setBilancioIniziale(BigDecimal.ZERO);
+	            week.setBilancioFinale(BigDecimal.ZERO);
+	            week.setWinrate(BigDecimal.ZERO);
+	            week.setRrAverage(BigDecimal.ZERO);
+	            week.setProfitPercent(BigDecimal.ZERO);
 
-			// =====================
-			// RR MEDIO
-			// =====================
-			if (newTradeCount > 0) {
-				week.setRrAverage(
-						newRrTotal.divide(
-								BigDecimal.valueOf(newTradeCount),
-								2,
-								RoundingMode.HALF_UP
-						)
-				);
-			}
+	            week.setTrades(0);
+	            week.setWinTrades(0);
+	            week.setLossTrades(0);
+	            week.setBeTrades(0);
+	            week.setMissTrades(0);
+	            week.setRrTotal(BigDecimal.ZERO);
 
-			// =====================
-			// PROFIT %
-			// =====================
-			if (weekStartBalance.compareTo(BigDecimal.ZERO) != 0) {
-				BigDecimal profitPercent = newWeekAmount
-						.divide(weekStartBalance, 4, RoundingMode.HALF_UP)
-						.multiply(BigDecimal.valueOf(100));
+	            weeks.put(weekNumber, week);
+	        }
 
-				week.setProfitPercent(profitPercent);
-			} else {
-				week.setProfitPercent(BigDecimal.ZERO);
-			}
+	        week.setTrades(week.getTrades() + 1);
 
-			week.addDay(dateKey);
-		}
+	        if (trade.isWin()) {
+	            week.setWinTrades(week.getWinTrades() + 1);
+	        } else if (trade.isLoss()) {
+	            week.setLossTrades(week.getLossTrades() + 1);
+	        } else if (trade.isBe()) {
+	            week.setBeTrades(week.getBeTrades() + 1);
+	        } else if (trade.isMiss()) {
+	            week.setMissTrades(week.getMissTrades() + 1);
+	        }
 
-		return new CalendarData(days, weeks);
+	        week.addDay(dateKey);
+	    }
+
+	    return new CalendarData(days, weeks);
 	}
-
 
 	private int getWeekOfYear(LocalDate date) {
 		WeekFields weekFields = WeekFields.ISO;

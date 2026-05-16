@@ -3,6 +3,7 @@ package it.samfrafx.tradingjournal.datamodel.repository;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -14,6 +15,28 @@ import it.samfrafx.tradingjournal.datamodel.data.Trade;
 @Repository
 public interface TradeRepository extends JpaRepository<Trade, String> {
 
+	
+	
+	Optional<Trade> findTopByIdAccountAndDateOpenBeforeOrderByDateOpenDesc(
+	        String idAccount,
+	        LocalDateTime dateOpen
+	);
+	
+	
+	Optional<Trade> findTopByIdAccountAndDateOpenBeforeAndIdTradeNotOrderByDateOpenDesc(
+	        String idAccount,
+	        LocalDateTime dateOpen,
+	        String idTrade
+	);
+	
+	
+	
+	
+	
+	
+	
+	/* *****************************************  */
+	
 	@Query("""
 			    SELECT t
 			    FROM Trade t

@@ -3,10 +3,8 @@ package it.samfrafx.tradingjournal.bl.service;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.temporal.WeekFields;
-import java.util.ArrayList;
+import java.time.LocalTime;
 import java.util.List;
-import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -14,97 +12,30 @@ import org.springframework.stereotype.Service;
 
 import it.samfrafx.tradingjournal.bl.PeriodEnum;
 import it.samfrafx.tradingjournal.bl.data.Config;
-import it.samfrafx.tradingjournal.bl.data.PerformanceData;
 import it.samfrafx.tradingjournal.bl.data.TradeData;
 import it.samfrafx.tradingjournal.bl.data.TradingConfig;
 import it.samfrafx.tradingjournal.bl.data.enums.SetupEnum;
 import it.samfrafx.tradingjournal.bl.data.enums.StrutturaEnum;
 import it.samfrafx.tradingjournal.bl.data.enums.VotoSetupEnum;
-import it.samfrafx.tradingjournal.bl.util.DateUtils;
+import it.samfrafx.tradingjournal.datamodel.data.Account;
 import it.samfrafx.tradingjournal.datamodel.data.Trade;
+import it.samfrafx.tradingjournal.datamodel.repository.AccountRepository;
 import it.samfrafx.tradingjournal.datamodel.repository.TradeRepository;
 
 @Service
 public class TradeService {
 
+	private final AccountRepository accountRepository;
     private final TradeRepository tradeRepository;
-    private final PerformanceService performanceService;
 
     public TradeService(
             TradeRepository tradeRepository,
-            PerformanceService performanceService
+            AccountRepository accountRepository
     ) {
         this.tradeRepository = tradeRepository;
-        this.performanceService = performanceService;
+        this.accountRepository = accountRepository;
     }
 
-    public TradeData update(TradeData data) {
-
-        if (data == null || data.getIdTrade() == null || data.getIdTrade().isBlank()) {
-            throw new IllegalArgumentException("Trade obbligatorio");
-        }
-
-        Trade trade = tradeRepository.findById(data.getIdTrade())
-                .orElseThrow(() -> new IllegalArgumentException("Trade non trovato"));
-
-        String oldAccountId = trade.getIdAccount();
-        LocalDateTime oldDateOpen = trade.getDateOpen();
-
-        trade.setDateOpen(data.getDateOpen());
-        trade.setAsset(data.getAsset());
-        trade.setEsito(data.getEsito());
-        trade.setPosizione(data.getPosizione());
-
-        trade.setStruttura(data.getStruttura());
-        trade.setSetup(data.getSetup());
-        trade.setConfluenze(data.getConfluenze());
-        trade.setTags(data.getTags());
-
-        trade.setProfit(data.getProfit());
-        trade.setRisk(data.getRisk());
-        trade.setNote(data.getNote());
-
-        trade.setVotoSetup(
-                VotoSetupEnum.fromDescrizione(data.getVotoSetup()).getNumeric()
-        );
-
-        int week = data.getDateOpen()
-                .get(WeekFields.of(Locale.ITALY).weekOfWeekBasedYear());
-
-        trade.setWeekN(week);
-
-        Trade saved = tradeRepository.save(trade);
-
-        performanceService.recalculatePerformance(oldAccountId, oldDateOpen);
-        performanceService.recalculatePerformance(saved.getIdAccount(), saved.getDateOpen());
-
-        return TradeData.from(saved, data.getAccountBalance());
-    }
-    
-    
-    public TradeData findById(String idTrade) {
-
-        Trade trade = tradeRepository.findById(idTrade)
-                .orElseThrow(() -> new IllegalArgumentException("Trade non trovato"));
-
-        BigDecimal accountBalanceBeforeTrade = calculateAccountBalanceBeforeTrade(trade);
-
-        return TradeData.from(trade, accountBalanceBeforeTrade);
-    }
-    
-    public void deleteById(String idTrade) {
-
-        Trade trade = tradeRepository.findById(idTrade)
-                .orElseThrow(() -> new IllegalArgumentException("Trade non trovato"));
-
-        String accountId = trade.getIdAccount();
-        LocalDateTime dateOpen = trade.getDateOpen();
-
-        tradeRepository.delete(trade);
-
-        performanceService.recalculatePerformance(accountId, dateOpen);
-    }
-    
     public List<TradeData> getTrades(String accountId, Integer year, PeriodEnum period) {
 
         if (accountId == null || accountId.isBlank()) {
@@ -119,56 +50,65 @@ public class TradeService {
             throw new IllegalArgumentException("Anno obbligatorio");
         }
 
-        if (PeriodEnum.ALL.equals(period)) {
-            return getAllTrades(accountId);
-        }
+        //if (PeriodEnum.ALL.equals(period)) {
+        //    return getAllTrades(accountId);
+        //}
 
         if (period.isMonth()) {
-            return getTradesByMonth(accountId, year, period);
+            int month = Integer.parseInt(period.getId());
+            return getTradesByMonth(accountId, year, month);
         }
 
         return getTradesByPeriod(accountId, year, period);
     }
+    
+    public TradeData findById(String idTrade) {
 
-    private List<TradeData> getAllTrades(String accountId) {
+        Trade trade = tradeRepository.findById(idTrade)
+                .orElseThrow(() -> new IllegalArgumentException("Trade non trovato"));
 
-        List<Trade> trades = tradeRepository.findAllByAccount(accountId);
-
-        BigDecimal runningBalance = new BigDecimal("25000.00");
-
-        return buildTradeDataList(trades, runningBalance);
+        return TradeData.from(trade);
     }
+    
+    public void deleteById(String idTrade) {
+
+        Trade trade = tradeRepository.findById(idTrade)
+                .orElseThrow(() -> new IllegalArgumentException("Trade non trovato"));
+
+        String accountId = trade.getIdAccount();
+        LocalDateTime dateOpen = trade.getDateOpen();
+
+        tradeRepository.delete(trade);
+
+        //performanceService.recalculatePerformance(accountId, dateOpen);
+    }
+    
+  
 
     private List<TradeData> getTradesByMonth(
             String accountId,
             Integer year,
-            PeriodEnum period
+            Integer month
     ) {
 
-        int month = Integer.parseInt(period.getId());
+        LocalDateTime start = LocalDate.of(year, month, 1)
+                .atStartOfDay();
 
-        List<PerformanceData> performances =
-                performanceService.getMonthlyPerformance(accountId, year, month);
+        LocalDateTime end = LocalDate.of(year, month, 1)
+                .withDayOfMonth(
+                        LocalDate.of(year, month, 1).lengthOfMonth()
+                )
+                .atTime(LocalTime.MAX);
 
-        List<TradeData> result = new ArrayList<>();
+        List<Trade> trades = tradeRepository.findByAccountAndPeriod(
+                accountId,
+                start,
+                end
+        );
 
-        for (PerformanceData performance : performances) {
-
-            LocalDateTime[] range = DateUtils.getStartEndOfWeek( performance.getYear(), performance.getMonth(), performance.getWeek()
-            );
-
-            LocalDateTime start = range[0];
-            LocalDateTime end = range[1];
-
-            List<Trade> weeklyTrades =
-                    tradeRepository.findByAccountAndPeriod(accountId, start, end);
-
-            BigDecimal runningBalance = performance.getBilancioIniziale();
-
-            result.addAll(buildTradeDataList(weeklyTrades, runningBalance));
-        }
-
-        return result;
+        return trades.stream()
+                .map(TradeData::from)
+                .toList();
     }
 
     private List<TradeData> getTradesByPeriod(
@@ -209,32 +149,11 @@ public class TradeService {
         List<Trade> trades =
                 tradeRepository.findByAccountAndPeriod(accountId, start, end);
 
-        BigDecimal runningBalance = new BigDecimal("25000.00");
-
-        return buildTradeDataList(trades, runningBalance);
+       return trades.stream()
+                .map(TradeData::from)
+                .toList();
     }
 
-    private List<TradeData> buildTradeDataList(
-            List<Trade> trades,
-            BigDecimal runningBalance
-    ) {
-
-        List<TradeData> result = new ArrayList<>();
-
-        if (runningBalance == null) {
-            runningBalance = BigDecimal.ZERO;
-        }
-
-        for (Trade trade : trades) {
-            TradeData dto = TradeData.from(trade, runningBalance);
-            result.add(dto);
-
-            runningBalance = dto.getCurrentBalance();
-        }
-
-        return result;
-    }
-    
     public BigDecimal sumProfitLossBeforeDateTime(
     		String accountId,
     		LocalDateTime dateTime) {
@@ -279,6 +198,32 @@ public class TradeService {
         return match ? config.getVoto() : VotoSetupEnum.BASSO;
     }
     
+        
+    
+    /*********/
+    public List<TradeData> findByAccountAndPeriod(
+            String accountId,
+            LocalDateTime start,
+            LocalDateTime end
+    ) {
+
+        if (accountId == null || accountId.isBlank()) {
+            throw new IllegalArgumentException("Account obbligatorio");
+        }
+
+        if (start == null || end == null) {
+            throw new IllegalArgumentException("Periodo obbligatorio");
+        }
+
+        return tradeRepository.findByAccountAndPeriod(
+                accountId,
+                start,
+                end
+        )
+        .stream()
+        .map(TradeData::from)
+        .toList();
+    }
     
     public TradeData save(TradeData data) {
 
@@ -299,183 +244,166 @@ public class TradeService {
         trade.setIdTrade(UUID.randomUUID().toString());
         trade.setIdAccount(data.getAccountId());
 
+        trade.setTipoMovimento(
+                data.getTipoMovimento() != null && !data.getTipoMovimento().isBlank()
+                        ? data.getTipoMovimento()
+                        : "trade"
+        );
+
         trade.setDateOpen(data.getDateOpen());
         trade.setAsset(data.getAsset());
         trade.setEsito(data.getEsito());
-        trade.setPosizione(data.getPosizione());
 
+        trade.setProfit(data.getProfit() != null ? data.getProfit() : BigDecimal.ZERO);
+        trade.setRisk(data.getRisk() != null ? data.getRisk() : BigDecimal.ZERO);
+
+        
+       BigDecimal balance = calculateAccountBalanceForNewTrade(
+                data.getAccountId(),
+                data.getDateOpen(),
+                trade.getProfit());
+        
+        trade.setAccountBalance( balance );
+
+        trade.setPosizione(data.getPosizione());
         trade.setStruttura(data.getStruttura());
         trade.setSetup(data.getSetup());
         trade.setConfluenze(data.getConfluenze());
+
+        VotoSetupEnum voto = VotoSetupEnum.NON_STRATEGIA;
+
+        if (data.getVotoSetup() != null && !data.getVotoSetup().isBlank()) {
+            voto = VotoSetupEnum.fromDescrizione(data.getVotoSetup());
+        }
+
+        trade.setVotoSetup(voto.getNumeric());
+
         trade.setTags(data.getTags());
-
-        trade.setProfit(data.getProfit());
-        trade.setRisk(data.getRisk());
+        trade.setAnalisi(data.getAnalisi());
         trade.setNote(data.getNote());
-        
-        trade.setVotoSetup( VotoSetupEnum.fromDescrizione(data.getVotoSetup()).getNumeric());
-        
-        int week = data.getDateOpen()
-                .get(WeekFields.of(Locale.ITALY).weekOfWeekBasedYear());
-
-        trade.setWeekN(week);
 
         Trade saved = tradeRepository.save(trade);
-        
-        this.performanceService.recalculatePerformance(
-                saved.getIdAccount(),
-                saved.getDateOpen());
-
-        return TradeData.from(saved, data.getAccountBalance());
+        return TradeData.from(saved);
     }
     
-    public BigDecimal calculateAccountBalancePreview(
-            String accountId,
-            LocalDateTime tradeDateTime,
-            BigDecimal currentProfitLoss
-    ) {
+    public TradeData update(TradeData data) {
 
-        LocalDateTime[] range = DateUtils.getStartEndOfWeek(
-                tradeDateTime.getYear(),
-                tradeDateTime.getMonthValue(),
-                tradeDateTime.get(WeekFields.ISO.weekOfWeekBasedYear())
+        if (data == null || data.getIdTrade() == null || data.getIdTrade().isBlank()) {
+            throw new IllegalArgumentException("Trade obbligatorio");
+        }
+
+        if (data.getDateOpen() == null) {
+            throw new IllegalArgumentException("Data trade obbligatoria");
+        }
+
+        Trade trade = tradeRepository.findById(data.getIdTrade())
+                .orElseThrow(() -> new IllegalArgumentException("Trade non trovato"));
+
+        String oldAccountId = trade.getIdAccount();
+        LocalDateTime oldDateOpen = trade.getDateOpen();
+
+        trade.setTipoMovimento(
+                data.getTipoMovimento() != null && !data.getTipoMovimento().isBlank()
+                        ? data.getTipoMovimento()
+                        : "trade"
         );
 
-        LocalDateTime weekStart = range[0];
+        trade.setDateOpen(data.getDateOpen());
+        trade.setAsset(data.getAsset());
+        trade.setEsito(data.getEsito());
 
-        PerformanceData performance = null;
+        trade.setProfit(data.getProfit() != null ? data.getProfit() : BigDecimal.ZERO);
+        trade.setRisk(data.getRisk() != null ? data.getRisk() : BigDecimal.ZERO);
 
-        try {
-            performance = performanceService.findByAccountIdAndWeek(
-                    accountId,
-                    tradeDateTime.toLocalDate()
-            );
-        } catch (IllegalStateException ex) {
-            performance = null;
-        }
-
-        BigDecimal bilancioBase = BigDecimal.ZERO;
-
-        if (performance != null && performance.getBilancioIniziale() != null) {
-
-            bilancioBase = performance.getBilancioIniziale();
-
-        } else {
-
-            PerformanceData previousPerformance =
-                    performanceService.findClosestPreviousPerformance(
-                            accountId,
-                            tradeDateTime.toLocalDate()
-                    );
-
-            if (previousPerformance != null
-                    && previousPerformance.getBilancioFinale() != null) {
-                bilancioBase = previousPerformance.getBilancioFinale();
-            }
-        }
-
-        BigDecimal previousTradesProfitLoss =
-                tradeRepository.sumProfitLossBetweenDateTime(
-                        accountId,
-                        weekStart,
-                        tradeDateTime
-                );
-
-        if (previousTradesProfitLoss == null) {
-            previousTradesProfitLoss = BigDecimal.ZERO;
-        }
-
-        BigDecimal current = currentProfitLoss != null
-                ? currentProfitLoss
-                : BigDecimal.ZERO;
-
-        return bilancioBase
-                .add(previousTradesProfitLoss)
-                .add(current);
-    }
-    
-    private BigDecimal calculateAccountBalanceBeforeTrade(Trade trade) {
-
-        PerformanceData performance = null;
-
-        try {
-            performance = performanceService.findByAccountIdAndWeek(
-                    trade.getIdAccount(),
-                    trade.getDateOpen().toLocalDate()
-            );
-        } catch (IllegalStateException ex) {
-            performance = performanceService.findClosestPreviousPerformance(
-                    trade.getIdAccount(),
-                    trade.getDateOpen().toLocalDate()
-            );
-        }
-
-        BigDecimal bilancioBase = BigDecimal.ZERO;
-
-        if (performance != null && performance.getBilancioIniziale() != null) {
-            bilancioBase = performance.getBilancioIniziale();
-        }
-
-        BigDecimal previousTradesProfitLoss =
-                tradeRepository.sumProfitLossBeforeDateTimeExcludingTrade(
+        trade.setAccountBalance(
+                calculateAccountBalanceForUpdateTrade(
                         trade.getIdAccount(),
                         trade.getDateOpen(),
-                        trade.getIdTrade()
-                );
+                        trade.getIdTrade(),
+                        trade.getProfit()
+                )
+        );
 
-        if (previousTradesProfitLoss == null) {
-            previousTradesProfitLoss = BigDecimal.ZERO;
-        }
+        trade.setPosizione(data.getPosizione());
+        trade.setStruttura(data.getStruttura());
+        trade.setSetup(data.getSetup());
+        trade.setConfluenze(data.getConfluenze());
+        trade.setVotoSetup(
+                data.getVotoSetup() != null && !data.getVotoSetup().isBlank()
+                        ? VotoSetupEnum.fromDescrizione(data.getVotoSetup()).getNumeric()
+                        : VotoSetupEnum.NON_STRATEGIA.getNumeric()
+        );
 
-        return bilancioBase.add(previousTradesProfitLoss);
+
+        trade.setTags(data.getTags());
+        trade.setAnalisi(data.getAnalisi());
+        trade.setNote(data.getNote());
+
+        Trade saved = tradeRepository.save(trade);
+
+        // performanceService.recalculatePerformance(oldAccountId, oldDateOpen);
+        // performanceService.recalculatePerformance(saved.getIdAccount(), saved.getDateOpen());
+
+        return TradeData.from(saved);
     }
     
-    
-    public BigDecimal calculateAccountBalancePreviewEdit(
+    private BigDecimal calculateAccountBalanceForUpdateTrade(
             String accountId,
+            LocalDateTime dateOpen,
             String idTrade,
-            LocalDateTime tradeDateTime,
-            BigDecimal currentProfitLoss
+            BigDecimal currentProfit
     ) {
 
-        PerformanceData performance = null;
+        BigDecimal previousAccountBalance =
+                tradeRepository
+                        .findTopByIdAccountAndDateOpenBeforeAndIdTradeNotOrderByDateOpenDesc(
+                                accountId,
+                                dateOpen,
+                                idTrade
+                        )
+                        .map(Trade::getAccountBalance)
+                        .orElse(BigDecimal.ZERO);
 
-        try {
-            performance = performanceService.findByAccountIdAndWeek(
-                    accountId,
-                    tradeDateTime.toLocalDate()
-            );
-        } catch (IllegalStateException ex) {
-            performance = performanceService.findClosestPreviousPerformance(
-                    accountId,
-                    tradeDateTime.toLocalDate()
-            );
-        }
-
-        BigDecimal bilancioBase = BigDecimal.ZERO;
-
-        if (performance != null && performance.getBilancioIniziale() != null) {
-            bilancioBase = performance.getBilancioIniziale();
-        }
-
-        BigDecimal previousTradesProfitLoss =
-                tradeRepository.sumProfitLossBeforeDateTimeExcludingTrade(
-                        accountId,
-                        tradeDateTime,
-                        idTrade
-                );
-
-        if (previousTradesProfitLoss == null) {
-            previousTradesProfitLoss = BigDecimal.ZERO;
-        }
-
-        BigDecimal current = currentProfitLoss != null
-                ? currentProfitLoss
+        BigDecimal profit = currentProfit != null
+                ? currentProfit
                 : BigDecimal.ZERO;
 
-        return bilancioBase
-                .add(previousTradesProfitLoss)
-                .add(current);
+        return previousAccountBalance.add(profit);
     }
+    
+    public BigDecimal calculateAccountBalanceForNewTrade(
+            String accountId,
+            LocalDateTime dateOpen,
+            BigDecimal currentProfit
+    ) {
+
+        BigDecimal previousAccountBalance =
+                tradeRepository
+                        .findTopByIdAccountAndDateOpenBeforeOrderByDateOpenDesc(
+                                accountId,
+                                dateOpen
+                        )
+                        .map(Trade::getAccountBalance)
+                        .orElseGet(() ->
+                                accountRepository.findById(accountId)
+                                        .map(Account::getInitialBalance)
+                                        .orElse(BigDecimal.ZERO)
+                        );
+
+        BigDecimal profit = currentProfit != null
+                ? currentProfit
+                : BigDecimal.ZERO;
+
+        return previousAccountBalance.add(profit);
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
 }

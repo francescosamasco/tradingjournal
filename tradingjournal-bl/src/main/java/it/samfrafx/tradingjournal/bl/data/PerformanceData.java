@@ -21,6 +21,19 @@ public class PerformanceData {
     private BigDecimal winrate;
     private BigDecimal rr;
 
+    private BigDecimal profitTotale;
+    private BigDecimal profitPercent;
+
+    private Integer year;
+    private Integer month;
+    private Integer week;
+
+    private Integer trades;
+    private Integer winTrades;
+    private Integer lossTrades;
+    private Integer beTrades;
+    private Integer missTrades;
+
     // =========================
     // FACTORY METHOD
     // =========================
@@ -31,10 +44,21 @@ public class PerformanceData {
         dto.setId(p.getId());
         dto.setIdPerformance(p.getIdPerformance());
         dto.setIdAccount(p.getIdAccount());
+
         dto.setBilancioIniziale(p.getBilancioIniziale());
         dto.setBilancioFinale(p.getBilancioFinale());
+
         dto.setWinrate(p.getWinrate());
         dto.setRr(p.getRr());
+
+        dto.setProfitTotale(p.getProfitTotale());
+        dto.setProfitPercent(p.getProfitPercent());
+
+        dto.setTrades(p.getTrades());
+        dto.setWinTrades(p.getWinTrades());
+        dto.setLossTrades(p.getLossTrades());
+        dto.setBeTrades(p.getBeTrades());
+        dto.setMissTrades(p.getMissTrades());
 
         return dto;
     }
@@ -43,8 +67,11 @@ public class PerformanceData {
     // LOGICHE UTILI
     // =========================
 
-    // 🔹 rendimento %
     public BigDecimal getReturnPercent() {
+
+        if (profitPercent != null) {
+            return profitPercent;
+        }
 
         if (bilancioIniziale == null || bilancioIniziale.compareTo(BigDecimal.ZERO) == 0) {
             return BigDecimal.ZERO;
@@ -57,11 +84,14 @@ public class PerformanceData {
         BigDecimal diff = bilancioFinale.subtract(bilancioIniziale);
 
         return diff.divide(bilancioIniziale, 4, RoundingMode.HALF_UP)
-                   .multiply(BigDecimal.valueOf(100));
+                .multiply(BigDecimal.valueOf(100));
     }
 
-    // 🔹 profit assoluto
     public BigDecimal getProfit() {
+
+        if (profitTotale != null) {
+            return profitTotale;
+        }
 
         if (bilancioIniziale == null || bilancioFinale == null) {
             return BigDecimal.ZERO;
@@ -70,7 +100,6 @@ public class PerformanceData {
         return bilancioFinale.subtract(bilancioIniziale);
     }
 
-    // 🔹 crescita account
     public boolean isGrowth() {
         return getProfit().compareTo(BigDecimal.ZERO) > 0;
     }
@@ -78,23 +107,70 @@ public class PerformanceData {
     public boolean isLoss() {
         return getProfit().compareTo(BigDecimal.ZERO) < 0;
     }
-    
-    private String[] splitId() {
-        return idPerformance.split("-");
-    }
-    
+
     public Integer getYear() {
-        if (idPerformance == null) return null;
-        return Integer.parseInt(splitId()[0]);
+
+        if (year != null) {
+            return year;
+        }
+
+        if (idPerformance == null) {
+            return null;
+        }
+
+        String[] parts = splitId();
+
+        if (parts.length < 1) {
+            return null;
+        }
+
+        return Integer.parseInt(parts[0]);
     }
 
     public Integer getMonth() {
-        if (idPerformance == null) return null;
-        return Integer.parseInt(splitId()[1]);
+
+        if (month != null) {
+            return month;
+        }
+
+        if (idPerformance == null) {
+            return null;
+        }
+
+        String[] parts = splitId();
+
+        if (parts.length < 2) {
+            return null;
+        }
+
+        return Integer.parseInt(parts[1]);
     }
 
     public Integer getWeek() {
-        if (idPerformance == null) return null;
-        return Integer.parseInt(splitId()[2]);
+
+        if (week != null) {
+            return week;
+        }
+
+        if (idPerformance == null) {
+            return null;
+        }
+
+        String[] parts = splitId();
+
+        if (parts.length < 3) {
+            return null;
+        }
+
+        return Integer.parseInt(parts[2]);
+    }
+
+    private String[] splitId() {
+
+        if (idPerformance == null || !idPerformance.contains("-")) {
+            return new String[0];
+        }
+
+        return idPerformance.split("-");
     }
 }

@@ -1,7 +1,11 @@
 package it.samfrafx.tradingjournal.datamodel.data;
 
 import java.math.BigDecimal;
-import jakarta.persistence.*;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "performance", schema = "trade")
@@ -23,13 +27,36 @@ public class Performance {
     @Column(name = "bilancio_finale", precision = 11, scale = 2)
     private BigDecimal bilancioFinale;
 
-    @Column(name = "winrate", precision = 4, scale = 1)
+    @Column(name = "profit_totale", precision = 11, scale = 2)
+    private BigDecimal profitTotale;
+
+    @Column(name = "profit_percent", precision = 7, scale = 1)
+    private BigDecimal profitPercent;
+
+    @Column(name = "winrate", precision = 5, scale = 1)
     private BigDecimal winrate;
 
-    @Column(name = "rr", precision = 4, scale = 1)
+    @Column(name = "rr", precision = 6, scale = 1)
     private BigDecimal rr;
 
-    // ===== GETTER / SETTER =====
+    @Column(name = "trades")
+    private Integer trades;
+
+    @Column(name = "win_trades")
+    private Integer winTrades;
+
+    @Column(name = "loss_trades")
+    private Integer lossTrades;
+
+    @Column(name = "be_trades")
+    private Integer beTrades;
+
+    @Column(name = "miss_trades")
+    private Integer missTrades;
+
+    // =========================
+    // GETTER / SETTER
+    // =========================
 
     public String getId() {
         return id;
@@ -71,6 +98,22 @@ public class Performance {
         this.bilancioFinale = bilancioFinale;
     }
 
+    public BigDecimal getProfitTotale() {
+        return profitTotale;
+    }
+
+    public void setProfitTotale(BigDecimal profitTotale) {
+        this.profitTotale = profitTotale;
+    }
+
+    public BigDecimal getProfitPercent() {
+        return profitPercent;
+    }
+
+    public void setProfitPercent(BigDecimal profitPercent) {
+        this.profitPercent = profitPercent;
+    }
+
     public BigDecimal getWinrate() {
         return winrate;
     }
@@ -85,5 +128,45 @@ public class Performance {
 
     public void setRr(BigDecimal rr) {
         this.rr = rr;
+    }
+
+    public Integer getTrades() {
+        return trades;
+    }
+
+    public void setTrades(Integer trades) {
+        this.trades = trades;
+    }
+
+    public Integer getWinTrades() {
+        return winTrades;
+    }
+
+    public void setWinTrades(Integer winTrades) {
+        this.winTrades = winTrades;
+    }
+
+    public Integer getLossTrades() {
+        return lossTrades;
+    }
+
+    public void setLossTrades(Integer lossTrades) {
+        this.lossTrades = lossTrades;
+    }
+
+    public Integer getBeTrades() {
+        return beTrades;
+    }
+
+    public void setBeTrades(Integer beTrades) {
+        this.beTrades = beTrades;
+    }
+
+    public Integer getMissTrades() {
+        return missTrades;
+    }
+
+    public void setMissTrades(Integer missTrades) {
+        this.missTrades = missTrades;
     }
 }
