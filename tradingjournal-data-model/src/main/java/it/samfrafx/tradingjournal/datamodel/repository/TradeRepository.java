@@ -29,7 +29,17 @@ public interface TradeRepository extends JpaRepository<Trade, String> {
 	        String idTrade
 	);
 	
-	
+	@Query("""
+		    SELECT t
+		    FROM Trade t
+		    WHERE t.idAccount = :accountId
+		      AND t.dateOpen > :dateOpen
+		    ORDER BY t.dateOpen ASC
+		""")
+		List<Trade> findNextTrades(
+		        @Param("accountId") String accountId,
+		        @Param("dateOpen") LocalDateTime dateOpen
+		);
 	
 	
 	

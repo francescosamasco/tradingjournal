@@ -1,6 +1,7 @@
 package it.samfrafx.tradingjournal.bl.service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -9,6 +10,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import it.samfrafx.tradingjournal.bl.PeriodEnum;
 import it.samfrafx.tradingjournal.bl.data.Config;
@@ -70,6 +72,7 @@ public class TradeService {
         return TradeData.from(trade);
     }
     
+    @Transactional
     public void deleteById(String idTrade) {
 
         Trade trade = tradeRepository.findById(idTrade)
@@ -80,7 +83,24 @@ public class TradeService {
 
         tradeRepository.delete(trade);
 
-        //performanceService.recalculatePerformance(accountId, dateOpen);
+        BigDecimal previousBalance =
+                tradeRepository
+                        .findTopByIdAccountAndDateOpenBeforeOrderByDateOpenDesc(
+                                accountId,
+                                dateOpen
+                        )
+                        .map(Trade::getAccountBalance)
+                        .orElseGet(() ->
+                                accountRepository.findById(accountId)
+                                        .map(Account::getInitialBalance)
+                                        .orElse(BigDecimal.ZERO)
+                        );
+
+        recalculateNextTradesBalance(
+                accountId,
+                dateOpen.minusNanos(1),
+                previousBalance
+        );
     }
     
   
@@ -225,6 +245,7 @@ public class TradeService {
         .toList();
     }
     
+    @Transactional
     public TradeData save(TradeData data) {
 
         if (data == null) {
@@ -257,13 +278,13 @@ public class TradeService {
         trade.setProfit(data.getProfit() != null ? data.getProfit() : BigDecimal.ZERO);
         trade.setRisk(data.getRisk() != null ? data.getRisk() : BigDecimal.ZERO);
 
-        
-       BigDecimal balance = calculateAccountBalanceForNewTrade(
+        BigDecimal balance = calculateAccountBalanceForNewTrade(
                 data.getAccountId(),
                 data.getDateOpen(),
-                trade.getProfit());
-        
-        trade.setAccountBalance( balance );
+                trade.getProfit()
+        );
+
+        trade.setAccountBalance(balance);
 
         trade.setPosizione(data.getPosizione());
         trade.setStruttura(data.getStruttura());
@@ -283,7 +304,44 @@ public class TradeService {
         trade.setNote(data.getNote());
 
         Trade saved = tradeRepository.save(trade);
+
+        recalculateNextTradesBalance(
+                saved.getIdAccount(),
+                saved.getDateOpen(),
+                saved.getAccountBalance()
+        );
+
         return TradeData.from(saved);
+    }
+    
+    public void recalculateNextTradesBalance(
+            String accountId,
+            LocalDateTime dateOpen,
+            BigDecimal startingBalance
+    ) {
+
+        List<Trade> nextTrades = tradeRepository.findNextTrades(
+                accountId,
+                dateOpen
+        );
+
+        BigDecimal currentBalance = startingBalance != null
+                ? startingBalance
+                : BigDecimal.ZERO;
+
+        for (Trade trade : nextTrades) {
+
+            BigDecimal profit = trade.getProfit() != null
+                    ? trade.getProfit()
+                    : BigDecimal.ZERO;
+
+            currentBalance = currentBalance.add(profit)
+                    .setScale(2, RoundingMode.HALF_UP);
+
+            trade.setAccountBalance(currentBalance);
+        }
+
+        tradeRepository.saveAll(nextTrades);
     }
     
     public TradeData update(TradeData data) {

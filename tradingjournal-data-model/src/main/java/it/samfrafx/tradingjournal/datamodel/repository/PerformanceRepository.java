@@ -14,6 +14,18 @@ import it.samfrafx.tradingjournal.datamodel.data.Performance;
 @Repository
 public interface PerformanceRepository extends JpaRepository<Performance, String> {
 
+	@Query("""
+		    SELECT p
+		    FROM Performance p
+		    WHERE p.idAccount = :accountId
+		      AND p.idPerformance >= :idPerformance
+		    ORDER BY p.idPerformance ASC
+		""")
+		List<Performance> findFromPerformanceId(
+		        @Param("accountId") String accountId,
+		        @Param("idPerformance") String idPerformance
+		);
+	
     // 🔹 tutte le performance del mese
     @Query("""
         SELECT p

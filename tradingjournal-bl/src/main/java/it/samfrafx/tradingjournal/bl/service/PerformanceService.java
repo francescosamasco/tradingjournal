@@ -6,6 +6,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.WeekFields;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -50,7 +51,80 @@ public class PerformanceService {
 						" e performance " + idPerformance
 						));
 	}
+	
+	@Transactional
+	public void recalculateFromTradeDate(
+	        String accountId,
+	        LocalDateTime tradeDateTime
+	) {
 
+	    if (accountId == null || accountId.isBlank()) {
+	        throw new IllegalArgumentException("Account obbligatorio");
+	    }
+
+	    if (tradeDateTime == null) {
+	        throw new IllegalArgumentException("Data trade obbligatoria");
+	    }
+
+	    LocalDate tradeDate = tradeDateTime.toLocalDate();
+
+	    Integer year = tradeDate.getYear();
+	    Integer month = tradeDate.getMonthValue();
+
+	    WeekFields weekFields = WeekFields.of(Locale.ITALY);
+
+	    Integer week = tradeDate.get(
+	            weekFields.weekOfWeekBasedYear()
+	    );
+
+	    String idPerformance = buildIdPerformance(
+	            year,
+	            month,
+	            week
+	    );
+
+	    List<Performance> performances =
+	            performanceRepository.findFromPerformanceId(
+	                    accountId,
+	                    idPerformance
+	            );
+
+	    if (performances == null || performances.isEmpty()) {
+
+	        updateWeeklyPerformance(
+	                accountId,
+	                year,
+	                month,
+	                week
+	        );
+
+	        return;
+	    }
+
+	    for (Performance performance : performances) {
+
+	        String[] parts =
+	                performance.getIdPerformance().split("-");
+
+	        Integer performanceYear =
+	                Integer.parseInt(parts[0]);
+
+	        Integer performanceMonth =
+	                Integer.parseInt(parts[1]);
+
+	        Integer performanceWeek =
+	                Integer.parseInt(parts[2]);
+
+	        updateWeeklyPerformance(
+	                accountId,
+	                performanceYear,
+	                performanceMonth,
+	                performanceWeek
+	        );
+	    }
+	}
+	
+	
 	public PerformanceData findClosestPreviousPerformance(String accountId, LocalDate date) {
 
 		String idPerformance = buildIdPerformance(date);

@@ -5,6 +5,7 @@ import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
@@ -93,7 +94,13 @@ public class DashboardService {
     }
 
     private BigDecimal averageRr(List<PerformanceData> performances) {
-        return average(performances, PerformanceData::getRr);
+    	 if (performances == null || performances.isEmpty()) {
+             return BigDecimal.ZERO;
+         }
+    	 List<PerformanceData> performanceFiltered = performances.stream()
+    		        .filter(PerformanceData::isGrowth)
+    		        .collect(Collectors.toList());    	 
+        return average(performanceFiltered, PerformanceData::getRr);
     }
 
     private BigDecimal calculateProfitFactor(List<PerformanceData> performances) {
