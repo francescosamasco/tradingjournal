@@ -299,7 +299,7 @@
 								th:text="${
 									dashboard.profitPercent != null ?
 									(dashboard.profitPercent.compareTo(T(java.math.BigDecimal).ZERO) >= 0 ? '+' : '-') +
-									#numbers.formatDecimal(dashboard.profitPercent.abs(), 1, 2) + '%'
+									#numbers.formatDecimal(dashboard.profitPercent.abs(), 1, 1) + '%'
 									: '--'
 								}">
 								--
@@ -309,7 +309,7 @@
 								<span>Profit %:</span>
 								<strong
 									th:classappend="${dashboard.profitPercent != null && dashboard.profitPercent.compareTo(T(java.math.BigDecimal).ZERO) >= 0} ? ' text-success' : ' text-danger'"
-									th:text="${dashboard.profitPercent != null ? #numbers.formatDecimal(dashboard.profitPercent, 1, 2) + '%' : '--'}">
+									th:text="${dashboard.profitPercent != null ? #numbers.formatDecimal(dashboard.profitPercent, 1, 1) + '%' : '--'}">
 									--
 								</strong>
 							</div>

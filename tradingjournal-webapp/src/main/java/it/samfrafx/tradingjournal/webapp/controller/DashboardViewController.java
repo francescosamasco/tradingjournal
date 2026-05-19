@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import it.samfrafx.tradingjournal.bl.PeriodEnum;
+import it.samfrafx.tradingjournal.bl.data.AccountData;
 import it.samfrafx.tradingjournal.bl.data.DashboardData;
 import it.samfrafx.tradingjournal.bl.data.PerformanceData;
 import it.samfrafx.tradingjournal.bl.data.TradeData;
@@ -29,8 +31,10 @@ import it.samfrafx.tradingjournal.bl.data.chart.CalendarData;
 import it.samfrafx.tradingjournal.bl.data.chart.DayData;
 import it.samfrafx.tradingjournal.bl.data.chart.WeekData;
 import it.samfrafx.tradingjournal.bl.data.enums.VotoSetupEnum;
+import it.samfrafx.tradingjournal.bl.service.AccountService;
 import it.samfrafx.tradingjournal.bl.service.DashboardService;
 import it.samfrafx.tradingjournal.bl.service.PerformanceService;
+import it.samfrafx.tradingjournal.bl.service.TradeImportService;
 import it.samfrafx.tradingjournal.bl.service.TradeService;
 import it.samfrafx.tradingjournal.webapp.data.AccountSidebarData;
 import it.samfrafx.tradingjournal.webapp.data.OptionData;
@@ -40,17 +44,32 @@ public class DashboardViewController {
 
 	private static final String DEFAULT_ACCOUNT_ID = "fa54de65-9679-406f-9bcd-d3110ab4cc6e";
 
+	private final AccountService accountService;
 	private final TradeService tradeService;
 	private final PerformanceService performanceService;
 
 	private final DashboardService service;
+	
+	@Autowired
+	private volatile TradeImportService 	    tradeImportService;
 
-	public DashboardViewController(DashboardService service, TradeService tradeService, PerformanceService performanceService) {
+	public DashboardViewController(DashboardService service, AccountService accountService, TradeService tradeService, PerformanceService performanceService) {
 		this.service = service;
+		this.accountService = accountService;
 		this.tradeService = tradeService;
 		this.performanceService = performanceService;
 	}
 
+	
+	@PostMapping("/dashboard/trades/import")
+	@ResponseBody
+	public void importTrades(
+	        @RequestParam String accountId,
+	        @RequestParam String rawText
+	) {
+	    tradeImportService.importFromExcelText(accountId, rawText);
+	}
+	
 	@GetMapping("/dashboard")
 	public String mainView(
 			@RequestParam(name = "accountId", required = false) String accountId,
@@ -97,10 +116,14 @@ public class DashboardViewController {
 				));
 
 
-		List<AccountSidebarData> accounts = List.of(
-				new AccountSidebarData("fa54de65-9679-406f-9bcd-d3110ab4cc6e", "Personale 25k"),
-				new AccountSidebarData("0000", "Demo test")
-				);
+		List<AccountData> accountDatas = this.accountService.findAll();
+
+		List<AccountSidebarData> accounts = accountDatas.stream()
+		        .map(a -> new AccountSidebarData(
+		                a.getId(),
+		                a.getDescription()
+		        ))
+		        .toList();
 
 		model.addAttribute("accounts", accounts);
 		model.addAttribute("accountId", accountId);
@@ -189,14 +212,12 @@ public class DashboardViewController {
 			) {
 		LocalDateTime tradeDateTime = LocalDateTime.parse(dateTime);
 
-		//return tradeService.calculateAccountBalancePreviewEdit(
-		//        accountId,
-		//        idTrade,
-		//        tradeDateTime,
-		//        profitLoss
-		//);
-
-		return null;
+		return tradeService.calculateAccountBalanceForUpdateTrade(
+		        accountId,
+		        idTrade,
+		        tradeDateTime,
+		        profitLoss
+		);
 	}
 
 	@PostMapping("/dashboard/trade/add")
@@ -204,7 +225,7 @@ public class DashboardViewController {
 	public ResponseEntity<?> addTrade(@ModelAttribute TradeData tradeData) {
 
 		TradeData saved = tradeService.save(tradeData);
-
+		
 		this.performanceService.recalculateFromTradeDate(saved.getAccountId(),
 				saved.getDateOpen());
 
@@ -403,11 +424,19 @@ public class DashboardViewController {
 	@PutMapping("/dashboard/trade/update/{idTrade}")
 	@ResponseBody
 	public TradeData updateTrade(
-			@PathVariable String idTrade,
-			TradeData data
-			) {
-		data.setIdTrade(idTrade);
-		return tradeService.update(data);
+	        @PathVariable String idTrade,
+	        TradeData data
+	) {
+	    data.setIdTrade(idTrade);
+
+	    TradeData saved = tradeService.update(data);
+
+	    this.performanceService.recalculateFromTradeDate(
+	            saved.getAccountId(),
+	            saved.getDateOpen()
+	    );
+
+	    return saved;
 	}
 
 

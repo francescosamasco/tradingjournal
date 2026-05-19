@@ -606,13 +606,15 @@ body {
 }
 
 /* =========================
-   MODALE ADD TRADE
+   MODALE ADD / EDIT TRADE
 ========================= */
-#addTradeModal .modal-xl {
+#addTradeModal .modal-xl,
+#editTradeModal .modal-xl {
 	max-width: 1120px;
 }
 
-#addTradeModal .modal-content {
+#addTradeModal .modal-content,
+#editTradeModal .modal-content {
 	border: 0;
 	border-radius: 22px;
 	background: #ffffff;
@@ -620,18 +622,21 @@ body {
 	overflow: hidden;
 }
 
-#addTradeModal .modal-header {
+#addTradeModal .modal-header,
+#editTradeModal .modal-header {
 	padding: 24px 26px 12px;
 	border-bottom: 0;
 }
 
-#addTradeModal .modal-title {
+#addTradeModal .modal-title,
+#editTradeModal .modal-title {
 	font-size: 22px;
 	font-weight: 900;
 	color: #0f172a;
 }
 
-#addTradeModal .btn-close {
+#addTradeModal .btn-close,
+#editTradeModal .btn-close {
 	width: 34px;
 	height: 34px;
 	border-radius: 999px;
@@ -640,7 +645,8 @@ body {
 	padding: 10px;
 }
 
-#addTradeModal .modal-body {
+#addTradeModal .modal-body,
+#editTradeModal .modal-body {
 	padding: 16px 26px 10px;
 	max-height: 75vh;
 	overflow-y: auto;
@@ -663,7 +669,8 @@ body {
 	letter-spacing: 0.04em;
 }
 
-#addTradeModal .form-label {
+#addTradeModal .form-label,
+#editTradeModal .form-label {
 	margin-bottom: 7px;
 	font-size: 13px;
 	font-weight: 800;
@@ -671,7 +678,9 @@ body {
 }
 
 #addTradeModal .form-control,
-#addTradeModal .form-select {
+#addTradeModal .form-select,
+#editTradeModal .form-control,
+#editTradeModal .form-select {
 	height: 48px;
 	border-radius: 12px;
 	border: 1px solid #dbe2ea;
@@ -682,31 +691,37 @@ body {
 	box-shadow: none;
 }
 
-#addTradeModal textarea.form-control {
+#addTradeModal textarea.form-control,
+#editTradeModal textarea.form-control {
 	height: auto;
 	min-height: 116px;
 	resize: vertical;
 }
 
 #addTradeModal .form-control:focus,
-#addTradeModal .form-select:focus {
+#addTradeModal .form-select:focus,
+#editTradeModal .form-control:focus,
+#editTradeModal .form-select:focus {
 	border-color: rgba(78, 191, 148, 0.7);
 	background-color: #ffffff;
 	box-shadow: 0 0 0 4px rgba(78, 191, 148, 0.12);
 }
 
-#addTradeModal .form-control::placeholder {
+#addTradeModal .form-control::placeholder,
+#editTradeModal .form-control::placeholder {
 	color: #94a3b8;
 	font-weight: 500;
 }
 
-#addTradeModal .modal-footer {
+#addTradeModal .modal-footer,
+#editTradeModal .modal-footer {
 	padding: 12px 26px 24px;
 	border-top: 0;
 	gap: 10px;
 }
 
-#addTradeModal .modal-footer .btn {
+#addTradeModal .modal-footer .btn,
+#editTradeModal .modal-footer .btn {
 	height: 46px;
 	border-radius: 12px;
 	padding: 0 20px;
@@ -714,24 +729,28 @@ body {
 	font-weight: 900;
 }
 
-#addTradeModal .btn-success {
+#addTradeModal .btn-success,
+#editTradeModal .btn-success {
 	background: #16945f;
 	border-color: #16945f;
 	box-shadow: 0 10px 22px rgba(22, 148, 95, 0.22);
 }
 
-#addTradeModal .btn-success:hover {
+#addTradeModal .btn-success:hover,
+#editTradeModal .btn-success:hover {
 	background: #127d51;
 	border-color: #127d51;
 }
 
-#addTradeModal .btn-outline-light {
+#addTradeModal .btn-outline-light,
+#editTradeModal .btn-outline-light {
 	color: #64748b;
 	background: #f8fafc;
 	border-color: #e2e8f0;
 }
 
-#addTradeModal .btn-outline-light:hover {
+#addTradeModal .btn-outline-light:hover,
+#editTradeModal .btn-outline-light:hover {
 	color: #0f172a;
 	background: #eef2f7;
 	border-color: #dbe2ea;
@@ -786,20 +805,22 @@ body {
 /* =========================
    VOTO SETUP
 ========================= */
-
-#votoSetupInput.voto-setup-alto {
+#votoSetupInput.voto-setup-alto,
+#editVotoSetupInput.voto-setup-alto {
 	background: rgba(78, 191, 148, 0.18) !important;
 	border: 1px solid #4EBF94 !important;
 	font-weight: 700;
 }
 
-#votoSetupInput.voto-setup-medio {
+#votoSetupInput.voto-setup-medio,
+#editVotoSetupInput.voto-setup-medio {
 	background: rgba(251, 191, 36, 0.18) !important;
 	border: 1px solid #f59e0b !important;
 	font-weight: 700;
 }
 
-#votoSetupInput.voto-setup-none {
+#votoSetupInput.voto-setup-none,
+#editVotoSetupInput.voto-setup-none {
 	background: rgba(255, 255, 255, 0.04) !important;
 	font-weight: 700;
 }
@@ -911,16 +932,19 @@ body {
 		font-size: 11px;
 	}
 
-	#addTradeModal .modal-body {
+	#addTradeModal .modal-body,
+	#editTradeModal .modal-body {
 		max-height: 72vh;
 		padding: 14px 16px 8px;
 	}
 
-	#addTradeModal .modal-header {
+	#addTradeModal .modal-header,
+	#editTradeModal .modal-header {
 		padding: 20px 18px 8px;
 	}
 
-	#addTradeModal .modal-footer {
+	#addTradeModal .modal-footer,
+	#editTradeModal .modal-footer {
 		padding: 10px 16px 20px;
 	}
 

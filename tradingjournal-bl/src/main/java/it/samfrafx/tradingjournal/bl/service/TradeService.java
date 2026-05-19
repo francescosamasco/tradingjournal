@@ -376,8 +376,8 @@ public class TradeService {
         trade.setAccountBalance(
                 calculateAccountBalanceForUpdateTrade(
                         trade.getIdAccount(),
-                        trade.getDateOpen(),
                         trade.getIdTrade(),
+                        trade.getDateOpen(),
                         trade.getProfit()
                 )
         );
@@ -399,34 +399,41 @@ public class TradeService {
 
         Trade saved = tradeRepository.save(trade);
 
-        // performanceService.recalculatePerformance(oldAccountId, oldDateOpen);
-        // performanceService.recalculatePerformance(saved.getIdAccount(), saved.getDateOpen());
-
+        recalculateNextTradesBalance(
+                saved.getIdAccount(),
+                saved.getDateOpen(),
+                saved.getAccountBalance()
+        );
         return TradeData.from(saved);
     }
     
-    private BigDecimal calculateAccountBalanceForUpdateTrade(
+    public BigDecimal calculateAccountBalanceForUpdateTrade(
             String accountId,
-            LocalDateTime dateOpen,
             String idTrade,
+            LocalDateTime dateOpen,
             BigDecimal currentProfit
     ) {
 
-        BigDecimal previousAccountBalance =
-                tradeRepository
-                        .findTopByIdAccountAndDateOpenBeforeAndIdTradeNotOrderByDateOpenDesc(
-                                accountId,
-                                dateOpen,
-                                idTrade
-                        )
-                        .map(Trade::getAccountBalance)
-                        .orElse(BigDecimal.ZERO);
+        BigDecimal previousAccountBalance = tradeRepository
+                .findTopByIdAccountAndDateOpenBeforeAndIdTradeNotOrderByDateOpenDesc(
+                        accountId,
+                        dateOpen,
+                        idTrade
+                )
+                .map(Trade::getAccountBalance)
+                .orElseGet(() ->
+	                this.accountRepository.findById(accountId)
+	                .map(Account::getInitialBalance)
+	                .orElse(BigDecimal.ZERO)
+                );
 
         BigDecimal profit = currentProfit != null
                 ? currentProfit
                 : BigDecimal.ZERO;
 
-        return previousAccountBalance.add(profit);
+        return previousAccountBalance
+                .add(profit)
+                .setScale(2, RoundingMode.HALF_UP);
     }
     
     public BigDecimal calculateAccountBalanceForNewTrade(
@@ -456,8 +463,20 @@ public class TradeService {
     }
     
     
-    
-    
+    public List<TradeData> findByAccount(String accountId) {
+
+        if (accountId == null || accountId.isBlank()) {
+            throw new IllegalArgumentException(
+                    "Account obbligatorio"
+            );
+        }
+
+        return tradeRepository
+                .findByAccount(accountId)
+                .stream()
+                .map(TradeData::from)
+                .toList();
+    }
     
     
     

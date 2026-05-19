@@ -1,6 +1,5 @@
 package it.samfrafx.tradingjournal.datamodel.repository;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,19 +24,19 @@ public interface PerformanceRepository extends JpaRepository<Performance, String
 		        @Param("accountId") String accountId,
 		        @Param("idPerformance") String idPerformance
 		);
-	
-    // 🔹 tutte le performance del mese
-    @Query("""
-        SELECT p
-        FROM Performance p
-        WHERE p.idAccount = :idAccount
-        AND p.idPerformance LIKE :pattern
-        ORDER BY p.idPerformance ASC
-    """)
-    List<Performance> findByAccountAndMonth(
-            String idAccount,
-            String pattern
-    );
+
+
+		@Query("""
+		    SELECT p
+		    FROM Performance p
+		    WHERE p.idAccount = :accountId
+		      AND p.idPerformance LIKE :pattern
+		    ORDER BY p.idPerformance ASC
+		""")
+		List<Performance> findByAccountAndMonth(
+		        @Param("accountId") String accountId,
+		        @Param("pattern") String pattern
+		);
 
     // 🔹 singola settimana
     @Query("""

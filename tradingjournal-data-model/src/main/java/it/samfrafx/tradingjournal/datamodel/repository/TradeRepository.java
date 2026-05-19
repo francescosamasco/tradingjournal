@@ -15,7 +15,15 @@ import it.samfrafx.tradingjournal.datamodel.data.Trade;
 @Repository
 public interface TradeRepository extends JpaRepository<Trade, String> {
 
-	
+	@Query("""
+		    SELECT t
+		    FROM Trade t
+		    WHERE t.idAccount = :accountId
+		    ORDER BY t.dateOpen ASC
+		""")
+		List<Trade> findByAccount(
+		        @Param("accountId") String accountId
+		);
 	
 	Optional<Trade> findTopByIdAccountAndDateOpenBeforeOrderByDateOpenDesc(
 	        String idAccount,

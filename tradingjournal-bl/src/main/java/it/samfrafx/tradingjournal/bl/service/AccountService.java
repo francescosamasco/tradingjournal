@@ -5,7 +5,6 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import it.samfrafx.tradingjournal.bl.data.AccountData;
-import it.samfrafx.tradingjournal.datamodel.data.Account;
 import it.samfrafx.tradingjournal.datamodel.repository.AccountRepository;
 
 @Service

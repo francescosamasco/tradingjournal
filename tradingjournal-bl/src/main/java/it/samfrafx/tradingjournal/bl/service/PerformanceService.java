@@ -5,6 +5,7 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.WeekFields;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -72,17 +73,26 @@ public class PerformanceService {
 	    Integer month = tradeDate.getMonthValue();
 
 	    WeekFields weekFields = WeekFields.of(Locale.ITALY);
+	    Integer week = tradeDate.get(weekFields.weekOfWeekBasedYear());
 
-	    Integer week = tradeDate.get(
-	            weekFields.weekOfWeekBasedYear()
-	    );
+	    String idPerformance = buildIdPerformance(year, month, week);
 
-	    String idPerformance = buildIdPerformance(
+	    /*
+	     * 1. Prima ricalcolo SEMPRE la settimana del trade.
+	     * Se non esiste, updateWeeklyPerformance la crea.
+	     * Se esiste, la aggiorna.
+	     */
+	    updateWeeklyPerformance(
+	            accountId,
 	            year,
 	            month,
 	            week
 	    );
 
+	    /*
+	     * 2. Ora recupero tutte le performance dalla settimana del trade in poi.
+	     * A questo punto la settimana esiste sicuramente.
+	     */
 	    List<Performance> performances =
 	            performanceRepository.findFromPerformanceId(
 	                    accountId,
@@ -90,30 +100,28 @@ public class PerformanceService {
 	            );
 
 	    if (performances == null || performances.isEmpty()) {
-
-	        updateWeeklyPerformance(
-	                accountId,
-	                year,
-	                month,
-	                week
-	        );
-
 	        return;
 	    }
 
+	    performances = performances.stream()
+	            .sorted(Comparator.comparing(Performance::getIdPerformance))
+	            .toList();
+
+	    /*
+	     * 3. Ricalcolo tutte le settimane successive.
+	     * Salto quella già ricalcolata sopra per evitare doppio calcolo inutile.
+	     */
 	    for (Performance performance : performances) {
 
-	        String[] parts =
-	                performance.getIdPerformance().split("-");
+	        if (idPerformance.equals(performance.getIdPerformance())) {
+	            continue;
+	        }
 
-	        Integer performanceYear =
-	                Integer.parseInt(parts[0]);
+	        String[] parts = performance.getIdPerformance().split("-");
 
-	        Integer performanceMonth =
-	                Integer.parseInt(parts[1]);
-
-	        Integer performanceWeek =
-	                Integer.parseInt(parts[2]);
+	        Integer performanceYear = Integer.parseInt(parts[0]);
+	        Integer performanceMonth = Integer.parseInt(parts[1]);
+	        Integer performanceWeek = Integer.parseInt(parts[2]);
 
 	        updateWeeklyPerformance(
 	                accountId,
@@ -123,7 +131,6 @@ public class PerformanceService {
 	        );
 	    }
 	}
-	
 	
 	public PerformanceData findClosestPreviousPerformance(String accountId, LocalDate date) {
 
@@ -434,6 +441,13 @@ public class PerformanceService {
 	            .toList();
 
 	    // =========================
+	    // NO WIN
+	    // =========================
+	    if (wins.isEmpty()) {
+	        return BigDecimal.ZERO;
+	    }
+
+	    // =========================
 	    // CASO STANDARD
 	    // media win / media loss
 	    // =========================
@@ -467,11 +481,11 @@ public class PerformanceService {
 	    }
 
 	    // =========================
-	    // SOLO TRADE POSITIVI
-	    // media RR dei trade
+	    // SOLO WIN
 	    // =========================
 	    List<BigDecimal> rrs = validTrades.stream()
-	            .map(t -> t.getRr() )
+	            .map(TradeData::getRr)
+	            .filter(Objects::nonNull)
 	            .filter(rr -> rr.compareTo(BigDecimal.ZERO) > 0)
 	            .toList();
 

@@ -90,7 +90,13 @@ public class DashboardService {
     }
 
     private BigDecimal averageWinrate(List<PerformanceData> performances) {
-        return average(performances, PerformanceData::getWinrate);
+    	 if (performances == null || performances.isEmpty()) {
+             return BigDecimal.ZERO;
+         }
+    	 List<PerformanceData> performanceFiltered = performances.stream()
+	        .filter( p -> p.isGrowth() || p.isLoss())
+ 		        .collect(Collectors.toList());    
+        return average(performanceFiltered, PerformanceData::getWinrate);
     }
 
     private BigDecimal averageRr(List<PerformanceData> performances) {
