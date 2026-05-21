@@ -2,8 +2,8 @@ package it.samfrafx.tradingjournal.bl.service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -17,11 +17,9 @@ import it.samfrafx.tradingjournal.bl.data.PerformanceData;
 public class DashboardService {
 
     private final PerformanceService performanceService;
-    private final TradeService tradeService;
 
-    public DashboardService(PerformanceService performanceService, TradeService tradeService) {
+    public DashboardService(PerformanceService performanceService) {
         this.performanceService = performanceService;
-        this.tradeService = tradeService;
     }
 
     public DashboardData buildDashboard(String accountId, Integer year, PeriodEnum period) {
@@ -42,7 +40,7 @@ public class DashboardService {
         dashboard.setProfitTotale(profitTotale);
         dashboard.setProfitPercent( getTotalProfitPercent(performances) );
 
-        dashboard.setWinrate(averageWinrate(performances));
+        dashboard.setWinrate(calculateWinrate(performances));
         dashboard.setRrAverage(averageRr(performances));
         dashboard.setProfitFactor(calculateProfitFactor(performances));
 
@@ -99,6 +97,35 @@ public class DashboardService {
         return average(performanceFiltered, PerformanceData::getWinrate);
     }
 
+    
+    private BigDecimal calculateWinrate(List<PerformanceData> performances) {
+
+        if (performances == null || performances.isEmpty()) {
+            return BigDecimal.ZERO;
+        }
+
+        int totalWin = performances.stream()
+                .map(PerformanceData::getWinTrades)
+                .filter(Objects::nonNull)
+                .mapToInt(Integer::intValue)
+                .sum();
+
+        int totalLoss = performances.stream()
+                .map(PerformanceData::getLossTrades)
+                .filter(Objects::nonNull)
+                .mapToInt(Integer::intValue)
+                .sum();
+
+        int totalTrades = totalWin + totalLoss;
+
+        if (totalTrades == 0) {
+            return BigDecimal.ZERO;
+        }
+
+        return BigDecimal.valueOf(totalWin)
+                .multiply(BigDecimal.valueOf(100))
+                .divide(BigDecimal.valueOf(totalTrades), 1, RoundingMode.HALF_UP);
+    }
     private BigDecimal averageRr(List<PerformanceData> performances) {
     	 if (performances == null || performances.isEmpty()) {
              return BigDecimal.ZERO;

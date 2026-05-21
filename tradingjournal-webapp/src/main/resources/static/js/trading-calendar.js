@@ -201,13 +201,20 @@ window.TradingCalendar = (function () {
 	}
 
 	function applyTradeToCell(cell, trade) {
+
 		const amount = Number(trade.amount || 0);
 
 		const profitPercent = trade.percentage != null
 			? Number(trade.percentage)
 			: null;
 
-		cell.classList.add(amount >= 0 ? "positive" : "negative");
+		if (amount > 0) {
+			cell.classList.add("positive");
+		} else if (amount < 0) {
+			cell.classList.add("negative");
+		} else {
+			cell.classList.add("neutral");
+		}
 
 		const box = document.createElement("div");
 		box.className = "trade-box";

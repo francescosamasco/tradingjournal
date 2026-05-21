@@ -636,6 +636,7 @@
 											<th class="text-end">Profit %</th>
 											<th>Tags</th>
 											<th>Voto Setup</th>
+											<th>Analisi</th>
 										</tr>
 									</thead>
 
@@ -747,6 +748,20 @@
 
 												<span th:if="${t.votoSetupEnum == null}">-</span>
 
+											</td>
+											
+											<td class="text-end fw-bold">
+
+											    <a th:if="${t.analisi != null and !#strings.isEmpty(t.analisi)}"
+											       th:href="${t.analisi}"
+											       th:text="'link'"
+											       target="_blank">
+											    </a>
+											
+											    <span th:unless="${t.analisi != null and !#strings.isEmpty(t.analisi)}">
+											        --
+											    </span>
+											
 											</td>
 
 										</tr>

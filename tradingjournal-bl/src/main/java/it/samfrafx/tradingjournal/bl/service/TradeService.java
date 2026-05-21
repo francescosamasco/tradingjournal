@@ -357,9 +357,6 @@ public class TradeService {
         Trade trade = tradeRepository.findById(data.getIdTrade())
                 .orElseThrow(() -> new IllegalArgumentException("Trade non trovato"));
 
-        String oldAccountId = trade.getIdAccount();
-        LocalDateTime oldDateOpen = trade.getDateOpen();
-
         trade.setTipoMovimento(
                 data.getTipoMovimento() != null && !data.getTipoMovimento().isBlank()
                         ? data.getTipoMovimento()

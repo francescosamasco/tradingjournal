@@ -186,13 +186,13 @@ function initEditTradeTagsSelect() {
 
 	editTagsTomSelect = new TomSelect(tagsSelect, {
 		plugins: ["remove_button"],
-		create: false,
+		create: true,
 		persist: false,
-		placeholder: "Seleziona uno o più tags...",
+		createOnBlur: true,
+		placeholder: "Scrivi o seleziona uno o più tags...",
 		maxItems: null
 	});
 }
-
 /* =========================
    CONFLUENZE
 ========================= */

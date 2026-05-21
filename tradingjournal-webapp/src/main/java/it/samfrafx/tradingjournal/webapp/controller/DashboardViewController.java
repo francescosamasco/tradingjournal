@@ -95,9 +95,9 @@ public class DashboardViewController {
 
 		PeriodEnum periodEnum = PeriodEnum.getEnum(period);
 
+		List<TradeData> trades = this.tradeService.getTrades(accountId, year, periodEnum);
 		DashboardData dashboard = this.service.buildDashboard(accountId, year, periodEnum);
 		List<PerformanceData> performances = performanceService.getPerformances( accountId, year, periodEnum);
-		List<TradeData> trades = this.tradeService.getTrades(accountId, year, periodEnum);
 
 		CalendarData calendar = buildCalendarData(trades, performances);
 
