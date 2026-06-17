@@ -40,11 +40,13 @@
 
 								<div class="col-12 col-md-4">
 									<label class="form-label">Asset</label>
-									<select class="form-select tj-input" name="asset" required>
-										<option value="">Seleziona</option>
-										<option value="EURUSD">EURUSD</option>
-										<option value="GBPUSD">GBPUSD</option>
-										<option value="NAS100">NAS100</option>
+									<select class="form-select tj-input"
+											name="asset"
+											required>
+										<option th:each="s : ${assets}"
+												th:value="${s.id}"
+												th:text="${s.descrizione}">
+										</option>
 									</select>
 								</div>
 							</div>
@@ -103,38 +105,27 @@
 									<label class="form-label">Posizione</label>
 									<select class="form-select tj-input" name="posizione" required>
 										<option value="">Seleziona</option>
-										<option value="BUY">Buy</option>
-										<option value="SELL">Sell</option>
+										<option value="Buy">Buy</option>
+										<option value="Sell">Sell</option>
 									</select>
 								</div>
 
-								<div class="col-12 col-md-2">
-									<label class="form-label">Struttura</label>
-									<select class="form-select tj-input"
-											id="strutturaSelect"
-											name="struttura"
-											required>
-										<option value="">Seleziona</option>
-										<option th:each="s : ${strutture}"
-												th:value="${s.id}"
-												th:text="${s.descrizione}">
-										</option>
-									</select>
+								<div class="col-12 col-md-3">
+								    <label class="form-label">Setup</label>
+								    <select class="form-select tj-input"
+								            id="editSetupSelect"
+								            name="setup"
+								            required>
+								
+								        <option value="">Seleziona</option>
+								
+								        <option th:each="setup : ${setups}"
+								                th:value="${setup.id}"
+								                th:text="${setup.descrizione}">
+								        </option>
+								
+								    </select>
 								</div>
-
-								<div class="col-12 col-md-2">
-									<label class="form-label">Setup</label>
-									<select class="form-select tj-input"
-											id="setupSelect"
-											name="setup"
-											required>
-										<option value="">Seleziona</option>
-										<option value="Diretta">Diretta</option>
-										<option value="Conferma">Conferma</option>
-										<option value="Manipolazione">Manipolazione</option>
-									</select>
-								</div>
-
 								<div class="col-12 col-md-4">
 									<label class="form-label">Confluenze</label>
 									<select class="form-select tj-input"
@@ -245,11 +236,13 @@
 
 								<div class="col-12 col-md-4">
 									<label class="form-label">Asset</label>
-									<select class="form-select tj-input" name="asset" required>
-										<option value="">Seleziona</option>
-										<option value="EURUSD">EURUSD</option>
-										<option value="GBPUSD">GBPUSD</option>
-										<option value="NAS100">NAS100</option>
+									<select class="form-select tj-input"
+											name="asset"
+											required>
+										<option th:each="s : ${assets}"
+												th:value="${s.id}"
+												th:text="${s.descrizione}">
+										</option>
 									</select>
 								</div>
 							</div>
@@ -308,36 +301,26 @@
 									<label class="form-label">Posizione</label>
 									<select class="form-select tj-input" name="posizione" required>
 										<option value="">Seleziona</option>
-										<option value="BUY">Buy</option>
-										<option value="SELL">Sell</option>
+										<option value="Buy">Buy</option>
+										<option value="Sell">Sell</option>
 									</select>
 								</div>
 
-								<div class="col-12 col-md-2">
-									<label class="form-label">Struttura</label>
-									<select class="form-select tj-input"
-											id="editStrutturaSelect"
-											name="struttura"
-											required>
-										<option value="">Seleziona</option>
-										<option th:each="s : ${strutture}"
-												th:value="${s.id}"
-												th:text="${s.descrizione}">
-										</option>
-									</select>
-								</div>
-
-								<div class="col-12 col-md-2">
-									<label class="form-label">Setup</label>
-									<select class="form-select tj-input"
-											id="editSetupSelect"
-											name="setup"
-											required>
-										<option value="">Seleziona</option>
-										<option value="Diretta">Diretta</option>
-										<option value="Conferma">Conferma</option>
-										<option value="Manipolazione">Manipolazione</option>
-									</select>
+								<<div class="col-12 col-md-3">
+								    <label class="form-label">Setup</label>
+								    <select class="form-select tj-input"
+								            id="editSetupSelect"
+								            name="setup"
+								            required>
+								
+								        <option value="">Seleziona</option>
+								
+								        <option th:each="setup : ${setups}"
+								                th:value="${setup.id}"
+								                th:text="${setup.descrizione}">
+								        </option>
+								
+								    </select>
 								</div>
 
 								<div class="col-12 col-md-4">
@@ -350,13 +333,13 @@
 								</div>
 
 								<div class="col-12 col-md-2">
-									<label class="form-label">Voto Setup</label>
-									<input type="text"
-										   class="form-control tj-input text-center fw-bold"
-										   id="editVotoSetupInput"
-										   name="votoSetup"
-										   readonly
-										   placeholder="--">
+								    <label class="form-label">Voto Setup</label>
+								    <input type="text"
+								           class="form-control tj-input text-center fw-bold"
+								           id="editVotoSetupInput"
+								           name="votoSetup"
+								           readonly
+								           placeholder="--">
 								</div>
 							</div>
 						</div>

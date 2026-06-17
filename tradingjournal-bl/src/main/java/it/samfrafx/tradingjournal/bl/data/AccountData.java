@@ -2,6 +2,7 @@ package it.samfrafx.tradingjournal.bl.data;
 
 import java.math.BigDecimal;
 
+import it.samfrafx.tradingjournal.bl.data.enums.AccountType;
 import it.samfrafx.tradingjournal.datamodel.data.Account;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -18,7 +19,9 @@ public class AccountData {
 
     private BigDecimal profit;
 
-    private String type;
+    private Integer type;
+    
+    private String strategyId;
 
     // =========================
     // FACTORY METHOD
@@ -38,6 +41,7 @@ public class AccountData {
         dto.setProfit(account.getProfit());
 
         dto.setType(account.getType());
+        dto.setStrategyId( account.getStrategyId() );
 
         return dto;
     }
@@ -76,4 +80,9 @@ public class AccountData {
 
         return profit.compareTo(BigDecimal.ZERO) < 0;
     }
+    
+    public AccountType getAccountType() {
+    	return AccountType.fromNumeric(this.type);
+    }
+    
 }

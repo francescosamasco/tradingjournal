@@ -21,8 +21,11 @@ public class Account {
     @Column(name = "profit", precision = 11, scale = 2)
     private BigDecimal profit;
 
-    @Column(name = "type")
-    private String type;
+    @Column(name = "type", nullable = false)
+    private Integer type;
+    
+    @Column(name = "strategy_id", nullable = false)
+    private String strategyId;
 
     // ===== GETTER / SETTER =====
 
@@ -58,11 +61,19 @@ public class Account {
         this.profit = profit;
     }
 
-    public String getType() {
+    public Integer getType() {
         return type;
     }
 
-    public void setType(String type) {
+    public void setType(Integer type) {
         this.type = type;
     }
+
+	public String getStrategyId() {
+		return strategyId;
+	}
+
+	public void setStrategyId(String strategyId) {
+		this.strategyId = strategyId;
+	}
 }

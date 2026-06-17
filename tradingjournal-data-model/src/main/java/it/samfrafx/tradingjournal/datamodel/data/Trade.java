@@ -19,9 +19,6 @@ public class Trade {
     @Column(name = "id_account", nullable = false)
     private String idAccount;
 
-    @Column(name = "tipo_movimento", nullable = false)
-    private String tipoMovimento;
-
     @Column(name = "date_open")
     private LocalDateTime dateOpen;
 
@@ -63,6 +60,12 @@ public class Trade {
 
     @Column(name = "note")
     private String note;
+    
+    @Column(name = "tipo_movimento", nullable = false)
+    private Integer tipoMovimento;
+    
+    @Column(name = "tipo_trade", nullable = false)
+    private Integer tipoTrade;
 
     public String getIdTrade() {
         return idTrade;
@@ -80,11 +83,11 @@ public class Trade {
         this.idAccount = idAccount;
     }
 
-    public String getTipoMovimento() {
+    public Integer getTipoMovimento() {
         return tipoMovimento;
     }
 
-    public void setTipoMovimento(String tipoMovimento) {
+    public void setTipoMovimento(Integer tipoMovimento) {
         this.tipoMovimento = tipoMovimento;
     }
 
@@ -200,15 +203,11 @@ public class Trade {
         this.note = note;
     }
 
-    public boolean isTrade() {
-        return "trade".equalsIgnoreCase(tipoMovimento);
-    }
+	public Integer getTipoTrade() {
+		return tipoTrade;
+	}
 
-    public boolean isPrelievo() {
-        return "prelievo".equalsIgnoreCase(tipoMovimento);
-    }
-
-    public boolean isDeposito() {
-        return "deposito".equalsIgnoreCase(tipoMovimento);
-    }
+	public void setTipoTrade(Integer tipoTrade) {
+		this.tipoTrade = tipoTrade;
+	}
 }

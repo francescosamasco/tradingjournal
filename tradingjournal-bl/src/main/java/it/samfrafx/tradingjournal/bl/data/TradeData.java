@@ -15,7 +15,6 @@ public class TradeData {
 
     private String idTrade;
     private String accountId;
-    private String tipoMovimento;
 
     private String asset;
     private String esito;
@@ -34,6 +33,10 @@ public class TradeData {
 
     private String analisi;
     private String note;
+    
+    private Integer tipoMovimento;
+    private Integer tipoTrade;
+
 
     // =========================
     // FACTORY METHOD
@@ -95,17 +98,17 @@ public class TradeData {
     // TIPO MOVIMENTO
     // =========================
 
-    public boolean isTrade() {
-        return "trade".equalsIgnoreCase(tipoMovimento);
-    }
-
-    public boolean isPrelievo() {
-        return "prelievo".equalsIgnoreCase(tipoMovimento);
-    }
-
-    public boolean isDeposito() {
-        return "deposito".equalsIgnoreCase(tipoMovimento);
-    }
+ // public boolean isTrade() {
+ //     return "trade".equalsIgnoreCase(tipoMovimento);
+ // }
+ //
+ // public boolean isPrelievo() {
+ //     return "prelievo".equalsIgnoreCase(tipoMovimento);
+ // }
+ //
+ // public boolean isDeposito() {
+ //     return "deposito".equalsIgnoreCase(tipoMovimento);
+ // }
 
     // =========================
     // ESITI TRADE

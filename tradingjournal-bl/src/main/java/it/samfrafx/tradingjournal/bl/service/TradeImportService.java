@@ -48,7 +48,7 @@ public class TradeImportService {
             TradeData data = new TradeData();
 
             data.setAccountId(accountId);
-            data.setTipoMovimento("trade");
+            data.setTipoMovimento(0);
 
             data.setAsset(get(c, 0));
             data.setEsito(normalizeEsito(get(c, 1)));

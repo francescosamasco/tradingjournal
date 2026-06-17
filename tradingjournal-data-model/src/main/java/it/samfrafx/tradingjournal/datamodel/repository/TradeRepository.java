@@ -16,6 +16,14 @@ import it.samfrafx.tradingjournal.datamodel.data.Trade;
 public interface TradeRepository extends JpaRepository<Trade, String> {
 
 	@Query("""
+			SELECT t.tags
+			FROM Trade t
+			WHERE t.tags IS NOT NULL
+			AND t.tags <> ''
+		""")
+		List<String> findAllTags();
+	
+	@Query("""
 		    SELECT t
 		    FROM Trade t
 		    WHERE t.idAccount = :accountId
@@ -50,32 +58,38 @@ public interface TradeRepository extends JpaRepository<Trade, String> {
 		);
 	
 	
+	@Query("""
+		    SELECT t
+		    FROM Trade t
+		    WHERE t.idAccount = :accountId
+		      AND t.dateOpen >= :start
+		      AND t.dateOpen < :end
+		      AND t.tipoTrade = :tipoTrade
+		    ORDER BY t.dateOpen ASC
+		""")
+		List<Trade> findByAccountAndPeriodAndTipoTrade(
+		        @Param("accountId") String accountId,
+		        @Param("start") LocalDateTime start,
+		        @Param("end") LocalDateTime end,
+		        @Param("tipoTrade") Integer tipoTrade
+		);
 	
+	@Query("select distinct t.confluenze " +
+		       "from Trade t " +
+		       "where t.idAccount = :accountId " +
+		       "and lower(t.setup) = lower(:setup) " +
+		       "and t.confluenze is not null " +
+		       "and t.confluenze <> ''")
+		List<String> findDistinctConfluenzeByAccountAndSetup(
+		        @Param("accountId") String accountId,
+		        @Param("setup") String setup
+		);
 	
 	
 	/* *****************************************  */
 	
-	@Query("""
-			    SELECT t
-			    FROM Trade t
-			    WHERE t.idAccount = :accountId
-			    ORDER BY t.dateOpen DESC
-			""")
-	List<Trade> findAllByAccount(String accountId);
 
-
-	@Query("""
-			    SELECT t
-			    FROM Trade t
-			    WHERE t.idAccount = :accountId
-			    AND t.dateOpen BETWEEN :start AND :end
-			    ORDER BY t.dateOpen ASC
-			""")
-	List<Trade> findByAccountAndPeriod(
-			String accountId,
-			LocalDateTime start,
-			LocalDateTime end
-			);
+	
 
 	
 	@Query("""

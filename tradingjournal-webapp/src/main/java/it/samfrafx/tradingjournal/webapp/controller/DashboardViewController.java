@@ -8,6 +8,7 @@ import java.time.temporal.WeekFields;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -51,7 +52,7 @@ public class DashboardViewController {
 	private final DashboardService service;
 	
 	@Autowired
-	private volatile TradeImportService 	    tradeImportService;
+	private volatile TradeImportService    tradeImportService;
 
 	public DashboardViewController(DashboardService service, AccountService accountService, TradeService tradeService, PerformanceService performanceService) {
 		this.service = service;
@@ -63,106 +64,144 @@ public class DashboardViewController {
 	
 	@PostMapping("/dashboard/trades/import")
 	@ResponseBody
-	public void importTrades(
-	        @RequestParam String accountId,
-	        @RequestParam String rawText
-	) {
+	public void importTrades(  @RequestParam String accountId,   @RequestParam String rawText)  {
 	    tradeImportService.importFromExcelText(accountId, rawText);
 	}
 	
 	@GetMapping("/dashboard")
 	public String mainView(
-			@RequestParam(name = "accountId", required = false) String accountId,
-			@RequestParam(name = "year", required = false) Integer year,
-			@RequestParam(name = "period", required = false) String period,
-			@RequestParam(required = false, defaultValue = "false") Boolean excludeErrors,
-			Model model
-			) {
+	        @RequestParam(name = "accountId", required = false) String pAccountId,
+	        @RequestParam(name = "year", required = false) Integer pYear,
+	        @RequestParam(name = "period", required = false) String pPeriod,
+	        @RequestParam(required = false, defaultValue = "false") Boolean pStrategy,
+	        Model model
+	) {
 
-		if (accountId == null || accountId.isBlank()) {
-			accountId = DEFAULT_ACCOUNT_ID;
-		}
+	    LocalDate today = LocalDate.now();
 
-		LocalDate today = LocalDate.now();
+	    final String accountId = (pAccountId == null || pAccountId.isBlank())
+	            ? DEFAULT_ACCOUNT_ID
+	            : pAccountId;
 
-		if (year == null) {
-			year = today.getYear();
-		}
+	    final Integer year = pYear == null
+	            ? today.getYear()
+	            : pYear;
 
-		if (period == null || period.isBlank()) {
-			period = String.valueOf(today.getMonthValue());
-		}
+	    final String period = (pPeriod == null || pPeriod.isBlank())
+	            ? String.valueOf(today.getMonthValue())
+	            : pPeriod;
 
-		PeriodEnum periodEnum = PeriodEnum.getEnum(period);
+	    List<AccountData> accountDatas = this.accountService.findAll();
 
-		List<TradeData> trades = this.tradeService.getTrades(accountId, year, periodEnum);
-		DashboardData dashboard = this.service.buildDashboard(accountId, year, periodEnum);
-		List<PerformanceData> performances = performanceService.getPerformances( accountId, year, periodEnum);
+	    AccountData account = accountDatas.stream()
+	            .filter(p -> accountId.equals(p.getId()))
+	            .findFirst()
+	            .orElseThrow(() -> new IllegalArgumentException("Account non trovato: " + accountId));
 
-		CalendarData calendar = buildCalendarData(trades, performances);
+	    List<AccountSidebarData> accounts = accountDatas.stream()
+	            .map(a -> new AccountSidebarData(a.getId(), a.getDescription()))
+	            .collect(Collectors.toList());
 
-		model.addAttribute("title", "Dashboard");
-		model.addAttribute("accountId", accountId);
-		model.addAttribute("year", year);
-		model.addAttribute("period", period);
-		model.addAttribute("trades", trades);
+	    PeriodEnum periodEnum = PeriodEnum.getEnum(period);
 
-		model.addAttribute("calendar", calendar);
-		model.addAttribute("dashboard", dashboard);
+	    List<TradeData> trades = this.tradeService.getTrades(accountId, year, periodEnum, pStrategy);
+	    DashboardData dashboard = this.service.buildDashboard(accountId, year, periodEnum);
+	    List<PerformanceData> performances = this.performanceService.getPerformances(accountId, year, periodEnum);
+	    CalendarData calendar = buildCalendarData(trades, performances);
 
-		model.addAttribute("strutture", List.of(
-				new OptionData("Prostruttura", "Prostruttura"),
-				new OptionData("Controstruttura", "Controstruttura")
-				));
+	    
+	    List<String> setups = this.tradeService.getSetups(accountId);
+	    
+	    List<OptionData> assets;
+	    List<OptionData> strutture;
 
+	    switch (account.getAccountType()) {
 
-		List<AccountData> accountDatas = this.accountService.findAll();
+	        case CFD:
+	            assets = List.of(
+	                    new OptionData("EURUSD", "EURUSD"),
+	                    new OptionData("GBPUSD", "GBPUSD"),
+	                    new OptionData("NAS100", "NAS100")
+	            );
 
-		List<AccountSidebarData> accounts = accountDatas.stream()
-		        .map(a -> new AccountSidebarData(
-		                a.getId(),
-		                a.getDescription()
-		        ))
-		        .toList();
+	            strutture = List.of(
+	                    new OptionData("Prostruttura", "Prostruttura"),
+	                    new OptionData("Controstruttura", "Controstruttura")
+	            );
+	            break;
 
-		model.addAttribute("accounts", accounts);
-		model.addAttribute("accountId", accountId);
-		model.addAttribute("calendarYear", year);
-		model.addAttribute("period", period);
+	        case FUTURES:
+	            assets = List.of(
+	                    new OptionData("NQ", "NQ"),
+	                    new OptionData("MNQ", "MNQ")
+	            );
 
-		model.addAttribute("tags", List.of(
-				new OptionData("Tags1", "Tags1"),
-				new OptionData("Tags2", "Tags2"),
-				new OptionData("Tags3", "Tags3")
-				));		
-		model.addAttribute("months", List.of(
-				new OptionData("1", "Gennaio"),
-				new OptionData("2", "Febbraio"),
-				new OptionData("3", "Marzo"),
-				new OptionData("4", "Aprile"),
-				new OptionData("5", "Maggio"),
-				new OptionData("6", "Giugno"),
-				new OptionData("7", "Luglio"),
-				new OptionData("8", "Agosto"),
-				new OptionData("9", "Settembre"),
-				new OptionData("10", "Ottobre"),
-				new OptionData("11", "Novembre"),
-				new OptionData("12", "Dicembre")
-				));
+	            strutture = List.of(
+	                    new OptionData("Narrativa long", "Narrativa long"),
+	                    new OptionData("Narrativa short", "Narrativa short")
+	            );
+	            break;
 
+	        default:
+	            assets = List.of();
+	            strutture = List.of();
+	    }
 
-		model.addAttribute("excludeErrors", excludeErrors);
-		return "dashboard";
+	    model.addAttribute("assets", assets);
+	    model.addAttribute("strutture", strutture);
+	    
+	    
+	    List<String> tags = this.tradeService.getAllTags();
+
+	    model.addAttribute("title", "Dashboard");
+	    model.addAttribute("accountId", accountId);
+	    model.addAttribute("account", account);
+	    model.addAttribute("accounts", accounts);
+	    model.addAttribute("year", year);
+	    model.addAttribute("period", period);
+	    model.addAttribute("calendarYear", year);
+	    model.addAttribute("excludeErrors", pStrategy);
+
+	    model.addAttribute("trades", trades);
+	    model.addAttribute("calendar", calendar);
+	    model.addAttribute("dashboard", dashboard);
+
+	    model.addAttribute("tags", tags.stream()
+	            .map(tag -> new OptionData(tag, tag))
+	            .collect(Collectors.toList()));
+	    
+	    model.addAttribute("setups", setups.stream()
+	            .map(tag -> new OptionData(tag, tag))
+	            .collect(Collectors.toList()));
+	    
+
+	    model.addAttribute("months", List.of(
+	            new OptionData("1", "Gennaio"),
+	            new OptionData("2", "Febbraio"),
+	            new OptionData("3", "Marzo"),
+	            new OptionData("4", "Aprile"),
+	            new OptionData("5", "Maggio"),
+	            new OptionData("6", "Giugno"),
+	            new OptionData("7", "Luglio"),
+	            new OptionData("8", "Agosto"),
+	            new OptionData("9", "Settembre"),
+	            new OptionData("10", "Ottobre"),
+	            new OptionData("11", "Novembre"),
+	            new OptionData("12", "Dicembre")
+	    ));
+	    
+	    
+
+	    return "dashboard";
 	}
 
 	@GetMapping("/api/dashboard/confluenze")
 	@ResponseBody
 	public List<OptionData> getConfluenze(
-			@RequestParam String struttura,
+			@RequestParam String accountId,
 			@RequestParam String setup) {
 
-
-		List<String> confluenze = tradeService.calculateConfluenze(struttura, setup);
+		List<String> confluenze = tradeService.calculateConfluenze(accountId, setup);
 
 		return confluenze.stream()
 				.map(c -> new OptionData(c, c))
@@ -172,11 +211,10 @@ public class DashboardViewController {
 	@GetMapping("/api/dashboard/voto-setup")
 	@ResponseBody
 	public OptionData getVotoSetup(
-			@RequestParam String struttura,
 			@RequestParam String setup,
 			@RequestParam String confluenze) {
 
-		VotoSetupEnum voto = tradeService.getVotoSetupEnum(struttura, setup, confluenze);
+		VotoSetupEnum voto = tradeService.getVotoSetupEnum(setup, confluenze);
 
 		if (voto != VotoSetupEnum.ALTO && voto != VotoSetupEnum.MEDIO) {
 			voto = VotoSetupEnum.NON_STRATEGIA;

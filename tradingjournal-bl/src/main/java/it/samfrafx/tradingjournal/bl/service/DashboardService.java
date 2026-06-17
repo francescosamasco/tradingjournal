@@ -47,7 +47,7 @@ public class DashboardService {
         return dashboard;
     }
 
-    private BigDecimal getTotalProfitPercent(List<PerformanceData> performances) {
+    private static BigDecimal getTotalProfitPercent(List<PerformanceData> performances) {
         if (performances == null || performances.isEmpty()) {
             return BigDecimal.ZERO;
         }
@@ -61,7 +61,7 @@ public class DashboardService {
         return total.setScale(2, RoundingMode.HALF_UP);
     }
     
-    private BigDecimal getInitialBalance(List<PerformanceData> performances) {
+    private static BigDecimal getInitialBalance(List<PerformanceData> performances) {
         if (performances == null || performances.isEmpty()) {
             return BigDecimal.ZERO;
         }
@@ -71,7 +71,7 @@ public class DashboardService {
         return value != null ? value : BigDecimal.ZERO;
     }
 
-    private BigDecimal getTotalProfit(List<PerformanceData> performances) {
+    private static BigDecimal getTotalProfit(List<PerformanceData> performances) {
         if (performances == null || performances.isEmpty()) {
             return BigDecimal.ZERO;
         }
@@ -98,7 +98,7 @@ public class DashboardService {
     }
 
     
-    private BigDecimal calculateWinrate(List<PerformanceData> performances) {
+    private static BigDecimal calculateWinrate(List<PerformanceData> performances) {
 
         if (performances == null || performances.isEmpty()) {
             return BigDecimal.ZERO;
@@ -126,7 +126,7 @@ public class DashboardService {
                 .multiply(BigDecimal.valueOf(100))
                 .divide(BigDecimal.valueOf(totalTrades), 1, RoundingMode.HALF_UP);
     }
-    private BigDecimal averageRr(List<PerformanceData> performances) {
+    private static BigDecimal averageRr(List<PerformanceData> performances) {
     	 if (performances == null || performances.isEmpty()) {
              return BigDecimal.ZERO;
          }
@@ -136,11 +136,11 @@ public class DashboardService {
         return average(performanceFiltered, PerformanceData::getRr);
     }
 
-    private BigDecimal calculateProfitFactor(List<PerformanceData> performances) {
+    private static BigDecimal calculateProfitFactor(List<PerformanceData> performances) {
         return BigDecimal.ZERO;
     }
 
-    private BigDecimal average(   List<PerformanceData> performances,    Function<PerformanceData, BigDecimal> extractor
+    private static BigDecimal average(   List<PerformanceData> performances,    Function<PerformanceData, BigDecimal> extractor
     ) {
         if (performances == null || performances.isEmpty()) {
             return BigDecimal.ZERO;

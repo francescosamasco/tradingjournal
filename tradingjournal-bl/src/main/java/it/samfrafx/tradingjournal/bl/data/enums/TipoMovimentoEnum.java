@@ -2,10 +2,9 @@ package it.samfrafx.tradingjournal.bl.data.enums;
 
 public enum TipoMovimentoEnum {
 
-	TRADE("Trade", 1), 
-	TRADE_POTENZIALE("Potenziale", 2), 
+	TRADE("Trade", 0), 
 	PRELIEVO("Prelievo", -1),
-	DEPOSITO("Deposito", 0);
+	DEPOSITO("Deposito", 1);
 
 
 	private final String descrizione;
@@ -35,6 +34,19 @@ public enum TipoMovimentoEnum {
 	        }
 	    }
 	    return null; // oppure IllegalArgumentException
+	}
+	
+	public static TipoMovimentoEnum fromNumeric(Integer numeric) {
+		if (numeric == null) {
+			return null;
+		}
+
+		for (TipoMovimentoEnum s : values()) {
+			if (s.getNumeric() == numeric) {
+				return s;
+			}
+		}
+		return null; // oppure throw new IllegalArgumentException(...)
 	}
 
 }

@@ -5,9 +5,13 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,10 +22,14 @@ import it.samfrafx.tradingjournal.bl.data.TradeData;
 import it.samfrafx.tradingjournal.bl.data.TradingConfig;
 import it.samfrafx.tradingjournal.bl.data.enums.SetupEnum;
 import it.samfrafx.tradingjournal.bl.data.enums.StrutturaEnum;
+import it.samfrafx.tradingjournal.bl.data.enums.TipoMovimentoEnum;
+import it.samfrafx.tradingjournal.bl.data.enums.TipoTrade;
 import it.samfrafx.tradingjournal.bl.data.enums.VotoSetupEnum;
 import it.samfrafx.tradingjournal.datamodel.data.Account;
+import it.samfrafx.tradingjournal.datamodel.data.Setup;
 import it.samfrafx.tradingjournal.datamodel.data.Trade;
 import it.samfrafx.tradingjournal.datamodel.repository.AccountRepository;
+import it.samfrafx.tradingjournal.datamodel.repository.SetupRepository;
 import it.samfrafx.tradingjournal.datamodel.repository.TradeRepository;
 
 @Service
@@ -29,16 +37,18 @@ public class TradeService {
 
 	private final AccountRepository accountRepository;
     private final TradeRepository tradeRepository;
-
+    private final SetupRepository setupRepository;
     public TradeService(
             TradeRepository tradeRepository,
-            AccountRepository accountRepository
+            AccountRepository accountRepository,
+            SetupRepository setupRepository
     ) {
         this.tradeRepository = tradeRepository;
         this.accountRepository = accountRepository;
+        this.setupRepository = setupRepository;
     }
 
-    public List<TradeData> getTrades(String accountId, Integer year, PeriodEnum period) {
+    public List<TradeData> getTrades(String accountId, Integer year, PeriodEnum period, boolean strategy) {
 
         if (accountId == null || accountId.isBlank()) {
             throw new IllegalArgumentException("Account id obbligatorio");
@@ -58,10 +68,11 @@ public class TradeService {
 
         if (period.isMonth()) {
             int month = Integer.parseInt(period.getId());
-            return getTradesByMonth(accountId, year, month);
+            return getTradesByMonth(accountId, year, month, strategy);
         }
-
-        return getTradesByPeriod(accountId, year, period);
+        
+        return null;
+       // return getTradesByPeriod(accountId, year, period);
     }
     
     public TradeData findById(String idTrade) {
@@ -108,7 +119,8 @@ public class TradeService {
     private List<TradeData> getTradesByMonth(
             String accountId,
             Integer year,
-            Integer month
+            Integer month, 
+            boolean strategy
     ) {
 
         LocalDateTime start = LocalDate.of(year, month, 1)
@@ -120,10 +132,13 @@ public class TradeService {
                 )
                 .atTime(LocalTime.MAX);
 
-        List<Trade> trades = tradeRepository.findByAccountAndPeriod(
+        Integer tipoTrade = strategy ? 1 : 0;
+        
+        List<Trade> trades = tradeRepository.findByAccountAndPeriodAndTipoTrade(
                 accountId,
                 start,
-                end
+                end,
+                tipoTrade
         );
 
         return trades.stream()
@@ -131,48 +146,48 @@ public class TradeService {
                 .toList();
     }
 
-    private List<TradeData> getTradesByPeriod(
-            String accountId,
-            Integer year,
-            PeriodEnum period
-    ) {
-
-        LocalDateTime start;
-        LocalDateTime end;
-
-        switch (period) {
-
-            case Q1:
-                start = LocalDate.of(year, 1, 1).atStartOfDay();
-                end = LocalDate.of(year, 3, 31).atTime(23, 59, 59);
-                break;
-
-            case Q2:
-                start = LocalDate.of(year, 4, 1).atStartOfDay();
-                end = LocalDate.of(year, 6, 30).atTime(23, 59, 59);
-                break;
-
-            case Q3:
-                start = LocalDate.of(year, 7, 1).atStartOfDay();
-                end = LocalDate.of(year, 9, 30).atTime(23, 59, 59);
-                break;
-
-            case Q4:
-                start = LocalDate.of(year, 10, 1).atStartOfDay();
-                end = LocalDate.of(year, 12, 31).atTime(23, 59, 59);
-                break;
-
-            default:
-                throw new IllegalArgumentException("Periodo non gestito: " + period);
-        }
-
-        List<Trade> trades =
-                tradeRepository.findByAccountAndPeriod(accountId, start, end);
-
-       return trades.stream()
-                .map(TradeData::from)
-                .toList();
-    }
+   //private List<TradeData> getTradesByPeriod(
+   //        String accountId,
+   //        Integer year,
+   //        PeriodEnum period
+   //) {
+   //
+   //    LocalDateTime start;
+   //    LocalDateTime end;
+   //
+   //    switch (period) {
+   //
+   //        case Q1:
+   //            start = LocalDate.of(year, 1, 1).atStartOfDay();
+   //            end = LocalDate.of(year, 3, 31).atTime(23, 59, 59);
+   //            break;
+   //
+   //        case Q2:
+   //            start = LocalDate.of(year, 4, 1).atStartOfDay();
+   //            end = LocalDate.of(year, 6, 30).atTime(23, 59, 59);
+   //            break;
+   //
+   //        case Q3:
+   //            start = LocalDate.of(year, 7, 1).atStartOfDay();
+   //            end = LocalDate.of(year, 9, 30).atTime(23, 59, 59);
+   //            break;
+   //
+   //        case Q4:
+   //            start = LocalDate.of(year, 10, 1).atStartOfDay();
+   //            end = LocalDate.of(year, 12, 31).atTime(23, 59, 59);
+   //            break;
+   //
+   //        default:
+   //            throw new IllegalArgumentException("Periodo non gestito: " + period);
+   //    }
+   //
+   //    List<Trade> trades =
+   //            tradeRepository.findByAccountAndPeriod(accountId, start, end);
+   //
+   //   return trades.stream()
+   //            .map(TradeData::from)
+   //            .toList();
+   //}
 
     public BigDecimal sumProfitLossBeforeDateTime(
     		String accountId,
@@ -186,38 +201,149 @@ public class TradeService {
     	return total != null ? total : BigDecimal.ZERO;
     }
     
-    public List<String> calculateConfluenze(String strutturaId, String setupId) {
+    public List<String> calculateConfluenze(String accountId, String setupId) {
 
-        StrutturaEnum struttura = StrutturaEnum.fromDescrizione(strutturaId);
-        SetupEnum setup = SetupEnum.fromDescrizione(setupId);
+        if (accountId == null || accountId.isBlank()
+                || setupId == null || setupId.isBlank()) {
+            return List.of();
+        }
 
-        return Optional.ofNullable(TradingConfig.CONFIG.get(struttura))
-                .map(m -> m.get(setup))
-                .map(Config::getConfluenze)
-                .orElse(List.of());
-    }
-    
-    public VotoSetupEnum getVotoSetupEnum(String strutturaId, String setupId, String confluenze) {
-
-        StrutturaEnum struttura = StrutturaEnum.fromDescrizione(strutturaId);
-        SetupEnum setup = SetupEnum.fromDescrizione(setupId);
-
-        Config config = Optional.ofNullable(TradingConfig.CONFIG.get(struttura))
-                .map(m -> m.get(setup))
+        Account account = accountRepository.findById(accountId)
                 .orElse(null);
 
-        if (config == null || confluenze == null || confluenze.isBlank()) {
+        if (account == null || account.getStrategyId() == null || account.getStrategyId().isBlank()) {
+            return List.of();
+        }
+
+        String strategyId = account.getStrategyId();
+
+        Optional<Setup> setupOpt = setupRepository
+                .findByStrategyIdAndDescriptionIgnoreCase(strategyId, setupId)
+                .stream()
+                .findFirst();
+
+        if (setupOpt.isPresent()) {
+
+            String confluences = setupOpt.get().getConfluences();
+
+            if (confluences != null && !confluences.isBlank()) {
+                return splitConfluenze(confluences);
+            }
+        }
+
+        return tradeRepository
+                .findDistinctConfluenzeByAccountAndSetup(accountId, setupId)
+                .stream()
+                .flatMap(confluenze -> splitConfluenze(confluenze).stream())
+                .distinct()
+                .collect(Collectors.toList());
+    }
+    
+    private List<String> splitConfluenze(String confluences) {
+
+        if (confluences == null || confluences.isBlank()) {
+            return List.of();
+        }
+
+        return Arrays.stream(confluences.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isBlank())
+                .collect(Collectors.toList());
+    }
+    
+    public VotoSetupEnum getVotoSetupEnum(
+            String setupId,
+            String confluenze) {
+
+        if (setupId == null || setupId.isBlank()
+                || confluenze == null || confluenze.isBlank()) {
             return VotoSetupEnum.NON_STRATEGIA;
         }
 
-        String c = confluenze.toLowerCase();
+        Set<String> selectedConfluences = Arrays.stream(confluenze.split(","))
+                .map(String::trim)
+                .map(String::toLowerCase)
+                .collect(Collectors.toSet());
 
-        boolean match = config.getConfluenze().stream()
-                .allMatch(c::contains);
+        Optional<Setup> setupOpt = setupRepository
+                .findByDescriptionIgnoreCase(setupId)
+                .stream()
+                .filter(s -> {
 
-        return match ? config.getVoto() : VotoSetupEnum.BASSO;
+                    Set<String> required = Arrays.stream(s.getConfluences().split(","))
+                            .map(String::trim)
+                            .map(String::toLowerCase)
+                            .collect(Collectors.toSet());
+
+                    return selectedConfluences.containsAll(required);
+                })
+                .findFirst();
+
+        if (setupOpt.isEmpty()) {
+            return VotoSetupEnum.BASSO;
+        }
+
+        Integer voto = setupOpt.get().getVoto();
+
+        if (voto == null) {
+            return VotoSetupEnum.NON_STRATEGIA;
+        }
+	    return VotoSetupEnum.fromNumeric(voto);
     }
     
+    
+    public Integer calculateVotoSetup(String setupName, String selectedConfluences) {
+
+        if (selectedConfluences == null || selectedConfluences.isBlank()) {
+            return null;
+        }
+
+        List<String> confluenceList = Arrays.stream(selectedConfluences.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isBlank())
+                .collect(Collectors.toList());
+
+        return calculateVotoSetup(setupName, confluenceList);
+    }
+    
+    public Integer calculateVotoSetup(String setupName, List<String> selectedConfluences) {
+
+        if (setupName == null || setupName.isBlank()) {
+            return null;
+        }
+
+        if (selectedConfluences == null || selectedConfluences.isEmpty()) {
+            return null;
+        }
+
+        Set<String> selected = selectedConfluences.stream()
+                .filter(s -> s != null && !s.isBlank())
+                .map(String::trim)
+                .map(String::toLowerCase)
+                .collect(Collectors.toSet());
+
+        return setupRepository.findByDescriptionIgnoreCase(setupName)
+                .stream()
+                .filter(setup -> matchesConfluences(setup, selected))
+                .map(Setup::getVoto)
+                .findFirst()
+                .orElse(null);
+    }
+
+    private boolean matchesConfluences(Setup setup, Set<String> selectedConfluences) {
+
+        if (setup.getConfluences() == null || setup.getConfluences().isBlank()) {
+            return false;
+        }
+
+        Set<String> required = Arrays.stream(setup.getConfluences().split(","))
+                .filter(s -> s != null && !s.isBlank())
+                .map(String::trim)
+                .map(String::toLowerCase)
+                .collect(Collectors.toSet());
+
+        return selectedConfluences.containsAll(required);
+    }
         
     
     /*********/
@@ -235,10 +361,11 @@ public class TradeService {
             throw new IllegalArgumentException("Periodo obbligatorio");
         }
 
-        return tradeRepository.findByAccountAndPeriod(
+        return tradeRepository.findByAccountAndPeriodAndTipoTrade(
                 accountId,
                 start,
-                end
+                end,
+                0
         )
         .stream()
         .map(TradeData::from)
@@ -265,11 +392,8 @@ public class TradeService {
         trade.setIdTrade(UUID.randomUUID().toString());
         trade.setIdAccount(data.getAccountId());
 
-        trade.setTipoMovimento(
-                data.getTipoMovimento() != null && !data.getTipoMovimento().isBlank()
-                        ? data.getTipoMovimento()
-                        : "trade"
-        );
+        trade.setTipoMovimento(TipoMovimentoEnum.TRADE.getNumeric());
+        trade.setTipoTrade( TipoTrade.ACCOUNT.getNumeric());
 
         trade.setDateOpen(data.getDateOpen());
         trade.setAsset(data.getAsset());
@@ -357,12 +481,6 @@ public class TradeService {
         Trade trade = tradeRepository.findById(data.getIdTrade())
                 .orElseThrow(() -> new IllegalArgumentException("Trade non trovato"));
 
-        trade.setTipoMovimento(
-                data.getTipoMovimento() != null && !data.getTipoMovimento().isBlank()
-                        ? data.getTipoMovimento()
-                        : "trade"
-        );
-
         trade.setDateOpen(data.getDateOpen());
         trade.setAsset(data.getAsset());
         trade.setEsito(data.getEsito());
@@ -388,7 +506,6 @@ public class TradeService {
                         ? VotoSetupEnum.fromDescrizione(data.getVotoSetup()).getNumeric()
                         : VotoSetupEnum.NON_STRATEGIA.getNumeric()
         );
-
 
         trade.setTags(data.getTags());
         trade.setAnalisi(data.getAnalisi());
@@ -476,8 +593,38 @@ public class TradeService {
     }
     
     
+    //tas filtrare per strategia
+    public List<String> getAllTags() {
+        return tradeRepository.findAllTags().stream()
+                .filter(Objects::nonNull)
+                .flatMap(tags -> Arrays.stream(tags.split(",")))
+                .map(String::trim)
+                .filter(tag -> !tag.isBlank())
+                .map(String::toLowerCase)
+                .distinct()
+                .sorted()
+                .collect(Collectors.toList());
+    }
     
-    
+    public List<String> getSetups(String accountId) {
+
+        if (accountId == null || accountId.isBlank()) {
+            return List.of();
+        }
+
+        Account account = accountRepository.findById(accountId)
+                .orElse(null);
+
+        if (account == null
+                || account.getStrategyId() == null
+                || account.getStrategyId().isBlank()) {
+            return List.of();
+        }
+
+        return setupRepository.findDistinctDescriptionsByStrategyId(
+                account.getStrategyId()
+        );
+    }
     
     
 }

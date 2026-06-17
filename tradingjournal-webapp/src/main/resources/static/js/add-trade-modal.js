@@ -209,7 +209,7 @@ function initAddTradeConfluenzeSelect() {
 		plugins: ["remove_button"],
 		create: false,
 		persist: false,
-		placeholder: "Seleziona struttura e setup...",
+		placeholder: "Seleziona setup...",
 		maxItems: null,
 		valueField: "value",
 		labelField: "text",
@@ -224,7 +224,6 @@ function initAddTradeConfluenzeSelect() {
 
 function initAddTradeDynamicSelects() {
 	const modal = document.getElementById("addTradeModal");
-	const strutturaSelect = document.getElementById("strutturaSelect");
 	const setupSelect = document.getElementById("setupSelect");
 
 	if (modal) {
@@ -233,55 +232,59 @@ function initAddTradeDynamicSelects() {
 		});
 	}
 
-	if (!strutturaSelect || !setupSelect) return;
-
-	strutturaSelect.addEventListener("change", function () {
-		resetAddTradeConfluenzeSelect("Seleziona struttura e setup...");
-		resetAddTradeVotoSetup();
-
-		const struttura = strutturaSelect.value;
-		const setup = setupSelect.value;
-
-		if (struttura && setup) {
-			loadAddTradeConfluenze(struttura, setup);
-		}
-	});
+	if (!setupSelect) return;
 
 	setupSelect.addEventListener("change", function () {
-		resetAddTradeConfluenzeSelect("Seleziona struttura e setup...");
+		resetAddTradeConfluenzeSelect("Seleziona setup...");
 		resetAddTradeVotoSetup();
 
-		const struttura = strutturaSelect.value;
 		const setup = setupSelect.value;
 
-		if (struttura && setup) {
-			loadAddTradeConfluenze(struttura, setup);
+		if (setup) {
+			loadAddTradeConfluenze(setup);
 		}
 	});
 }
 
-function loadAddTradeConfluenze(struttura, setup) {
+function getAddTradeAccountId() {
+	const form = document.getElementById("addTradeForm");
+	if (!form) return "";
+
+	const accountIdInput = form.querySelector("[name='accountId']");
+	return accountIdInput ? accountIdInput.value : "";
+}
+
+function loadAddTradeConfluenze(setup) {
 	if (!addConfluenzeTomSelect) return;
+
+	const accountId = getAddTradeAccountId();
+
+	if (!accountId || !setup) {
+		resetAddTradeConfluenzeSelect("Seleziona setup...");
+		resetAddTradeVotoSetup();
+		return;
+	}
 
 	resetAddTradeConfluenzeSelect("Caricamento confluenze...");
 	resetAddTradeVotoSetup();
 
-	const url = "/api/dashboard/confluenze"
-		+ "?struttura=" + encodeURIComponent(struttura)
-		+ "&setup=" + encodeURIComponent(setup);
+	const params = new URLSearchParams({
+		accountId: accountId,
+		setup: setup
+	});
 
-	fetch(url)
-		.then(function (response) {
+	fetch("/api/dashboard/confluenze?" + params.toString())
+		.then(function(response) {
 			if (!response.ok) {
 				throw new Error("Errore HTTP " + response.status);
 			}
 
 			return response.json();
 		})
-		.then(function (items) {
+		.then(function(items) {
 			renderAddTradeConfluenzeOptions(items);
 		})
-		.catch(function (error) {
+		.catch(function(error) {
 			console.error("Errore caricamento confluenze:", error);
 			resetAddTradeConfluenzeSelect("Errore caricamento confluenze");
 			resetAddTradeVotoSetup("Errore");
@@ -339,7 +342,7 @@ function getAddTradeSelectedConfluenze() {
 }
 
 function resetAddTradeDynamicSelects() {
-	resetAddTradeConfluenzeSelect("Seleziona struttura e setup...");
+	resetAddTradeConfluenzeSelect("Seleziona setup...");
 	resetAddTradeVotoSetup();
 }
 
@@ -348,7 +351,7 @@ function resetAddTradeConfluenzeSelect(placeholder) {
 
 	addConfluenzeTomSelect.clear(true);
 	addConfluenzeTomSelect.clearOptions();
-	addConfluenzeTomSelect.settings.placeholder = placeholder || "Seleziona struttura e setup...";
+	addConfluenzeTomSelect.settings.placeholder = placeholder || "Seleziona setup...";
 	addConfluenzeTomSelect.refreshOptions(false);
 	addConfluenzeTomSelect.inputState();
 
@@ -376,22 +379,19 @@ function setAddTradeConfluenzeDisabled(disabled) {
 ========================= */
 
 function loadAddTradeVotoSetup() {
-	const strutturaSelect = document.getElementById("strutturaSelect");
 	const setupSelect = document.getElementById("setupSelect");
 	const votoSetupInput = document.getElementById("votoSetupInput");
 
-	if (!strutturaSelect || !setupSelect || !votoSetupInput) return;
+	if ( !setupSelect || !votoSetupInput) return;
 
-	const struttura = strutturaSelect.value;
 	const setup = setupSelect.value;
 	const confluenze = getAddTradeSelectedConfluenze();
 
 	resetAddTradeVotoSetup();
 
-	if (!struttura || !setup || !confluenze.length) return;
+	if (!setup || !confluenze.length) return;
 
 	const url = "/api/dashboard/voto-setup"
-		+ "?struttura=" + encodeURIComponent(struttura)
 		+ "&setup=" + encodeURIComponent(setup)
 		+ "&confluenze=" + encodeURIComponent(confluenze.join(","));
 
