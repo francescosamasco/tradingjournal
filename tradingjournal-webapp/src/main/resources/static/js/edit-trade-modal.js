@@ -75,7 +75,7 @@ function openEditTradeModal(trade) {
 	setEditFieldValue(form, "setup", trade.setup);
 	setEditFieldValue(form, "risk", trade.risk);
 	setEditFieldValue(form, "note", trade.note);
-	setEditFieldValue(form, "tradeAnalysis", trade.tradeAnalysis);
+	setEditFieldValue(form, "analisi", trade.analisi);
 
 	resetEditTradeVotoSetup(trade.votoSetup || "Non strategia");
 
@@ -392,6 +392,7 @@ function setEditTradeConfluenzeDisabled(disabled) {
 	}
 }
 
+
 /* =========================
    VOTO SETUP
 ========================= */
@@ -399,15 +400,15 @@ function setEditTradeConfluenzeDisabled(disabled) {
 function loadEditTradeVotoSetup() {
 	const strutturaSelect = document.getElementById("editStrutturaSelect");
 	const setupSelect = document.getElementById("editSetupSelect");
-	const votoSetupInput = document.getElementById("editVotoSetupInput");
+	const votoSetupSelect = document.getElementById("votoSetupSelect");
 
-	if (!strutturaSelect || !setupSelect || !votoSetupInput) return;
+	if (!strutturaSelect || !setupSelect || !votoSetupSelect) return;
 
 	const struttura = strutturaSelect.value;
 	const setup = setupSelect.value;
 	const confluenze = getEditTradeSelectedConfluenze();
 
-	resetEditTradeVotoSetup();
+	resetEditTradeVotoSetup("Non strategia");
 
 	if (!struttura || !setup || !confluenze.length) return;
 
@@ -426,16 +427,13 @@ function loadEditTradeVotoSetup() {
 		})
 		.then(function (data) {
 			if (!data) {
-				resetEditTradeVotoSetup();
+				resetEditTradeVotoSetup("Non strategia");
 				return;
 			}
 
-			const voto = data.id || data.value || data.codice || data.voto || "";
-			const descrizione = data.descrizione || data.label || data.text || voto || "Non strategia";
+			const descrizione = data.descrizione || data.label || data.text || data.voto || "Non strategia";
 
-			votoSetupInput.value = descrizione;
-
-			applyEditTradeVotoSetupStyle(descrizione);
+			resetEditTradeVotoSetup(descrizione);
 		})
 		.catch(function (error) {
 			console.error("Errore voto setup:", error);
@@ -443,23 +441,40 @@ function loadEditTradeVotoSetup() {
 		});
 }
 
-function resetEditTradeVotoSetup(label) {
-	const votoSetupInput = document.getElementById("editVotoSetupInput");
+function resetEditTradeVotoSetup(descrizione) {
+	const select = document.getElementById("votoSetupSelect");
 
-	if (!votoSetupInput) return;
+	if (!select) return;
 
-	const value = label || "Non strategia";
+	const valueToSelect = findSelectValueByText(select, descrizione || "Non strategia");
 
-	votoSetupInput.value = value;
-	applyEditTradeVotoSetupStyle(value);
+	select.value = valueToSelect || "";
+
+	applyEditTradeVotoSetupStyle(descrizione);
+}
+
+function findSelectValueByText(select, text) {
+	if (!select || !text) return "";
+
+	const normalizedText = normalizeValue(text);
+
+	for (let i = 0; i < select.options.length; i++) {
+		const option = select.options[i];
+
+		if (normalizeValue(option.text) === normalizedText) {
+			return option.value;
+		}
+	}
+
+	return "";
 }
 
 function applyEditTradeVotoSetupStyle(value) {
-	const input = document.getElementById("editVotoSetupInput");
+	const select = document.getElementById("votoSetupSelect");
 
-	if (!input) return;
+	if (!select) return;
 
-	input.classList.remove(
+	select.classList.remove(
 		"voto-setup-alto",
 		"voto-setup-medio",
 		"voto-setup-none"
@@ -468,16 +483,22 @@ function applyEditTradeVotoSetupStyle(value) {
 	const normalized = String(value || "").toLowerCase();
 
 	if (normalized.includes("alto")) {
-		input.classList.add("voto-setup-alto");
+		select.classList.add("voto-setup-alto");
 		return;
 	}
 
 	if (normalized.includes("medio")) {
-		input.classList.add("voto-setup-medio");
+		select.classList.add("voto-setup-medio");
 		return;
 	}
 
-	input.classList.add("voto-setup-none");
+	select.classList.add("voto-setup-none");
+}
+
+function normalizeValue(value) {
+	return String(value || "")
+		.trim()
+		.toLowerCase();
 }
 
 /* =========================

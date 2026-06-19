@@ -594,8 +594,13 @@ public class TradeService {
     
     
     //tas filtrare per strategia
-    public List<String> getAllTags() {
-        return tradeRepository.findAllTags().stream()
+    public List<String> getAllTags(String accountId) {
+    	
+    	Account account = this.accountRepository.findById(accountId)
+    			 .orElseThrow(() -> new IllegalArgumentException("Trade non trovato"));
+    	
+        return tradeRepository.findByAccount( account.getUuid() ).stream()
+        		.map( t -> t.getTags() )
                 .filter(Objects::nonNull)
                 .flatMap(tags -> Arrays.stream(tags.split(",")))
                 .map(String::trim)

@@ -5,6 +5,7 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.WeekFields;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -151,7 +152,7 @@ public class DashboardViewController {
 	    model.addAttribute("strutture", strutture);
 	    
 	    
-	    List<String> tags = this.tradeService.getAllTags();
+	    List<String> tags = this.tradeService.getAllTags(accountId);
 
 	    model.addAttribute("title", "Dashboard");
 	    model.addAttribute("accountId", accountId);
@@ -174,6 +175,14 @@ public class DashboardViewController {
 	            .map(tag -> new OptionData(tag, tag))
 	            .collect(Collectors.toList()));
 	    
+	    model.addAttribute(
+	            "votiSetup",
+	            Arrays.stream(VotoSetupEnum.values())
+	                    .map(v -> new OptionData(
+	                    		v.getDescrizione(),
+	                            v.getDescrizione()))
+	                    .collect(Collectors.toList())
+	    );
 
 	    model.addAttribute("months", List.of(
 	            new OptionData("1", "Gennaio"),

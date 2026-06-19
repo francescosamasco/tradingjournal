@@ -623,20 +623,19 @@
 
 									<thead>
 										<tr>
-											<th></th>
-											<th>Data apertura</th>
-											<th>Asset</th>
-											<th>Esito</th>
-											<th>Posizione</th>
-											<th>Struttura</th>
+											<th class="col-actions"></th>
+											<th class="col-data">Data apertura</th>
+											<th class="col-asset" >Asset</th>
+											<th class="col-esito" >Esito</th>
+											<th class="col-posizione" >Posizione</th>
 											<th>Setup</th>
 											<th>Confluenze</th>
-											<th class="text-end">Profit</th>
-											<th class="text-end">Risk</th>
+											<th class="col-profit text-end">Profit</th>
+											<th class="col-risk text-end">Risk</th>
 											<th class="text-end">Profit %</th>
-											<th>Tags</th>
-											<th>Voto Setup</th>
-											<th>Analisi</th>
+											<th class="col-tags">Tags</th>
+											<th class="col-votosetup" >Voto Setup</th>
+											<th class="col-analisi" >Analisi</th>
 										</tr>
 									</thead>
 
@@ -706,7 +705,6 @@
 											</td>
 
 											<td th:text="${t.posizione ?: '-'}">LONG</td>
-											<td th:text="${t.struttura ?: '-'}">Struttura</td>
 											<td th:text="${t.setup ?: '-'}">Setup</td>
 											<td th:text="${t.confluenze ?: '-'}">Confluenze</td>
 
