@@ -27,8 +27,7 @@ public class StrategyInsightService {
 		this.tradeRepository = tradeRepository;
 	}
 
-	public List<StrategyInsightData> getStrategyInsights(String accountId, Integer year, String period) {
-
+	public List<StrategyInsightData> getStrategyInsights(String accountId, Integer year, String period, String type) {
 		LocalDateTime[] range = resolvePeriodRange(year, period);
 
 		List<Trade> trades = tradeRepository.findByAccountAndPeriodAndTipoTrade(
@@ -39,8 +38,12 @@ public class StrategyInsightService {
 		);
 
 		Map<String, List<Trade>> groupedTrades = trades.stream()
-				.collect(Collectors.groupingBy(this::buildInsightKey));
-
+				.flatMap(trade -> buildInsightKeys(trade, type).stream()
+						.map(key -> new java.util.AbstractMap.SimpleEntry<>(key, trade)))
+				.collect(Collectors.groupingBy(
+						java.util.Map.Entry::getKey,
+						Collectors.mapping(java.util.Map.Entry::getValue, Collectors.toList())
+				));
 		return groupedTrades.entrySet()
 				.stream()
 				.map(entry -> buildInsightData(entry.getKey(), entry.getValue()))
@@ -105,13 +108,59 @@ public class StrategyInsightService {
 		};
 	}
 
-	private String buildInsightKey(Trade trade) {
+	private List<String> buildInsightKeys(Trade trade, String type) {
 
 		String setup = normalizeSingleValue(trade.getSetup());
-		String tags = normalizeCsvValue(trade.getTags());
-		String errors = normalizeCsvValue(trade.getErrors());
+		List<String> tags = splitCsv(trade.getTags());
+		List<String> errors = splitCsv(trade.getErrors());
 
-		return setup + "|" + tags + "|" + errors;
+		String insightType = type != null ? type.trim().toUpperCase() : "SETUP";
+
+		switch (insightType) {
+
+			case "SETUP_TAG":
+				if (tags.isEmpty()) {
+					return List.of(setup + "|-|-" );
+				}
+
+				return tags.stream()
+						.map(tag -> setup + "|" + tag + "|-")
+						.collect(Collectors.toList());
+
+			case "SETUP_ERROR":
+				if (errors.isEmpty()) {
+					return List.of(setup + "|-|-");
+				}
+
+				return errors.stream()
+						.map(error -> setup + "|-|" + error)
+						.collect(Collectors.toList());
+
+			case "COMBO":
+				return List.of(
+						setup + "|" +
+						normalizeCsvValue(trade.getTags()) + "|" +
+						normalizeCsvValue(trade.getErrors())
+				);
+
+			case "SETUP":
+			default:
+				return List.of(setup + "|-|-");
+		}
+	}
+	
+	
+	private List<String> splitCsv(String value) {
+
+		if (value == null || value.isBlank()) {
+			return List.of();
+		}
+
+		return Arrays.stream(value.split(","))
+				.map(String::trim)
+				.filter(s -> !s.isBlank())
+				.sorted(String.CASE_INSENSITIVE_ORDER)
+				.collect(Collectors.toList());
 	}
 
 	private StrategyInsightData buildInsightData(String key, List<Trade> trades) {

@@ -502,9 +502,10 @@ public class DashboardViewController {
 	public List<StrategyInsightData> getStrategyInsights(
 			@RequestParam String accountId,
 			@RequestParam Integer year,
-			@RequestParam String period) {
+			@RequestParam String period,
+			@RequestParam(defaultValue = "SETUP") String type) {
 
-		return strategyInsightService.getStrategyInsights(accountId, year, period);
+		return strategyInsightService.getStrategyInsights(accountId, year, period, type);
 	}
 	
 	@GetMapping("/")

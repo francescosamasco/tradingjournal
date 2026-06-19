@@ -602,7 +602,6 @@ public class TradeService {
                 .flatMap(tags -> Arrays.stream(tags.split(",")))
                 .map(String::trim)
                 .filter(tag -> !tag.isBlank())
-                .map(String::toLowerCase)
                 .distinct()
                 .sorted()
                 .collect(Collectors.toList());
@@ -620,7 +619,6 @@ public class TradeService {
                 .flatMap(tags -> Arrays.stream(tags.split(",")))
                 .map(String::trim)
                 .filter(tag -> !tag.isBlank())
-                .map(String::toLowerCase)
                 .distinct()
                 .sorted()
                 .collect(Collectors.toList());

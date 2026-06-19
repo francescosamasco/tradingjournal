@@ -2,33 +2,47 @@ document.addEventListener("DOMContentLoaded", function () {
 	initStrategyInsights();
 });
 
-let strategyInsightsData = [];
+let currentInsightType = "SETUP";
 
 function initStrategyInsights() {
-	loadStrategyInsights();
+	bindStrategyInsightButtons();
+	loadStrategyInsights(currentInsightType);
+}
 
-	document.querySelectorAll("[data-insight-mode]").forEach(function (button) {
+function bindStrategyInsightButtons() {
+	document.querySelectorAll("[data-insight-type]").forEach(function (button) {
 		button.addEventListener("click", function () {
-			document.querySelectorAll("[data-insight-mode]").forEach(function (btn) {
+
+			document.querySelectorAll("[data-insight-type]").forEach(function (btn) {
 				btn.classList.remove("active");
 			});
 
 			button.classList.add("active");
 
-			renderStrategyInsights(button.dataset.insightMode);
+			currentInsightType = button.dataset.insightType || "SETUP";
+			loadStrategyInsights(currentInsightType);
 		});
 	});
 }
 
-function loadStrategyInsights() {
+function loadStrategyInsights(type) {
 	const tbody = document.getElementById("strategyInsightsBody");
 
 	if (!tbody) return;
 
+	tbody.innerHTML = `
+		<tr>
+			<td colspan="8" class="text-center text-muted py-4">
+				Caricamento insights...
+			</td>
+		</tr>
+	`;
+
 	const params = new URLSearchParams({
 		accountId: window.accountId || "",
 		year: window.calendarYear || "",
-		period: window.calendarMonth || ""
+		period: window.calendarMonth || "",
+		type: type || "SETUP"
 	});
 
 	fetch("/api/dashboard/strategy-insights?" + params.toString())
@@ -40,8 +54,7 @@ function loadStrategyInsights() {
 			return response.json();
 		})
 		.then(function (data) {
-			strategyInsightsData = Array.isArray(data) ? data : [];
-			renderStrategyInsights("best");
+			renderStrategyInsights(data);
 		})
 		.catch(function (error) {
 			console.error(error);
@@ -56,34 +69,12 @@ function loadStrategyInsights() {
 		});
 }
 
-function renderStrategyInsights(mode) {
+function renderStrategyInsights(data) {
 	const tbody = document.getElementById("strategyInsightsBody");
 
 	if (!tbody) return;
 
-	let data = strategyInsightsData.slice();
-
-	if (mode === "best") {
-		data.sort(function (a, b) {
-			return Number(b.totalProfit || 0) - Number(a.totalProfit || 0);
-		});
-	}
-
-	if (mode === "worst") {
-		data.sort(function (a, b) {
-			return Number(a.totalProfit || 0) - Number(b.totalProfit || 0);
-		});
-	}
-
-	if (mode === "errors") {
-		data = data.filter(function (item) {
-			return item.errors && item.errors !== "-";
-		});
-
-		data.sort(function (a, b) {
-			return Number(b.totalTrades || 0) - Number(a.totalTrades || 0);
-		});
-	}
+	data = Array.isArray(data) ? data.slice() : [];
 
 	data = data.slice(0, 10);
 
@@ -109,6 +100,7 @@ function renderStrategyInsights(mode) {
 					${formatMoney(item.totalProfit)}
 				</td>
 				<td class="text-end">${formatPercent(item.winRate)}</td>
+				<td class="text-end">${formatPercent(item.lossRate)}</td>
 				<td class="text-end">${formatNumber(item.profitFactor)}</td>
 				<td>${renderQuality(item.quality)}</td>
 			</tr>
@@ -119,9 +111,16 @@ function renderStrategyInsights(mode) {
 function renderBadge(value) {
 	if (!value || value === "-") return "-";
 
-	return String(value).split(",").map(function (item) {
-		return `<span class="tag-badge me-1">${escapeHtml(item.trim())}</span>`;
-	}).join("");
+	return String(value)
+		.split(",")
+		.map(function (item) {
+			const cleanItem = item.trim();
+
+			if (!cleanItem) return "";
+
+			return `<span class="tag-badge me-1">${escapeHtml(cleanItem)}</span>`;
+		})
+		.join("");
 }
 
 function renderQuality(value) {
@@ -138,12 +137,14 @@ function formatMoney(value) {
 }
 
 function formatPercent(value) {
-	if (value === null || value === undefined) return "-";
+	if (value === null || value === undefined || value === "") return "-";
+
 	return Number(value).toFixed(1) + "%";
 }
 
 function formatNumber(value) {
-	if (value === null || value === undefined) return "-";
+	if (value === null || value === undefined || value === "") return "-";
+
 	return Number(value).toFixed(2);
 }
 
