@@ -1,6 +1,7 @@
 document.addEventListener("DOMContentLoaded", function () {
 
 	initAddTradeTagsSelect();
+	initAddTradeErrorsSelect();
 	initAddTradeConfluenzeSelect();
 	initAddTradeDynamicSelects();
 
@@ -15,6 +16,7 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 let addTagsTomSelect = null;
+let addErrorsTomSelect = null; 
 let addConfluenzeTomSelect = null;
 
 /* =========================
@@ -102,6 +104,10 @@ function prepareAddTradeModal() {
 		addTagsTomSelect.clear(true);
 	}
 
+	if (addErrorsTomSelect) {
+		addErrorsTomSelect.clear(true);
+	}
+	
 	resetAddTradeDynamicSelects();
 }
 
@@ -153,6 +159,10 @@ function initAddTradeSubmit() {
 				if (addTagsTomSelect) {
 					addTagsTomSelect.clear(true);
 				}
+				
+				if (addErrorsTomSelect) {
+					addErrorsTomSelect.clear(true);
+				}
 
 				resetAddTradeDynamicSelects();
 
@@ -187,6 +197,31 @@ function initAddTradeTagsSelect() {
 		persist: false,
 		createOnBlur: true,
 		placeholder: "Scrivi o seleziona uno o più tags...",
+		maxItems: null
+	});
+}
+
+/* =========================
+   ERRORS
+========================= */
+
+function initAddTradeErrorsSelect() {
+	debugger;
+	const errorsSelect = document.getElementById("errorsSelect");
+
+	if (!errorsSelect || typeof TomSelect === "undefined") return;
+
+	if (errorsSelect.tomselect) {
+		addErrorsTomSelect = errorsSelect.tomselect;
+		return;
+	}
+
+	addErrorsTomSelect = new TomSelect(errorsSelect, {
+		plugins: ["remove_button"],
+		create: true,
+		persist: false,
+		createOnBlur: true,
+		placeholder: "Scrivi o seleziona uno o più errori...",
 		maxItems: null
 	});
 }

@@ -596,7 +596,7 @@
 					<!-- TABELLA TRADES -->
 					<div class="col-12">
 						<div class="dash-card mt-3">
-
+					
 							<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-3">
 								<div>
 									<div class="dash-title mb-1">Storico Trades</div>
@@ -604,6 +604,14 @@
 								</div>
 
 								<div class="d-flex gap-2">
+									<button class="btn btn-sm btn-outline-secondary trade-collapse-btn"
+											type="button"
+											data-bs-toggle="collapse"
+											data-bs-target="#tradesTableCollapse">
+										<i class="bi bi-table me-1"></i>
+										Trades
+									</button>
+								
 									<button type="button"
 										class="btn btn-sm btn-success"
 										data-bs-toggle="modal"
@@ -611,164 +619,220 @@
 										onclick="prepareAddTradeModal()">
 										<i class="bi bi-plus-lg me-1"></i> Aggiungi Trade
 									</button>
-
+								
 									<button type="button" class="btn btn-sm btn-outline-secondary">
 										<i class="bi bi-download me-1"></i> Esporta
 									</button>
 								</div>
 							</div>
+							<div class="collapse" id="tradesTableCollapse">
+								<div class="table-responsive">
+									<table class="table table-hover align-middle trade-table mb-0">
+	
+										<thead>
+											<tr>
+												<th class="col-actions"></th>
+												<th class="col-data">Data apertura</th>
+												<th class="col-asset" >Asset</th>
+												<th class="col-esito" >Esito</th>
+												<th class="col-posizione" >Posizione</th>
+												<th>Setup</th>
+												<th class="col-profit text-end">Profit</th>
+												<th class="text-end">Profit %</th>
+												<th class="col-tags">Tags</th>
+												<th class="col-errors">Errors</th>
+												<th class="col-votosetup" >Voto Setup</th>
+												<th class="col-analisi" >Analisi</th>
+											</tr>
+										</thead>
+	
+										<tbody>
+	
+											<tr th:if="${trades == null || trades.isEmpty()}">
+												<td colspan="14" class="text-center text-muted py-4">
+													Nessun trade disponibile
+												</td>
+											</tr>
+	
+											<tr th:each="t : ${trades}">
+	
+												<td class="text-center">
+													<div class="dropdown trade-dropdown">
+	
+														<button class="trade-more-btn"
+															type="button"
+															data-bs-toggle="dropdown"
+															aria-expanded="false">
+															<i class="bi bi-three-dots-vertical"></i>
+														</button>
+	
+														<ul class="dropdown-menu dropdown-menu-end trade-dropdown-menu">
+	
+															<li>
+																<button class="dropdown-item trade-dropdown-item edit-trade-btn"
+																	type="button"
+																	th:attr="data-trade-id=${t.idTrade}">
+																	<i class="bi bi-pencil-square me-2"></i> Modifica
+																</button>
+															</li>
+	
+															<li>
+																<button class="dropdown-item trade-dropdown-item text-danger delete-trade-btn"
+																	type="button"
+																	th:attr="data-trade-id=${t.idTrade}">
+																	<i class="bi bi-trash3 me-2"></i> Rimuovi
+																</button>
+															</li>
+	
+														</ul>
+	
+													</div>
+												</td>
+	
+												<td>
+													<strong th:text="${t.dateOpen != null ? #temporals.format(t.dateOpen, 'dd/MM/yyyy') : '-'}">
+														01/04/2025
+													</strong>
+													<div class="text-muted small"
+														th:text="${t.dateOpen != null ? #temporals.format(t.dateOpen, 'HH:mm') : ''}">
+														10:30
+													</div>
+												</td>
+	
+												<td>
+													<strong th:text="${t.asset ?: '-'}">EURUSD</strong>
+												</td>
+	
+												<td>
+													<span class="trade-badge"
+														th:classappend="${t.win} ? ' positive' : (${t.loss} ? ' negative' : '')"
+														th:text="${t.esito ?: '-'}">
+														WIN
+													</span>
+												</td>
+	
+												<td th:text="${t.posizione ?: '-'}">LONG</td>
+												<td th:text="${t.setup ?: '-'}">Setup</td>
+										<!--    <td th:text="${t.confluenze ?: '-'}">Confluenze</td> -->	
+	
+												<td class="text-end">
+													<strong
+														th:classappend="${t.win} ? ' trade-result-positive' : (${t.loss} ? ' trade-result-negative' : '')"
+														th:text="${t.profit != null ? #numbers.formatDecimal(t.profit, 1, 'POINT', 2, 'COMMA') : '-'}">
+													</strong>
+	
+													<div class="text-muted small"
+														th:text="${t.accountBalance != null ? #numbers.formatDecimal(t.accountBalance, 1, 'POINT', 2, 'COMMA') : '-'}">
+													</div>
+												</td>
+												<!--
+												<td class="text-end"
+													th:text="${t.risk != null ? #numbers.formatDecimal(t.risk, 1, 2) : '-'}">
+													50.00
+												</td>
+												-->
+												<td class="text-end fw-bold"
+													th:text="${t.returnPercent != null ? #numbers.formatDecimal(t.returnPercent, 1, 1) : '-'}">
+													2.40
+												</td>
+	
+												<td>
+													<span class="tag-badge" th:text="${t.tags ?: '-'}">tag</span>
+												</td>
+												
+												<td>
+													<span class="tag-badge" th:text="${t.errors ?: '-'}">tag errors</span>
+												</td>
+	
+												<td class="text-truncate" style="max-width: 180px;">
+	
+													<span th:if="${t.votoSetupEnum != null}"
+														class="trade-badge"
+														th:classappend="
+															${t.votoSetupEnum.name() == 'ALTO'} ? ' trade-badge-win' :
+															(${t.votoSetupEnum.name() == 'MEDIO'} ? ' trade-badge-medium' :
+															(${t.votoSetupEnum.name() == 'BASSO'} ? ' trade-badge-low' : ''))"
+														th:text="${t.votoSetupEnum.descrizione}">
+													</span>
+	
+													<span th:if="${t.votoSetupEnum == null}">-</span>
+	
+												</td>
+												
+												<td class="text-end fw-bold">
+	
+												    <a th:if="${t.analisi != null and !#strings.isEmpty(t.analisi)}"
+												       th:href="${t.analisi}"
+												       th:text="'link'"
+												       target="_blank">
+												    </a>
+												
+												    <span th:unless="${t.analisi != null and !#strings.isEmpty(t.analisi)}">
+												        --
+												    </span>
+												
+												</td>
+	
+											</tr>
+	
+										</tbody>
+	
+									</table>
+								</div>
+							</div>
+						</div>
+					</div>
 
+					<!-- STRATEGY INSIGHTS -->
+					<div class="col-12">
+						<div class="dash-card mt-3">
+					
+							<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-3">
+								<div>
+									<div class="dash-title mb-1">Strategy Insights</div>
+									<div class="text-muted small">
+										Analisi combinazioni Setup, Tags ed Errors
+									</div>
+								</div>
+					
+								<div class="d-flex gap-2">
+									<button type="button" class="btn btn-sm btn-outline-success active" data-insight-mode="best">
+										Best
+									</button>
+									<button type="button" class="btn btn-sm btn-outline-danger" data-insight-mode="worst">
+										Worst
+									</button>
+									<button type="button" class="btn btn-sm btn-outline-secondary" data-insight-mode="errors">
+										Errors
+									</button>
+								</div>
+							</div>
+					
 							<div class="table-responsive">
-								<table class="table table-hover align-middle trade-table mb-0">
-
+								<table class="table table-hover align-middle trade-table mb-0" id="strategyInsightsTable">
 									<thead>
 										<tr>
-											<th class="col-actions"></th>
-											<th class="col-data">Data apertura</th>
-											<th class="col-asset" >Asset</th>
-											<th class="col-esito" >Esito</th>
-											<th class="col-posizione" >Posizione</th>
 											<th>Setup</th>
-											<th>Confluenze</th>
-											<th class="col-profit text-end">Profit</th>
-											<th class="col-risk text-end">Risk</th>
-											<th class="text-end">Profit %</th>
-											<th class="col-tags">Tags</th>
-											<th class="col-votosetup" >Voto Setup</th>
-											<th class="col-analisi" >Analisi</th>
+											<th>Tags</th>
+											<th>Errors</th>
+											<th class="text-end">Trades</th>
+											<th class="text-end">Profit</th>
+											<th class="text-end">Win %</th>
+											<th class="text-end">Loss %</th>
+											<th class="text-end">PF</th>
+											<th>Qualità</th>
 										</tr>
 									</thead>
-
-									<tbody>
-
-										<tr th:if="${trades == null || trades.isEmpty()}">
-											<td colspan="14" class="text-center text-muted py-4">
-												Nessun trade disponibile
+									<tbody id="strategyInsightsBody">
+										<tr>
+											<td colspan="9" class="text-center text-muted py-4">
+												Caricamento insights...
 											</td>
 										</tr>
-
-										<tr th:each="t : ${trades}">
-
-											<td class="text-center">
-												<div class="dropdown trade-dropdown">
-
-													<button class="trade-more-btn"
-														type="button"
-														data-bs-toggle="dropdown"
-														aria-expanded="false">
-														<i class="bi bi-three-dots-vertical"></i>
-													</button>
-
-													<ul class="dropdown-menu dropdown-menu-end trade-dropdown-menu">
-
-														<li>
-															<button class="dropdown-item trade-dropdown-item edit-trade-btn"
-																type="button"
-																th:attr="data-trade-id=${t.idTrade}">
-																<i class="bi bi-pencil-square me-2"></i> Modifica
-															</button>
-														</li>
-
-														<li>
-															<button class="dropdown-item trade-dropdown-item text-danger delete-trade-btn"
-																type="button"
-																th:attr="data-trade-id=${t.idTrade}">
-																<i class="bi bi-trash3 me-2"></i> Rimuovi
-															</button>
-														</li>
-
-													</ul>
-
-												</div>
-											</td>
-
-											<td>
-												<strong th:text="${t.dateOpen != null ? #temporals.format(t.dateOpen, 'dd/MM/yyyy') : '-'}">
-													01/04/2025
-												</strong>
-												<div class="text-muted small"
-													th:text="${t.dateOpen != null ? #temporals.format(t.dateOpen, 'HH:mm') : ''}">
-													10:30
-												</div>
-											</td>
-
-											<td>
-												<strong th:text="${t.asset ?: '-'}">EURUSD</strong>
-											</td>
-
-											<td>
-												<span class="trade-badge"
-													th:classappend="${t.win} ? ' positive' : (${t.loss} ? ' negative' : '')"
-													th:text="${t.esito ?: '-'}">
-													WIN
-												</span>
-											</td>
-
-											<td th:text="${t.posizione ?: '-'}">LONG</td>
-											<td th:text="${t.setup ?: '-'}">Setup</td>
-											<td th:text="${t.confluenze ?: '-'}">Confluenze</td>
-
-											<td class="text-end">
-												<strong
-													th:classappend="${t.win} ? ' trade-result-positive' : (${t.loss} ? ' trade-result-negative' : '')"
-													th:text="${t.profit != null ? #numbers.formatDecimal(t.profit, 1, 'POINT', 2, 'COMMA') : '-'}">
-												</strong>
-
-												<div class="text-muted small"
-													th:text="${t.accountBalance != null ? #numbers.formatDecimal(t.accountBalance, 1, 'POINT', 2, 'COMMA') : '-'}">
-												</div>
-											</td>
-
-											<td class="text-end"
-												th:text="${t.risk != null ? #numbers.formatDecimal(t.risk, 1, 2) : '-'}">
-												50.00
-											</td>
-
-											<td class="text-end fw-bold"
-												th:text="${t.returnPercent != null ? #numbers.formatDecimal(t.returnPercent, 1, 1) : '-'}">
-												2.40
-											</td>
-
-											<td>
-												<span class="tag-badge" th:text="${t.tags ?: '-'}">tag</span>
-											</td>
-
-											<td class="text-truncate" style="max-width: 180px;">
-
-												<span th:if="${t.votoSetupEnum != null}"
-													class="trade-badge"
-													th:classappend="
-														${t.votoSetupEnum.name() == 'ALTO'} ? ' trade-badge-win' :
-														(${t.votoSetupEnum.name() == 'MEDIO'} ? ' trade-badge-medium' :
-														(${t.votoSetupEnum.name() == 'BASSO'} ? ' trade-badge-low' : ''))"
-													th:text="${t.votoSetupEnum.descrizione}">
-												</span>
-
-												<span th:if="${t.votoSetupEnum == null}">-</span>
-
-											</td>
-											
-											<td class="text-end fw-bold">
-
-											    <a th:if="${t.analisi != null and !#strings.isEmpty(t.analisi)}"
-											       th:href="${t.analisi}"
-											       th:text="'link'"
-											       target="_blank">
-											    </a>
-											
-											    <span th:unless="${t.analisi != null and !#strings.isEmpty(t.analisi)}">
-											        --
-											    </span>
-											
-											</td>
-
-										</tr>
-
 									</tbody>
-
 								</table>
 							</div>
-
+					
 						</div>
 					</div>
 
@@ -798,6 +862,7 @@
 	<script th:src="@{/js/module.js}"></script>
 	<script th:src="@{/js/add-trade-modal.js}"></script>
 	<script th:src="@{/js/edit-trade-modal.js}"></script>
+	<script th:src="@{/js/strategy-insights.js}"></script>
 
 </body>
 </html>

@@ -28,6 +28,7 @@ import it.samfrafx.tradingjournal.bl.PeriodEnum;
 import it.samfrafx.tradingjournal.bl.data.AccountData;
 import it.samfrafx.tradingjournal.bl.data.DashboardData;
 import it.samfrafx.tradingjournal.bl.data.PerformanceData;
+import it.samfrafx.tradingjournal.bl.data.StrategyInsightData;
 import it.samfrafx.tradingjournal.bl.data.TradeData;
 import it.samfrafx.tradingjournal.bl.data.chart.CalendarData;
 import it.samfrafx.tradingjournal.bl.data.chart.DayData;
@@ -36,6 +37,7 @@ import it.samfrafx.tradingjournal.bl.data.enums.VotoSetupEnum;
 import it.samfrafx.tradingjournal.bl.service.AccountService;
 import it.samfrafx.tradingjournal.bl.service.DashboardService;
 import it.samfrafx.tradingjournal.bl.service.PerformanceService;
+import it.samfrafx.tradingjournal.bl.service.StrategyInsightService;
 import it.samfrafx.tradingjournal.bl.service.TradeImportService;
 import it.samfrafx.tradingjournal.bl.service.TradeService;
 import it.samfrafx.tradingjournal.webapp.data.AccountSidebarData;
@@ -51,6 +53,9 @@ public class DashboardViewController {
 	private final PerformanceService performanceService;
 
 	private final DashboardService service;
+	
+	@Autowired
+    private StrategyInsightService strategyInsightService;
 	
 	@Autowired
 	private volatile TradeImportService    tradeImportService;
@@ -153,6 +158,8 @@ public class DashboardViewController {
 	    
 	    
 	    List<String> tags = this.tradeService.getAllTags(accountId);
+	    List<String> errors = this.tradeService.getAllErrors(accountId);
+
 
 	    model.addAttribute("title", "Dashboard");
 	    model.addAttribute("accountId", accountId);
@@ -168,6 +175,10 @@ public class DashboardViewController {
 	    model.addAttribute("dashboard", dashboard);
 
 	    model.addAttribute("tags", tags.stream()
+	            .map(tag -> new OptionData(tag, tag))
+	            .collect(Collectors.toList()));
+	    
+	    model.addAttribute("errors", errors.stream()
 	            .map(tag -> new OptionData(tag, tag))
 	            .collect(Collectors.toList()));
 	    
@@ -486,7 +497,16 @@ public class DashboardViewController {
 	    return saved;
 	}
 
+	@GetMapping("/api/dashboard/strategy-insights")
+	@ResponseBody
+	public List<StrategyInsightData> getStrategyInsights(
+			@RequestParam String accountId,
+			@RequestParam Integer year,
+			@RequestParam String period) {
 
+		return strategyInsightService.getStrategyInsights(accountId, year, period);
+	}
+	
 	@GetMapping("/")
 	public String home(Model model) {
 		model.addAttribute("title", "Home");

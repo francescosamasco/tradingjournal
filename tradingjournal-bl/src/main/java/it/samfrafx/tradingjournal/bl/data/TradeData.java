@@ -26,6 +26,7 @@ public class TradeData {
     private String confluenze;
     private String votoSetup;
     private String tags;
+    private String errors;
 
     private BigDecimal profit;
     private BigDecimal risk;
@@ -56,6 +57,7 @@ public class TradeData {
         dto.setPosizione(t.getPosizione());
         dto.setStruttura(t.getStruttura());
         dto.setSetup(t.getSetup());
+        dto.setErrors(t.getErrors());
         dto.setConfluenze(t.getConfluenze());
         dto.setTags(t.getTags());
 

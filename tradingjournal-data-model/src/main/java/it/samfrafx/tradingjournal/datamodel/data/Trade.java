@@ -54,6 +54,9 @@ public class Trade {
 
     @Column(name = "tags")
     private String tags;
+    
+    @Column(name = "errors")
+    private String errors;
 
     @Column(name = "analisi")
     private String analisi;
@@ -209,5 +212,13 @@ public class Trade {
 
 	public void setTipoTrade(Integer tipoTrade) {
 		this.tipoTrade = tipoTrade;
+	}
+
+	public String getErrors() {
+		return errors;
+	}
+
+	public void setErrors(String errors) {
+		this.errors = errors;
 	}
 }

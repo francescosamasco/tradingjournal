@@ -67,7 +67,7 @@
 									</select>
 								</div>
 
-								<div class="col-12 col-md-2">
+								<div class="col-12 col-md-2" hidden >
 									<label class="form-label">Risk</label>
 									<input type="number"
 										   step="0.1"
@@ -113,7 +113,7 @@
 								<div class="col-12 col-md-3">
 								    <label class="form-label">Setup</label>
 								    <select class="form-select tj-input"
-								            id="editSetupSelect"
+								            id="setupSelect"
 								            name="setup"
 								            required>
 								
@@ -126,21 +126,7 @@
 								
 								    </select>
 								</div>
-								
-								<div class="col-12 col-md-4">
-									<label class="form-label">Tags</label>
-									<select class="form-select tj-input"
-											id="tagsSelect"
-											name="tags"
-											multiple>
-										<option th:each="tag : ${tags}"
-												th:value="${tag.id}"
-												th:text="${tag.descrizione}">
-										</option>
-									</select>
-								</div>
-								 <!-- 
-								<div class="col-12 col-md-4">
+								<div class="col-12 col-md-5">
 									<label class="form-label">Confluenze</label>
 									<select class="form-select tj-input"
 											id="confluenzeSelect"
@@ -148,7 +134,6 @@
 											multiple>
 									</select>
 								</div>
-								 -->
 
 								<div class="col-12 col-md-2">
 								    <label class="form-label">Voto Setup</label>
@@ -163,6 +148,34 @@
 								    </select>
 								</div>
 							</div>
+							
+							<div class="row g-3">
+								<div class="col-12 col-md-6">
+									<label class="form-label">Tags</label>
+									<select class="form-select tj-input"
+											id="tagsSelect"
+											name="tags"
+											multiple>
+										<option th:each="tag : ${tags}"
+												th:value="${tag.id}"
+												th:text="${tag.descrizione}">
+										</option>
+									</select>
+								</div>
+								
+								<div class="col-12 col-md-6">
+									<label class="form-label">Errors</label>
+									<select class="form-select tj-input"
+											id="errorsSelect"
+											name="errors"
+											multiple>
+										<option th:each="tag : ${errors}"
+												th:value="${tag.id}"
+												th:text="${tag.descrizione}">
+										</option>
+									</select>
+								</div>
+							</div>
 						</div>
 
 						<div class="trade-form-section mb-0">
@@ -171,7 +184,7 @@
 							<div class="row g-3">
 								
 
-								<div class="col-12 col-md-4">
+								<div class="col-12 col-md-6">
 									<label class="form-label">Analisi trade</label>
 									<textarea class="form-control tj-input"
 											  name="analisi"
@@ -179,7 +192,7 @@
 											  placeholder="Cosa hai visto prima dell’ingresso?"></textarea>
 								</div>
 
-								<div class="col-12 col-md-4">
+								<div class="col-12 col-md-6">
 									<label class="form-label">Note</label>
 									<textarea class="form-control tj-input"
 											  name="note"
@@ -329,28 +342,12 @@
 								
 								    </select>
 								</div>
-								<!-- 
-								<div class="col-12 col-md-4">
+								<div class="col-12 col-md-5">
 									<label class="form-label">Confluenze</label>
 									<select class="form-select tj-input"
 											id="editConfluenzeSelect"
 											name="confluenze"
 											multiple>
-									</select>
-								</div>
-
- 								-->
- 								
- 								<div class="col-12 col-md-5">
-									<label class="form-label">Tags</label>
-									<select class="form-select tj-input"
-											id="editTagsSelect"
-											name="tags"
-											multiple>
-										<option th:each="tag : ${tags}"
-												th:value="${tag.id}"
-												th:text="${tag.descrizione}">
-										</option>
 									</select>
 								</div>
 								
@@ -368,6 +365,35 @@
 								    </select>
 								</div>
 							</div>
+							
+							<div class="row g-3">
+								<div class="col-12 col-md-6">
+									<label class="form-label">Tags</label>
+									<select class="form-select tj-input"
+											id="editTagsSelect"
+											name="tags"
+											multiple>
+										<option th:each="tag : ${tags}"
+												th:value="${tag.id}"
+												th:text="${tag.descrizione}">
+										</option>
+									</select>
+								</div>
+								
+								<div class="col-12 col-md-6">
+									<label class="form-label">Errors</label>
+									<select class="form-select tj-input"
+											id="editErrorsSelect"
+											name="errors"
+											multiple>
+										<option th:each="error : ${errors}"
+												th:value="${error.id}"
+												th:text="${error.descrizione}">
+										</option>
+									</select>
+								</div>
+							</div>		
+							
 						</div>
 
 						<div class="trade-form-section mb-0">

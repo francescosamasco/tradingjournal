@@ -1,6 +1,7 @@
 document.addEventListener("DOMContentLoaded", function () {
 
 	initEditTradeTagsSelect();
+	initEditTradeErrorsSelect(); // ✅ aggiunto
 	initEditTradeConfluenzeSelect();
 	initEditTradeDynamicSelects();
 
@@ -17,6 +18,7 @@ document.addEventListener("DOMContentLoaded", function () {
 ========================= */
 
 let editTagsTomSelect = null;
+let editErrorsTomSelect = null; // ✅ aggiunto
 let editConfluenzeTomSelect = null;
 let currentEditTradeId = null;
 let editBalanceDebounceTimer = null;
@@ -85,6 +87,25 @@ function openEditTradeModal(trade) {
 		splitCsvValue(trade.tags).forEach(function (tag) {
 			editTagsTomSelect.addItem(tag, true);
 		});
+	}
+	
+	if (editErrorsTomSelect) {
+		editErrorsTomSelect.clear(true);
+
+		splitCsvValue(trade.errors).forEach(function (error) {
+			const value = normalizeValue(error);
+
+			if (!editErrorsTomSelect.options[value]) {
+				editErrorsTomSelect.addOption({
+					value: value,
+					text: error
+				});
+			}
+
+			editErrorsTomSelect.addItem(value, true);
+		});
+
+		editErrorsTomSelect.refreshOptions(false);
 	}
 
 	resetEditTradeConfluenzeSelect("Caricamento confluenze...");
@@ -193,6 +214,31 @@ function initEditTradeTagsSelect() {
 		maxItems: null
 	});
 }
+
+/* =========================
+   ERRORS
+========================= */
+
+function initEditTradeErrorsSelect() {
+	const errorsSelect = document.getElementById("editErrorsSelect");
+
+	if (!errorsSelect || typeof TomSelect === "undefined") return;
+
+	if (errorsSelect.tomselect) {
+		editErrorsTomSelect = errorsSelect.tomselect;
+		return;
+	}
+
+	editErrorsTomSelect = new TomSelect(errorsSelect, {
+		plugins: ["remove_button"],
+		create: true,
+		persist: false,
+		createOnBlur: true,
+		placeholder: "Scrivi o seleziona uno o più errori...",
+		maxItems: null
+	});
+}
+
 /* =========================
    CONFLUENZE
 ========================= */
@@ -355,6 +401,10 @@ function resetEditTradeDynamicSelects() {
 
 	if (editTagsTomSelect) {
 		editTagsTomSelect.clear(true);
+	}
+
+	if (editErrorsTomSelect) {
+		editErrorsTomSelect.clear(true);
 	}
 
 	const form = document.getElementById("editTradeForm");

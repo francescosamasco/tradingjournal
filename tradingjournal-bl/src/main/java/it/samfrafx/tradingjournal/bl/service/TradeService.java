@@ -17,11 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import it.samfrafx.tradingjournal.bl.PeriodEnum;
-import it.samfrafx.tradingjournal.bl.data.Config;
 import it.samfrafx.tradingjournal.bl.data.TradeData;
-import it.samfrafx.tradingjournal.bl.data.TradingConfig;
-import it.samfrafx.tradingjournal.bl.data.enums.SetupEnum;
-import it.samfrafx.tradingjournal.bl.data.enums.StrutturaEnum;
 import it.samfrafx.tradingjournal.bl.data.enums.TipoMovimentoEnum;
 import it.samfrafx.tradingjournal.bl.data.enums.TipoTrade;
 import it.samfrafx.tradingjournal.bl.data.enums.VotoSetupEnum;
@@ -508,6 +504,7 @@ public class TradeService {
         );
 
         trade.setTags(data.getTags());
+        trade.setErrors(data.getErrors());
         trade.setAnalisi(data.getAnalisi());
         trade.setNote(data.getNote());
 
@@ -601,6 +598,24 @@ public class TradeService {
     	
         return tradeRepository.findByAccount( account.getUuid() ).stream()
         		.map( t -> t.getTags() )
+                .filter(Objects::nonNull)
+                .flatMap(tags -> Arrays.stream(tags.split(",")))
+                .map(String::trim)
+                .filter(tag -> !tag.isBlank())
+                .map(String::toLowerCase)
+                .distinct()
+                .sorted()
+                .collect(Collectors.toList());
+    }
+    
+  //tas filtrare per strategia
+    public List<String> getAllErrors(String accountId) {
+    	
+    	Account account = this.accountRepository.findById(accountId)
+    			 .orElseThrow(() -> new IllegalArgumentException("Trade non trovato"));
+    	
+        return tradeRepository.findByAccount( account.getUuid() ).stream()
+        		.map( t -> t.getErrors() )
                 .filter(Objects::nonNull)
                 .flatMap(tags -> Arrays.stream(tags.split(",")))
                 .map(String::trim)
