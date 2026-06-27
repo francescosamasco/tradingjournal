@@ -420,6 +420,7 @@ public class TradeService {
         trade.setVotoSetup(voto.getNumeric());
 
         trade.setTags(data.getTags());
+        trade.setErrors(data.getErrors());
         trade.setAnalisi(data.getAnalisi());
         trade.setNote(data.getNote());
 

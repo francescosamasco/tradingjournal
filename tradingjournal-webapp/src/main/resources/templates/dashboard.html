@@ -760,18 +760,26 @@
 												</td>
 												
 												<td class="text-end fw-bold">
-	
-												    <a th:if="${t.analisi != null and !#strings.isEmpty(t.analisi)}"
-												       th:href="${t.analisi}"
-												       th:text="'link'"
-												       target="_blank">
-												    </a>
-												
-												    <span th:unless="${t.analisi != null and !#strings.isEmpty(t.analisi)}">
-												        --
-												    </span>
-												
-												</td>
+
+	<div th:if="${t.analisi != null and !#strings.isEmpty(t.analisi)}"
+	     th:with="links=${#strings.listSplit(t.analisi, ' ')}">
+
+		<a th:each="link, stat : ${links}"
+		   th:if="${link != null and !#strings.isEmpty(#strings.trim(link))}"
+		   th:href="${#strings.trim(link)}"
+		   th:text="${'link ' + stat.count}"
+		   target="_blank"
+		   rel="noopener noreferrer"
+		   class="d-block">
+		</a>
+
+	</div>
+
+	<span th:unless="${t.analisi != null and !#strings.isEmpty(t.analisi)}">
+		--
+	</span>
+
+</td>
 	
 											</tr>
 	
